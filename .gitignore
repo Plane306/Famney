@@ -1,2 +1,2 @@
-echo "target/" > .gitignore
-echo ".vscode/" >> .gitignore
+echo target/ > .gitignore
+echo .vscode/ >> .gitignore
