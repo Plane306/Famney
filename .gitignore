@@ -1,2 +1,0 @@
-echo target/ > .gitignore
-echo .vscode/ >> .gitignore
