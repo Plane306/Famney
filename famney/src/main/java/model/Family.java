@@ -119,7 +119,7 @@ public class Family implements Serializable {
         this.lastModifiedDate = new Date();
     }
     
-    // Business logic methods
+    // Essential business logic methods only
     
     // Increment member count when new member joins
     public void incrementMemberCount() {
@@ -143,21 +143,6 @@ public class Family implements Serializable {
     // Check if family has multiple members
     public boolean hasMultipleMembers() {
         return memberCount > 1;
-    }
-    
-    // Get family age in days
-    public long getFamilyAgeInDays() {
-        if (createdDate == null) {
-            return 0;
-        }
-        Date now = new Date();
-        long diffInMillies = Math.abs(now.getTime() - createdDate.getTime());
-        return diffInMillies / (24 * 60 * 60 * 1000);
-    }
-    
-    // Check if user is family head
-    public boolean isUserFamilyHead(String userId) {
-        return familyHead != null && familyHead.equals(userId);
     }
     
     @Override

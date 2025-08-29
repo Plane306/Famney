@@ -5,7 +5,7 @@ import java.util.Date;
 
 // BudgetCategory class (Represents budget allocation per category)
 // Links Budget with Categories for detailed budget breakdown
-class BudgetCategory implements Serializable {
+public class BudgetCategory implements Serializable {
     
     private String budgetCategoryId;
     private String budgetId;
@@ -107,23 +107,11 @@ class BudgetCategory implements Serializable {
         this.lastModifiedDate = new Date();
     }
     
-    // Business logic methods
+    // Essential business logic methods only
     
-    // Get formatted allocated amount
+    // Get formatted allocated amount for display
     public String getFormattedAllocatedAmount() {
         return String.format("$%.2f", allocatedAmount);
-    }
-    
-    // Validate budget category data
-    public boolean isValid() {
-        return budgetId != null && !budgetId.trim().isEmpty() &&
-               categoryId != null && !categoryId.trim().isEmpty() &&
-               allocatedAmount >= 0; // Allow 0 allocation
-    }
-    
-    // Check if allocation amount is positive
-    public boolean hasPositiveAllocation() {
-        return allocatedAmount > 0;
     }
     
     @Override
