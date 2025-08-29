@@ -144,6 +144,16 @@ public class Family implements Serializable {
     public boolean hasMultipleMembers() {
         return memberCount > 1;
     }
+
+    // Get family age in days (useful for R1/R2 analytics)
+    public long getFamilyAgeInDays() {
+        if (createdDate == null) {
+            return 0;
+        }
+        Date now = new Date();
+        long diffInMillies = Math.abs(now.getTime() - createdDate.getTime());
+        return diffInMillies / (24 * 60 * 60 * 1000);
+    }
     
     @Override
     public String toString() {
