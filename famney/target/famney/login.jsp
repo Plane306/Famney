@@ -177,25 +177,22 @@
             }
             
             .divider {
-                text-align: center;
-                margin: 2rem 0;
+                display: flex;
+                align-items: center;
                 color: #666;
-                position: relative;
-            }
-            
-            .divider::before {
-                content: '';
-                position: absolute;
-                top: 50%;
-                left: 0;
-                right: 0;
-                height: 1px;
-                background: #e1e8ed;
+                margin: 2rem 0;
+                gap: 10px;
             }
             
             .divider span {
-                background: white;
-                padding: 0 1rem;
+                flex: 1;
+                height: 1px;
+                background: #e1e8ed;
+            }
+
+            .divider p {
+                margin: 0;
+                white-space: nowrap;
             }
             
             .btn-secondary {
@@ -332,7 +329,9 @@
                 </div>
                 
                 <div class="divider">
-                    <span>or</span>
+                    <span></span>
+                        <p>or</p>
+                    <span></span>
                 </div>
                 
                 <a href="join_family.jsp" class="btn-secondary">Join Existing Family</a>
