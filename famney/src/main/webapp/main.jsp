@@ -352,11 +352,6 @@
                             <span>Update your personal information and password</span>
                         </a>
                         
-                        <a href="member_details.jsp?memberId=<%= user.getUserId() %>" class="feature-link">
-                            <h4>&#128100; My Details</h4>
-                            <span>View your complete profile and permissions</span>
-                        </a>
-                        
                         <% if ("Family Head".equals(user.getRole())) { %>
                             <a href="family_management.jsp" class="feature-link admin-only">
                                 <h4>&#128106; Manage Family</h4>

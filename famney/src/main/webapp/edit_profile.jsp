@@ -289,26 +289,22 @@
                     
                     <div class="form-group">
                         <label for="fullName">Full Name</label>
-                        <input type="text" id="fullName" name="fullName" 
-                               value="<%= user.getFullName() %>" required>
+                        <input type="text" id="fullName" name="fullName" value="<%= user.getFullName() %>" required>
                     </div>
                     
                     <div class="form-group">
                         <label for="email">Email Address</label>
-                        <input type="email" id="email" name="email" 
-                               value="<%= user.getEmail() %>" required>
+                        <input type="email" id="email" name="email" value="<%= user.getEmail() %>" required>
                     </div>
                     
                     <div class="form-group">
                         <label for="password">New Password (Optional)</label>
-                        <input type="password" id="password" name="password" 
-                               placeholder="Leave blank to keep current password">
+                        <input type="password" id="password" name="password" placeholder="Leave blank to keep current password">
                     </div>
                     
                     <div class="form-group">
                         <label>Current Role</label>
-                        <input type="text" value="<%= user.getRole() %>" readonly 
-                               style="background: #f8f9fa; cursor: not-allowed;">
+                        <input type="text" value="<%= user.getRole() %>" style="background: #f8f9fa; cursor: not-allowed;" readonly>
                     </div>
                     
                     <button type="submit" class="btn-primary">Update Profile</button>
