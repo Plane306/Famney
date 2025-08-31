@@ -284,7 +284,7 @@
         
         <div class="main-container">
             <div class="success-card">
-                <div class="success-icon">✓</div>
+                <div class="success-icon">&check;</div>
                 
                 <% if (isNewFamily) { %>
                     <h1>Family Account Created Successfully!</h1>
