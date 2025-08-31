@@ -252,7 +252,7 @@
             
             // Redirect if accessed directly without form submission
             if (action == null || (!isNewFamily && !isJoinFamily)) {
-                response.sendRedirect("index.jsp");
+                response.sendRedirect("login.jsp");
                 return;
             }
             
