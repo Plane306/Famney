@@ -1,5 +1,6 @@
 <%@ page import="model.User"%>
 <%@ page import="model.Family"%>
+<%@ page import="java.util.Date"%>
 
 <html>
     <head>
@@ -47,7 +48,7 @@
                 gap: 2rem;
             }
             
-            .nav-menu a {
+            .nav-menu a, .nav-menu span {
                 color: white;
                 text-decoration: none;
                 padding: 0.5rem 1rem;
@@ -62,54 +63,51 @@
             }
             
             .nav-menu span {
-                color: white;
-                padding: 0.5rem 1rem;
                 font-weight: 600;
                 opacity: 0.9;
             }
             
-            /* Main Content */
+            /* Main Container */
             .main-container {
                 flex: 1;
                 display: flex;
-                align-items: center;
                 justify-content: center;
-                padding: 3rem 2rem;
+                align-items: center;
+                padding: 2rem;
             }
             
             .success-card {
                 background: white;
                 padding: 3rem;
                 border-radius: 20px;
-                box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-                width: 100%;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
                 max-width: 600px;
+                width: 100%;
                 text-align: center;
             }
             
             .success-icon {
                 width: 80px;
                 height: 80px;
-                background: linear-gradient(135deg, #4caf50, #2e7d32);
+                background: linear-gradient(135deg, #28a745, #20c997);
+                color: white;
                 border-radius: 50%;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 margin: 0 auto 2rem;
                 font-size: 2.5rem;
-                color: white;
                 font-weight: bold;
             }
             
             .success-card h1 {
                 color: #2c3e50;
-                font-size: 2.2rem;
+                font-size: 2rem;
                 margin-bottom: 1rem;
-                font-weight: 300;
             }
             
             .success-card p {
-                color: #666;
+                color: #6c757d;
                 font-size: 1.1rem;
                 line-height: 1.6;
                 margin-bottom: 2rem;
@@ -120,6 +118,8 @@
                 padding: 2rem;
                 border-radius: 15px;
                 margin: 2rem 0;
+                text-align: left;
+                border-left: 5px solid #667eea;
             }
             
             .family-info h3 {
@@ -131,9 +131,10 @@
             .info-item {
                 display: flex;
                 justify-content: space-between;
+                align-items: center;
                 margin-bottom: 0.8rem;
                 padding: 0.5rem 0;
-                border-bottom: 1px solid #e1e8ed;
+                border-bottom: 1px solid #e9ecef;
             }
             
             .info-item:last-child {
@@ -142,23 +143,22 @@
             
             .info-label {
                 font-weight: 600;
-                color: #2c3e50;
+                color: #495057;
             }
             
             .info-value {
-                color: #666;
+                color: #2c3e50;
                 font-weight: 500;
             }
             
             .family-code-highlight {
                 background: linear-gradient(135deg, #667eea, #764ba2);
                 color: white;
-                padding: 1rem;
-                border-radius: 10px;
-                font-family: monospace;
-                font-size: 1.2rem;
+                padding: 1.5rem;
+                border-radius: 15px;
+                font-size: 1.8rem;
                 font-weight: bold;
-                letter-spacing: 1px;
+                letter-spacing: 2px;
                 margin: 1.5rem 0;
             }
             
@@ -167,14 +167,13 @@
                 color: #856404;
                 padding: 1rem;
                 border-radius: 10px;
-                border-left: 4px solid #ffc107;
-                margin-bottom: 2rem;
-                text-align: left;
+                margin: 1rem 0;
+                border: 1px solid #ffeaa7;
             }
             
             .code-instruction h4 {
                 margin-bottom: 0.5rem;
-                color: #856404;
+                font-size: 1.1rem;
             }
             
             .btn-primary {
@@ -257,16 +256,25 @@
                 return;
             }
             
-            // Hardcoded sample data for R0 prototype demonstration
+            // Consistent sample data with login.jsp using full constructor
+            Date now = new Date();
             String familyName = "The Smith Family";
-            String fullName = isNewFamily ? "John Smith" : "Jane Smith";
-            String email = isNewFamily ? "john@smith.com" : "jane@smith.com";
             String familyCode = "FAMNEY-12345";
-            String role = isNewFamily ? "Family Head" : "Adult";
             
-            // Store sample user in session for demo
-            User sampleUser = new User(email, "password123", fullName, role, "FAM001");
-            Family sampleFamily = new Family(familyCode, familyName, "john@smith.com");
+            User sampleUser;
+            Family sampleFamily;
+            
+            if (isNewFamily) {
+                // Create Family Head account
+                sampleFamily = new Family("FAM001", familyCode, familyName, "USER001", now, now, true, 1);
+                sampleUser = new User("USER001", "john@smith.com", "password123", "John Smith", "Family Head", "FAM001", now, now, now, true);
+            } else {
+                // Join existing family as Adult member
+                sampleFamily = new Family("FAM001", familyCode, familyName, "USER001", now, now, true, 4);
+                sampleUser = new User("USER002", "jane@smith.com", "password123", "Jane Smith", "Adult", "FAM001", now, now, now, true);
+            }
+            
+            // Store in session for demo
             session.setAttribute("user", sampleUser);
             session.setAttribute("family", sampleFamily);
         %>
@@ -275,7 +283,7 @@
             <div class="nav-container">
                 <a href="index.jsp" class="logo">Famney</a>
                 <nav class="nav-menu">
-                    <span>Welcome, <%= fullName %></span>
+                    <span>Welcome, <%= sampleUser.getFullName() %></span>
                     <a href="main.jsp">Dashboard</a>
                     <a href="logout.jsp">Logout</a>
                 </nav>
@@ -311,6 +319,10 @@
                     <div class="info-item">
                         <span class="info-label">Role:</span>
                         <span class="info-value"><%= sampleUser.getRole() %></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">User ID:</span>
+                        <span class="info-value"><%= sampleUser.getUserId() %></span>
                     </div>
                 </div>
                 
