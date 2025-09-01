@@ -341,7 +341,7 @@
             String categoryId = request.getParameter("id");
             boolean isEditing = "edit".equals(action) && categoryId != null;
             
-            // For R0 prototype - simulate loading category for edit
+            // R0 only: hardcode a sample Category to simulate pre-filled edit form
             Category editCategory = null;
             if (isEditing) {
                 editCategory = new Category(family.getFamilyId(), "Food & Dining", "Expense", true, "Groceries, restaurants, takeaways");
@@ -383,7 +383,7 @@
             <div class="category-form">
                 <div class="form-header">
                     <h1>&#128295; <%= isEditing ? "Edit Category" : "Create New Category" %></h1>
-                    <p><%= isEditing ? "Update the category details below" : "Add a new category to organize your family finances" %></p>
+                    <p><%= isEditing ? "Update the category details below" : "Add a new category to organise your family finances" %></p>
                 </div>
                 
                 <% if (!successMessage.isEmpty()) { %>

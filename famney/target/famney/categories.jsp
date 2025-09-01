@@ -360,10 +360,10 @@
                 return;
             }
             
-            // R0 Prototype: Create sample categories data
+            // Create sample categories data
             List<Category> categories = new ArrayList<>();
             
-            // Default expense categories
+            // Default expense categories from the model entity (Category.java)
             Category cat1 = new Category(family.getFamilyId(), "Food & Dining", "Expense", true, "Groceries, restaurants, takeaways");
             cat1.setCategoryId("CAT001");
             categories.add(cat1);
@@ -467,7 +467,7 @@
             <div class="management-card">
                 <div class="page-header">
                     <h1>&#128295; Category Management</h1>
-                    <p>Organize your family's expenses and income with custom categories</p>
+                    <p>Organise your family's expenses and income with custom categories</p>
                 </div>
                 
                 <div class="category-stats">
@@ -507,7 +507,7 @@
                 <% if (filteredCategories.isEmpty()) { %>
                     <div class="empty-state">
                         <h3>No categories found</h3>
-                        <p>Start by creating your first custom category to organize your family finances.</p>
+                        <p>Start by creating your first custom category to organise your family finances.</p>
                         <% if ("Family Head".equals(user.getRole())) { %>
                             <a href="category_form.jsp" class="btn-add" style="margin-top: 1rem;">Create First Category</a>
                         <% } %>
@@ -588,7 +588,7 @@
         <script>
             function confirmDelete(categoryName) {
                 if (confirm('Are you sure you want to delete "' + categoryName + '"?')) {
-                    alert('Category "' + categoryName + '" would be deleted in full implementation.');
+                    alert('Category "' + categoryName + '" would be deleted in R1 implementation.');
                 }
             }
         </script>
