@@ -131,6 +131,7 @@
             }
             
             .btn-primary {
+                text-align: center;
                 width: 100%;
                 background: linear-gradient(135deg, #667eea, #764ba2);
                 color: white;
@@ -142,6 +143,7 @@
                 cursor: pointer;
                 transition: all 0.3s ease;
                 margin-bottom: 1rem;
+                text-decoration: none;
             }
             
             .btn-primary:hover {
@@ -209,6 +211,21 @@
                     gap: 1rem;
                 }
             }
+                    .budget-actions {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 1rem;
+                        align-items: center;
+                        margin-top: 2rem;
+                        width: 100%;
+                    }
+                    
+                    .budget-actions .btn {
+                        display: block;
+                        width: 80%;
+                        max-width: 300px;
+                        margin: 0;
+                    }
         </style>
     </head>
     
@@ -238,11 +255,16 @@
         <div class="main-container">
             <div class="content-box">
                 <div class="content-header">
-                    <h1>Page Title</h1>
-                    <p>Page description</p>
+                    <h1>Budget Management</h1>
+                    <p>Create or view your family budgets</p>
                 </div>
-                
-                <!-- Fill your content feature here guys -->
+
+
+
+                <div class="budget-actions">
+                    <a href="create_budget.jsp" class="btn btn-primary">Create New Budget</a>
+                    <a href="view_budget.jsp" class="btn btn-secondary">View Existing Budgets</a>
+                </div>
                 
             </div>
         </div>
