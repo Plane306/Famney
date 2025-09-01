@@ -1,10 +1,10 @@
 <%@ page import="model.User"%>
 <%@ page import="model.Family"%>
-<%-- Import your feature model here --%>
+<%@ page import="model.Category"%>
 
 <html>
     <head>
-        <title>Your Feature Title - Famney</title>
+        <title>Category Form - Famney</title>
         <style>
             * {
                 margin: 0;
@@ -76,27 +76,27 @@
                 padding: 2rem;
             }
             
-            .content-box {
+            .category-form {
                 background: white;
                 padding: 3rem;
                 border-radius: 20px;
                 box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-                max-width: 500px;
+                max-width: 600px;
                 width: 100%;
             }
             
-            .content-header {
+            .form-header {
                 text-align: center;
                 margin-bottom: 2rem;
             }
             
-            .content-header h1 {
+            .form-header h1 {
                 color: #2c3e50;
                 font-size: 2rem;
                 margin-bottom: 0.5rem;
             }
             
-            .content-header p {
+            .form-header p {
                 color: #7f8c8d;
                 font-size: 1rem;
             }
@@ -113,7 +113,11 @@
                 font-size: 0.9rem;
             }
             
-            .form-group input {
+            .required {
+                color: #e74c3c;
+            }
+            
+            .form-group input, .form-group select, .form-group textarea {
                 width: 100%;
                 padding: 1rem;
                 border: 2px solid #ecf0f1;
@@ -123,15 +127,109 @@
                 background: #fafafa;
             }
             
-            .form-group input:focus {
+            .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
                 outline: none;
                 border-color: #667eea;
                 background: white;
                 box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
             }
             
+            .form-group textarea {
+                resize: vertical;
+                min-height: 100px;
+            }
+            
+            .type-selection {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 1rem;
+                margin-top: 0.5rem;
+            }
+            
+            .type-option input[type="radio"] {
+                position: absolute;
+                opacity: 0;
+                pointer-events: none;
+            }
+            
+            .type-option label {
+                display: block;
+                padding: 1rem;
+                border: 2px solid #ecf0f1;
+                border-radius: 10px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                background: #fafafa;
+                font-weight: 600;
+                text-align: center;
+            }
+            
+            .type-option input[type="radio"]:checked + label {
+                border-color: #667eea;
+                background: rgba(102, 126, 234, 0.1);
+                color: #667eea;
+            }
+            
+            .type-option label:hover {
+                border-color: #667eea;
+                background: rgba(102, 126, 234, 0.05);
+            }
+            
+            .category-preview {
+                background: #f8f9fa;
+                border: 2px dashed #dee2e6;
+                border-radius: 10px;
+                padding: 1.5rem;
+                text-align: center;
+                margin: 1.5rem 0;
+            }
+            
+            .preview-icon {
+                font-size: 3rem;
+                margin-bottom: 0.5rem;
+                display: block;
+            }
+            
+            .preview-name {
+                font-size: 1.3rem;
+                font-weight: 600;
+                color: #2c3e50;
+                margin-bottom: 0.5rem;
+            }
+            
+            .preview-type {
+                display: inline-block;
+                padding: 0.3rem 0.8rem;
+                border-radius: 15px;
+                font-size: 0.8rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                margin-bottom: 0.5rem;
+            }
+            
+            .preview-expense {
+                background: #ffebee;
+                color: #c62828;
+            }
+            
+            .preview-income {
+                background: #e8f5e8;
+                color: #2e7d32;
+            }
+            
+            .preview-description {
+                color: #7f8c8d;
+                font-style: italic;
+            }
+            
+            .form-actions {
+                display: flex;
+                gap: 1rem;
+                margin-top: 2rem;
+            }
+            
             .btn-primary {
-                width: 100%;
+                flex: 1;
                 background: linear-gradient(135deg, #667eea, #764ba2);
                 color: white;
                 padding: 1rem;
@@ -141,7 +239,6 @@
                 font-weight: 600;
                 cursor: pointer;
                 transition: all 0.3s ease;
-                margin-bottom: 1rem;
             }
             
             .btn-primary:hover {
@@ -150,9 +247,7 @@
             }
             
             .btn-secondary {
-                display: inline-block;
-                text-align: center;
-                width: 100%;
+                flex: 1;
                 background: transparent;
                 color: #667eea;
                 padding: 1rem;
@@ -161,6 +256,8 @@
                 font-size: 1rem;
                 font-weight: 600;
                 text-decoration: none;
+                text-align: center;
+                cursor: pointer;
                 transition: all 0.3s ease;
             }
             
@@ -190,6 +287,12 @@
                 text-align: center;
             }
             
+            .help-text {
+                font-size: 0.85rem;
+                color: #7f8c8d;
+                margin-top: 0.5rem;
+            }
+            
             /* Footer */
             .footer {
                 background: #2c3e50;
@@ -200,13 +303,17 @@
             
             /* Responsive */
             @media (max-width: 768px) {
-                .content-box {
+                .category-form {
                     margin: 1rem;
                     padding: 2rem;
                 }
                 
-                .nav-menu {
-                    gap: 1rem;
+                .type-selection {
+                    grid-template-columns: 1fr;
+                }
+                
+                .form-actions {
+                    flex-direction: column;
                 }
             }
         </style>
@@ -214,7 +321,7 @@
     
     <body>
         <%
-            // Check if user is logged in
+            // Check authentication
             User user = (User) session.getAttribute("user");
             Family family = (Family) session.getAttribute("family");
             
@@ -222,13 +329,50 @@
                 response.sendRedirect("login.jsp");
                 return;
             }
+            
+            // Check permissions
+            if (!"Family Head".equals(user.getRole()) && !"Adult".equals(user.getRole())) {
+                response.sendRedirect("main.jsp");
+                return;
+            }
+            
+            // Determine if editing or creating
+            String action = request.getParameter("action");
+            String categoryId = request.getParameter("id");
+            boolean isEditing = "edit".equals(action) && categoryId != null;
+            
+            // R0 only: hardcode a sample Category to simulate pre-filled edit form
+            Category editCategory = null;
+            if (isEditing) {
+                editCategory = new Category(family.getFamilyId(), "Food & Dining", "Expense", true, "Groceries, restaurants, takeaways");
+                editCategory.setCategoryId(categoryId);
+            }
+            
+            // Handle form submission
+            String submitted = request.getParameter("submitted");
+            String successMessage = "";
+            String errorMessage = "";
+            
+            if ("true".equals(submitted)) {
+                String categoryName = request.getParameter("categoryName");
+                String categoryType = request.getParameter("categoryType");
+                String description = request.getParameter("description");
+                
+                if (categoryName != null && !categoryName.trim().isEmpty() && categoryType != null) {
+                    successMessage = "Category '" + categoryName + "' " + (isEditing ? "updated" : "created") + " successfully!";
+                } else {
+                    errorMessage = "Please fill in all required fields.";
+                }
+            }
         %>
         
         <header class="header">
             <div class="nav-container">
-                <a href="index.jsp" class="logo">Famney</a>
+                <a href="main.jsp" class="logo">Famney</a>
                 <nav class="nav-menu">
-                    <span>Welcome, <%= user.getFullName() %></span>
+                    <span>Family: <%= family.getFamilyName() %></span>
+                    <span><%= user.getFullName() %> (<%= user.getRole() %>)</span>
+                    <a href="categories.jsp">Categories</a>
                     <a href="main.jsp">Dashboard</a>
                     <a href="logout.jsp">Logout</a>
                 </nav>
@@ -236,14 +380,76 @@
         </header>
         
         <div class="main-container">
-            <div class="content-box">
-                <div class="content-header">
-                    <h1>Page Title</h1>
-                    <p>Page description</p>
+            <div class="category-form">
+                <div class="form-header">
+                    <h1>&#128295; <%= isEditing ? "Edit Category" : "Create New Category" %></h1>
+                    <p><%= isEditing ? "Update the category details below" : "Add a new category to organise your family finances" %></p>
                 </div>
                 
-                <!-- Fill your content feature here guys -->
+                <% if (!successMessage.isEmpty()) { %>
+                    <div class="success-message">
+                        <%= successMessage %>
+                    </div>
+                <% } %>
                 
+                <% if (!errorMessage.isEmpty()) { %>
+                    <div class="error-message">
+                        <%= errorMessage %>
+                    </div>
+                <% } %>
+                
+                <form action="category_form.jsp<%= isEditing ? "?action=edit&id=" + categoryId : "" %>" method="post">
+                    <input type="hidden" name="submitted" value="true">
+                    
+                    <div class="form-group">
+                        <label for="categoryName">Category Name <span class="required">*</span></label>
+                        <input type="text" 
+                               id="categoryName" 
+                               name="categoryName" 
+                               value="<%= isEditing && editCategory != null ? editCategory.getCategoryName() : (request.getParameter("categoryName") != null ? request.getParameter("categoryName") : "") %>" 
+                               placeholder="e.g. Food & Dining, Transportation, Salary" 
+                               required maxlength="50">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Category Type <span class="required">*</span></label>
+                        <div class="type-selection">
+                            <div class="type-option">
+                                <input type="radio" 
+                                       id="expense" 
+                                       name="categoryType" 
+                                       value="Expense" 
+                                       <%= (!isEditing || (editCategory != null && "Expense".equals(editCategory.getCategoryType()))) && !"Income".equals(request.getParameter("categoryType")) ? "checked" : "" %> required>
+                                <label for="expense">Expense Category</label>
+                            </div>
+                            <div class="type-option">
+                                <input type="radio" 
+                                       id="income" 
+                                       name="categoryType" 
+                                       value="Income" 
+                                       <%= (isEditing && editCategory != null && "Income".equals(editCategory.getCategoryType())) || "Income".equals(request.getParameter("categoryType")) ? "checked" : "" %> required>
+                                <label for="income">Income Category</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="description">Description (Optional)</label>
+                        <textarea id="description" 
+                                  name="description" 
+                                  placeholder="Brief description of what this category includes..."
+                                  maxlength="200"><%= isEditing && editCategory != null && editCategory.getDescription() != null ? editCategory.getDescription() : (request.getParameter("description") != null ? request.getParameter("description") : "") %></textarea>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">
+                            <%= isEditing ? "&#128190; Update Category" : "&#10004; Create Category" %>
+                        </button>
+                        <a href="categories.jsp" class="btn-secondary">
+                            &#8617; Cancel
+                        </a>
+                    </div>
+                </form>
             </div>
         </div>
         
@@ -252,5 +458,29 @@
                 <p>&copy; 2025 Famney - Family Financial Management System</p>
             </div>
         </footer>
+        
+        <script>
+            // Simple form validation
+            function validateForm() {
+                const name = document.getElementById('categoryName').value.trim();
+                const typeSelected = document.querySelector('input[name="categoryType"]:checked');
+                
+                if (!name) {
+                    alert('Please enter a category name.');
+                    return false;
+                }
+                if (!typeSelected) {
+                    alert('Please select a category type.');
+                    return false;
+                }
+                return true;
+            }
+            
+            document.querySelector('form').addEventListener('submit', function(e) {
+                if (!validateForm()) {
+                    e.preventDefault();
+                }
+            });
+        </script>
     </body>
 </html>
