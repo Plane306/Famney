@@ -191,6 +191,7 @@
     
     <body>
         <%
+            String category = (String) session.getAttribute("selectedCategory");
             // Get current user and family info from session
             User user = (User) session.getAttribute("user");
             Family family = (Family) session.getAttribute("family");
@@ -202,9 +203,7 @@
             }
             
             // Debug information
-            System.out.println("User: " + (user != null ? user.getFullName() : "null"));
-            System.out.println("Family: " + (family != null ? family.getFamilyName() : "null"));
-            System.out.println("Budget: " + (budget != null ? budget.getBudgetName() : "null"));
+
         %>
         
         <header class="header">
@@ -239,6 +238,10 @@
                             <div class="detail-item">
                                 <h4>Month</h4>
                                 <p><%= budget.getMonth() %></p>
+                            </div>
+                            <div class="detail-item">
+                                <h4>Category</h4>
+                                <p><%= category%></p>
                             </div>
                         </div>
                     </div>

@@ -19,6 +19,7 @@
         String budgetName = request.getParameter("name");
         int month = Integer.parseInt(request.getParameter("month"));
         double amount = Double.parseDouble(request.getParameter("budget"));
+        String category = request.getParameter("category");
         
         // Create new budget object
         Budget budget = new Budget(
@@ -30,10 +31,11 @@
             user.getUserId()
         );
         
-        // Store in session and redirect
-        session.setAttribute("currentBudget", budget);
-        response.sendRedirect("view_budget.jsp");
-        return;
+    // Store in session and redirect
+    session.setAttribute("currentBudget", budget);
+    session.setAttribute("selectedCategory", category);
+    response.sendRedirect("view_budget.jsp");
+    return;
     }
 %>
 <html>
@@ -457,7 +459,23 @@
                     <option value="12">December</option>
                 </select>
             </div>
-
+            <div class="form-group" id="categorySelect">
+                <label for="category">Category</label>
+                <select id="category" name="category" required>
+                    <option value="Food & Dining">Food & Dining</option>
+                    <option value="Transportation">Transportation</option>
+                    <option value="Utilities">Utilities</option>
+                    <option value="Entertainment">Entertainment</option>
+                    <option value="Healthcare">Healthcare</option>
+                    <option value="Shopping">Shopping</option>
+                    <option value="Salary">Salary</option>
+                    <option value="Freelance">Freelance</option>
+                    <option value="Allowance">Allowance</option>
+                    <option value="Investment">Investment</option>
+                    <option value="Education">Education</option>
+                    <option value="Pet Care">Pet Care</option>
+                </select>
+            </div>
             <div class="form-group">
                 <label for="budget">Budget Amount ($)</label>
                 <input type="number" id="budget" name="budget" placeholder="0.00" step="0.01" required>
