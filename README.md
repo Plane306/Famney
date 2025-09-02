@@ -12,6 +12,8 @@ Must install these extensions:
 - Setup environment path for Java
 - Download Maven
 - Setup environment path for Maven
+- Reference:
+    - How to set JAVA_HOME environment variable on Windows 10 https://www.qamadness.com/knowledge-base/how-to-install-maven-and-configure-environment-variables/
 
 ## How to Deploy
 1. In the “SERVERS” panel in the bottom left corner, right click on Community Server Connector and press "Create New Server", then press yes at the top and select apache-tomcat-11.0.0-M6
