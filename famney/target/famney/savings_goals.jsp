@@ -1,6 +1,9 @@
 <%@ page import="model.User"%>
 <%@ page import="model.Family"%>
-<%-- Import your feature model here --%>
+<%@ page import="model.SavingsGoal"%>
+<%@ page import="java.util.*"%>
+<%@ page import="java.text.*"%>
+<%@ page contentType="text/html;charset=UTF-8" %>
 
 <html>
     <head>
@@ -18,9 +21,8 @@
                 min-height: 100vh;
                 display: flex;
                 flex-direction: column;
-            }
-            
-            /* Header */
+            }            
+
             .header {
                 background: #2c3e50;
                 padding: 1rem 0;
@@ -65,9 +67,8 @@
             .nav-menu span {
                 font-weight: 600;
                 opacity: 0.9;
-            }
-            
-            /* Main Container */
+            }            
+
             .main-container {
                 flex: 1;
                 display: flex;
@@ -142,6 +143,9 @@
                 cursor: pointer;
                 transition: all 0.3s ease;
                 margin-bottom: 1rem;
+                text-align:center;
+                text-decoration:none;
+                display:inline-block;
             }
             
             .btn-primary:hover {
@@ -188,17 +192,15 @@
                 margin-bottom: 1rem;
                 border: 1px solid #f5c6cb;
                 text-align: center;
-            }
-            
-            /* Footer */
+            }            
+
             .footer {
                 background: #2c3e50;
                 color: white;
                 padding: 2rem;
                 text-align: center;
-            }
-            
-            /* Responsive */
+            }            
+
             @media (max-width: 768px) {
                 .content-box {
                     margin: 1rem;
@@ -209,6 +211,15 @@
                     gap: 1rem;
                 }
             }
+
+            .goal-card{border:1px solid #eee;border-radius:14px;padding:14px;margin:10px 0;box-shadow:0 2px 6px rgba(0,0,0,.04)}
+            .bar{height:10px;background:#eee;border-radius:999px;overflow:hidden;margin:8px 0}
+            .fill{height:100%;background:linear-gradient(90deg,#667eea,#764ba2)}
+            .muted{color:#666}
+            .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
+            .row input[type="number"]{padding:8px;border:1px solid #ddd;border-radius:8px;width:120px}
+            .row button{padding:8px 12px;border-radius:8px;border:1px solid #ccd;background:#f6f7ff;cursor:pointer}
+            .row button:hover{background:#eef}
         </style>
     </head>
     
@@ -222,6 +233,43 @@
                 response.sendRedirect("login.jsp");
                 return;
             }
+        %>
+
+        <!-- Goals init + inline action -->
+        <%
+            @SuppressWarnings("unchecked")
+            List<SavingsGoal> goals = (List<SavingsGoal>) application.getAttribute("goals");
+            if (goals == null) {
+                goals = new ArrayList<SavingsGoal>();
+                application.setAttribute("goals", goals);
+            }
+
+            String addId = request.getParameter("addId");
+            String addAmtStr = request.getParameter("addAmt");
+            String flash = null, err = null;
+
+            if (addId != null && addAmtStr != null) {
+                try {
+                    double addAmt = Double.parseDouble(addAmtStr);
+                    boolean found = false;
+                    for (SavingsGoal g : goals) {
+                        if (addId.equals(g.getGoalId())) {
+                            g.addToSavings(addAmt);
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (found) {
+                        flash = "Added $" + new java.text.DecimalFormat("#,##0.00").format(addAmt) + " to goal.";
+                    } else {
+                        err = "Goal not found.";
+                    }
+                } catch (NumberFormatException nfe) {
+                    err = "Please enter a valid number.";
+                }
+            }
+
+            SimpleDateFormat dateFmt = new SimpleDateFormat("yyyy-MM-dd");
         %>
         
         <header class="header">
@@ -237,13 +285,44 @@
         
         <div class="main-container">
             <div class="content-box">
-                <div class="content-header">
-                    <h1>Page Title</h1>
-                    <p>Page description</p>
+                <!-- Header content -->
+                <div class="content-header" style="text-align:left">
+                    <h1>🎯 Savings Goals</h1>
+                    <p>Track and update your family's savings targets.</p>
+                    <a href="goal_form.jsp" class="btn-primary" style="margin-top:10px;width:auto;">+ New Goal</a>
                 </div>
-                
-                <!-- Fill your content feature here guys -->
-                
+
+                <!-- Flash messages -->
+                <% if (flash != null) { %><div class="success-message"><%= flash %></div><% } %>
+                <% if (err != null)   { %><div class="error-message"><%= err %></div><% } %>
+
+                <!-- Goals list -->
+                <% if (goals.isEmpty()) { %>
+                    <div class="goal-card">
+                        <p class="muted">No goals yet. Click <strong>+ New Goal</strong> to create one.</p>
+                    </div>
+                <% } %>
+
+                <% for (SavingsGoal g : goals) { 
+                       double pct = g.getProgressPercentage();
+                       String due = (g.getTargetDate() == null) ? "—" : dateFmt.format(g.getTargetDate());
+                %>
+                    <div class="goal-card">
+                        <h3><%= g.getGoalIcon() %> <%= g.getGoalName() %></h3>
+                        <div class="bar"><div class="fill" style="width:<%= pct %>%"></div></div>
+                        <p><strong><%= g.getFormattedCurrentAmount() %></strong> / <%= g.getFormattedTargetAmount() %>
+                           &nbsp;•&nbsp; <%= g.getStatusDisplay() %></p>
+                        <p class="muted">Due: <%= due %> &nbsp;|&nbsp; Remaining: <%= g.getFormattedRemainingAmount() %></p>
+
+                        <form class="row" method="get" action="savings_goals.jsp">
+                            <input type="hidden" name="addId" value="<%= g.getGoalId() %>" />
+                            <input type="number" step="0.01" min="0" name="addAmt" placeholder="Add amount" />
+                            <button type="submit">Add</button>
+                        </form>
+                    </div>
+                <% } %>
+
+                <a class="btn-secondary" href="main.jsp" style="margin-top:14px;">🏠 Back to Dashboard</a>
             </div>
         </div>
         

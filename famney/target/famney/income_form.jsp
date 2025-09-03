@@ -238,79 +238,11 @@
         <div class="main-container">
             <div class="content-box">
                 <div class="content-header">
-                    <h1>Income Form</h1>
-                    <p>Add income</p>
+                    <h1>Page Title</h1>
+                    <p>Page description</p>
                 </div>
                 
                 <!-- Fill your content feature here guys -->
-                <form action="processAmount.jsp" method="post">
-                    <!-- Amount input -->
-                    <label for="amount">Enter Amount:</label>
-                    <input type="number" id="amount" name="amount" 
-                        step="0.01" min="0" placeholder="0.00" required />
-                    <br><br>
-
-                    <!-- Currency dropdown -->
-                    <label for="currency">Select Currency:</label>
-                    <select id="currency" name="currency" required>
-                        <option value="USD">$ - US Dollar</option>
-                        <option value="EUR">€ - Euro</option>
-                        <option value="AUD">A$ - Australian Dollar</option>
-                        <option value="JPY">¥ - Japanese Yen</option>
-                    </select>
-                    <br><br>
-
-                    <!-- Family member dropdown -->
-                    <label for="family">Select Family Member:</label>
-                    <select id="family" name="family" required>
-                        <option value="" disabled selected>-- Choose a member --</option>
-                        <option value="father">Father</option>
-                        <option value="mother">Mother</option>
-                        <option value="spouse">Spouse</option>
-                        <option value="son">Son</option>
-                        <option value="daughter">Daughter</option>
-                    </select>
-                    <br><br>
-
-                    <!-- Description text -->
-                    <label for="description">Description:</label>
-                    <textarea id="description" name="description" rows="3" cols="30" 
-                            placeholder="Enter description here..." required></textarea>
-                    <br><br>
-
-                    <!-- Date picker -->
-                    <label for="date">Select Date:</label>
-                    <input type="date" id="date" name="date" required />
-                    <br><br>
-
-                    <!-- Recurring checkbox -->
-                    <label>
-                        <input type="checkbox" id="recurring" name="recurring" onchange="toggleFrequency()" />
-                        Is this income recurring?
-                    </label>
-                    <br><br>
-
-                    <!-- Frequency dropdown (hidden initially) -->
-                    <div id="frequencyDiv" style="display:none;">
-                        <label for="frequency">Frequency:</label>
-                        <select id="frequency" name="frequency">
-                            <option value="daily">Daily</option>
-                            <option value="weekly">Weekly</option>
-                            <option value="monthly">Monthly</option>
-                            <option value="yearly">Yearly</option>
-                        </select>
-                    </div>
-                    <br>
-
-                    <button type="submit">Submit</button>
-                </form>
-                
-                <script>
-                function toggleFrequency() {
-                    var check = document.getElementById("recurring").checked;
-                    document.getElementById("frequencyDiv").style.display = check ? "block" : "none";
-                }
-                </script>
                 
             </div>
         </div>

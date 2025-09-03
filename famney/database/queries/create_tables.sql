@@ -4,6 +4,8 @@
 DROP TABLE IF EXISTS Categories;
 DROP TABLE IF EXISTS Users;
 DROP TABLE IF EXISTS Families;
+DROP TABLE IF EXISTS Budgets;
+DROP TABLE IF EXISTS BudgetCategories;
 
 -- F101: FAMILIES TABLE
 -- Core entity for family groups with unique family codes
@@ -67,3 +69,40 @@ CREATE TABLE Categories (
 -- 8. Cascade Delete: Removing family removes all users and categories
 -- 9. Default Categories: Cannot be deleted (enforced in application logic)
 -- 10. Active Status: Soft delete mechanism for all entities
+
+
+
+-- F103 Budgets Table
+
+CREATE TABLE Budgets (
+    budgetId VARCHAR(8) PRIMARY KEY,
+    familyId VARCHAR(8) NOT NULL,
+    budgetName VARCHAR(100) NOT NULL,
+    month INT NOT NULL CHECK (month >= 1 AND month <= 12),
+    year INT NOT NULL CHECK (year >= 2000),
+    totalAmount DECIMAL(12,2) NOT NULL CHECK (totalAmount >= 0),
+    createdDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    lastModifiedDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    isActive BOOLEAN NOT NULL DEFAULT TRUE,
+
+    -- Foreign key constraint to Families table
+    CONSTRAINT fk_budgets_family FOREIGN KEY (familyId) REFERENCES Families(familyId) ON DELETE CASCADE
+);
+
+-- F104: BUDGET CATEGORIES TABLE
+-- Allocated amounts for each category within a budget
+CREATE TABLE BudgetCategories (
+    budgetId VARCHAR(8) NOT NULL,
+    categoryId VARCHAR(8) NOT NULL,
+    allocatedAmount DECIMAL(12,2) NOT NULL CHECK (allocatedAmount >= 0),
+    createdDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    lastModifiedDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    isActive BOOLEAN NOT NULL DEFAULT TRUE,
+
+    -- Foreign key constraints
+    CONSTRAINT fk_budgetcategories_budget FOREIGN KEY (budgetId) REFERENCES Budgets(budgetId) ON DELETE CASCADE,
+    CONSTRAINT fk_budgetcategories_category FOREIGN KEY (categoryId) REFERENCES Categories(categoryId) ON DELETE CASCADE,
+
+    -- Unique constraint: Each category can only be allocated once per budget
+    CONSTRAINT uk_budget_category UNIQUE (budgetId, categoryId)
+);
