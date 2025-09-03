@@ -4,6 +4,9 @@
 DROP TABLE IF EXISTS Categories;
 DROP TABLE IF EXISTS Users;
 DROP TABLE IF EXISTS Families;
+DROP TABLE IF EXISTS Budgets;
+DROP TABLE IF EXISTS BudgetCategories;
+DROP TABLE IF EXISTS Income;
 
 -- F101: FAMILIES TABLE
 -- Core entity for family groups with unique family codes
@@ -69,12 +72,13 @@ CREATE TABLE Categories (
 -- 10. Active Status: Soft delete mechanism for all entities
 
 
+-- F105 Income Management Table
 CREATE TABLE Income (
     incomeId VARCHAR(8) PRIMARY KEY,
     familyId VARCHAR(8) NOT NULL,
     userId VARCHAR(8) NOT NULL,
     categoryId VARCHAR(8) NOT NULL,
-    amount DECIMAL(10,2) NOT NULL,         -- Changed to DECIMAL for currency amounts
+    amount DECIMAL(10,2) NOT NULL,  
     description VARCHAR(200),
     incomeDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     isRecurring BOOLEAN NOT NULL DEFAULT FALSE,
@@ -83,4 +87,41 @@ CREATE TABLE Income (
     CONSTRAINT fk_income_family FOREIGN KEY (familyId) REFERENCES Families(familyId) ON DELETE CASCADE,
     CONSTRAINT fk_income_user FOREIGN KEY (userId) REFERENCES Users(userId) ON DELETE CASCADE,
     CONSTRAINT fk_income_category FOREIGN KEY (categoryId) REFERENCES Categories(categoryId) ON DELETE CASCADE
+);
+
+
+
+-- F103 Budgets Table
+
+CREATE TABLE Budgets (
+    budgetId VARCHAR(8) PRIMARY KEY,
+    familyId VARCHAR(8) NOT NULL,
+    budgetName VARCHAR(100) NOT NULL,
+    month INT NOT NULL CHECK (month >= 1 AND month <= 12),
+    year INT NOT NULL CHECK (year >= 2000),
+    totalAmount DECIMAL(12,2) NOT NULL CHECK (totalAmount >= 0),
+    createdDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    lastModifiedDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    isActive BOOLEAN NOT NULL DEFAULT TRUE,
+
+    -- Foreign key constraint to Families table
+    CONSTRAINT fk_budgets_family FOREIGN KEY (familyId) REFERENCES Families(familyId) ON DELETE CASCADE
+);
+
+-- F104: BUDGET CATEGORIES TABLE
+-- Allocated amounts for each category within a budget
+CREATE TABLE BudgetCategories (
+    budgetId VARCHAR(8) NOT NULL,
+    categoryId VARCHAR(8) NOT NULL,
+    allocatedAmount DECIMAL(12,2) NOT NULL CHECK (allocatedAmount >= 0),
+    createdDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    lastModifiedDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    isActive BOOLEAN NOT NULL DEFAULT TRUE,
+
+    -- Foreign key constraints
+    CONSTRAINT fk_budgetcategories_budget FOREIGN KEY (budgetId) REFERENCES Budgets(budgetId) ON DELETE CASCADE,
+    CONSTRAINT fk_budgetcategories_category FOREIGN KEY (categoryId) REFERENCES Categories(categoryId) ON DELETE CASCADE,
+
+    -- Unique constraint: Each category can only be allocated once per budget
+    CONSTRAINT uk_budget_category UNIQUE (budgetId, categoryId)
 );

@@ -23,6 +23,6 @@ steps:
 
 - task: PublishBuildArtifacts@1
   inputs:
-    PathtoPublish: 'famney/target'
+    PathtoPublish: 'famney'
     ArtifactName: 'drop'
     publishLocation: 'Container'
