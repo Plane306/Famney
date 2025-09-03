@@ -248,7 +248,7 @@
                 <% } else { %>
                     <div class="budget-info" style="text-align: center;">
                         <h3>No Budget Found</h3>
-                        <p>You haven't created a budget yet.</p>
+                        <p>You have not created a budget yet.</p>
                         <a href="create_budget.jsp" class="btn-primary">Create New Budget</a>
                     </div>
                 <% } %>
