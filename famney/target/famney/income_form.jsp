@@ -305,6 +305,13 @@
                     <button type="submit">Submit</button>
                 </form>
                 
+                <script>
+                function toggleFrequency() {
+                    var check = document.getElementById("recurring").checked;
+                    document.getElementById("frequencyDiv").style.display = check ? "block" : "none";
+                }
+                </script>
+                
             </div>
         </div>
         
