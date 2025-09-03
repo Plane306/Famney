@@ -67,3 +67,20 @@ CREATE TABLE Categories (
 -- 8. Cascade Delete: Removing family removes all users and categories
 -- 9. Default Categories: Cannot be deleted (enforced in application logic)
 -- 10. Active Status: Soft delete mechanism for all entities
+
+
+CREATE TABLE Income (
+    incomeId VARCHAR(8) PRIMARY KEY,
+    familyId VARCHAR(8) NOT NULL,
+    userId VARCHAR(8) NOT NULL,
+    categoryId VARCHAR(8) NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,         -- Changed to DECIMAL for currency amounts
+    description VARCHAR(200),
+    incomeDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    isRecurring BOOLEAN NOT NULL DEFAULT FALSE,
+    
+    -- Foreign key constraints
+    CONSTRAINT fk_income_family FOREIGN KEY (familyId) REFERENCES Families(familyId) ON DELETE CASCADE,
+    CONSTRAINT fk_income_user FOREIGN KEY (userId) REFERENCES Users(userId) ON DELETE CASCADE,
+    CONSTRAINT fk_income_category FOREIGN KEY (categoryId) REFERENCES Categories(categoryId) ON DELETE CASCADE
+);
