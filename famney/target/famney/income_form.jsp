@@ -245,30 +245,19 @@
                 <!-- Fill your content feature here guys -->
                 <form action="processAmount.jsp" method="post">
                     <!-- Amount input -->
-                    <label for="amount">Enter Amount:</label>
+                    <label for="amount">Enter Amount: $</label>
                     <input type="number" id="amount" name="amount" 
                         step="0.01" min="0" placeholder="0.00" required />
-                    <br><br>
-
-                    <!-- Currency dropdown -->
-                    <label for="currency">Select Currency:</label>
-                    <select id="currency" name="currency" required>
-                        <option value="USD">$ - US Dollar</option>
-                        <option value="EUR">€ - Euro</option>
-                        <option value="AUD">A$ - Australian Dollar</option>
-                        <option value="JPY">¥ - Japanese Yen</option>
-                    </select>
                     <br><br>
 
                     <!-- Family member dropdown -->
                     <label for="family">Select Family Member:</label>
                     <select id="family" name="family" required>
                         <option value="" disabled selected>-- Choose a member --</option>
-                        <option value="father">Father</option>
-                        <option value="mother">Mother</option>
-                        <option value="spouse">Spouse</option>
-                        <option value="son">Son</option>
-                        <option value="daughter">Daughter</option>
+                        <option value="Family Head">Family Head</option>
+                        <option value="Adult">Adult</option>
+                        <option value="Teen">Teen</option>
+                        <option value="Kid">Kid</option>
                     </select>
                     <br><br>
 
