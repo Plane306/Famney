@@ -108,7 +108,7 @@ CREATE TABLE Budgets (
     CONSTRAINT fk_budgets_family FOREIGN KEY (familyId) REFERENCES Families(familyId) ON DELETE CASCADE
 );
 
--- F104: BUDGET CATEGORIES TABLE
+-- F103: BUDGET CATEGORIES TABLE
 -- Allocated amounts for each category within a budget
 CREATE TABLE BudgetCategories (
     budgetId VARCHAR(8) NOT NULL,
