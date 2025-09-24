@@ -260,12 +260,6 @@
         <option value="Utilities">Utilities</option>
     </select><br/><br/>
 
-    Member:
-    <select name="userId" required>
-        <option value="">--Select--</option>
-        <option value="Alice">Alice</option>
-        <option value="Bob">Bob</option>
-    </select><br/><br/>
 
     <input type="submit" value="Add Expense"/>
 </form>
