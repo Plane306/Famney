@@ -1,3 +1,4 @@
+controller\ExpenseServlet.class
 model\Budget.class
 model\Category.class
 model\Income.class
