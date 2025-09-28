@@ -1,7 +1,8 @@
 <%@ page import="model.User"%>
 <%@ page import="model.Family"%>
 <%@ page import="model.Budget"%>
-
+<%@ page import="model.Category"%>
+<%@ page import="java.util.*" %>
 
 <%
     // Get current user and family info from session
@@ -31,12 +32,54 @@
             user.getUserId()
         );
         
-    // Store in session and redirect
-    session.setAttribute("currentBudget", budget);
-    session.setAttribute("selectedCategory", category);
-    response.sendRedirect("view_budget.jsp");
-    return;
+        // Store in session and redirect
+        session.setAttribute("currentBudget", budget);
+        session.setAttribute("selectedCategory", category);
+        response.sendRedirect("view_budget.jsp");
+        return;
     }
+
+    // Prepopulated categories (copied exactly from categories.jsp)
+    List<Category> categories = new ArrayList<>();
+    // Default expense categories from the model entity (Category.java)
+    Category cat1 = new Category(family.getFamilyId(), "Food & Dining", "Expense", true, "Groceries, restaurants, takeaways");
+    cat1.setCategoryId("CAT001");
+    categories.add(cat1);
+    Category cat2 = new Category(family.getFamilyId(), "Transportation", "Expense", true, "Petrol, public transport, car maintenance");
+    cat2.setCategoryId("CAT002");
+    categories.add(cat2);
+    Category cat3 = new Category(family.getFamilyId(), "Utilities", "Expense", true, "Electricity, water, gas, internet");
+    cat3.setCategoryId("CAT003");
+    categories.add(cat3);
+    Category cat4 = new Category(family.getFamilyId(), "Entertainment", "Expense", true, "Movies, games, hobbies");
+    cat4.setCategoryId("CAT004");
+    categories.add(cat4);
+    Category cat5 = new Category(family.getFamilyId(), "Healthcare", "Expense", true, "Medical expenses, insurance");
+    cat5.setCategoryId("CAT005");
+    categories.add(cat5);
+    Category cat6 = new Category(family.getFamilyId(), "Shopping", "Expense", true, "Clothes, electronics, household items");
+    cat6.setCategoryId("CAT006");
+    categories.add(cat6);
+    // Default income categories  
+    Category cat7 = new Category(family.getFamilyId(), "Salary", "Income", true, "Monthly salary from employment");
+    cat7.setCategoryId("CAT007");
+    categories.add(cat7);
+    Category cat8 = new Category(family.getFamilyId(), "Freelance", "Income", true, "Freelance work and contracts");
+    cat8.setCategoryId("CAT008");
+    categories.add(cat8);
+    Category cat9 = new Category(family.getFamilyId(), "Allowance", "Income", true, "Pocket money and allowances");
+    cat9.setCategoryId("CAT009");
+    categories.add(cat9);
+    Category cat10 = new Category(family.getFamilyId(), "Investment", "Income", true, "Dividends, interest, capital gains");
+    cat10.setCategoryId("CAT010");
+    categories.add(cat10);
+    // Custom categories (non-default examples)
+    Category cat11 = new Category(family.getFamilyId(), "Education", "Expense", false, "School fees, books, courses");
+    cat11.setCategoryId("CAT011");
+    categories.add(cat11);
+    Category cat12 = new Category(family.getFamilyId(), "Pet Care", "Expense", false, "Pet food, vet bills, grooming");
+    cat12.setCategoryId("CAT012");
+    categories.add(cat12);
 %>
 <html>
     <head>
@@ -462,18 +505,10 @@
             <div class="form-group" id="categorySelect">
                 <label for="category">Category</label>
                 <select id="category" name="category" required>
-                    <option value="Food & Dining">Food & Dining</option>
-                    <option value="Transportation">Transportation</option>
-                    <option value="Utilities">Utilities</option>
-                    <option value="Entertainment">Entertainment</option>
-                    <option value="Healthcare">Healthcare</option>
-                    <option value="Shopping">Shopping</option>
-                    <option value="Salary">Salary</option>
-                    <option value="Freelance">Freelance</option>
-                    <option value="Allowance">Allowance</option>
-                    <option value="Investment">Investment</option>
-                    <option value="Education">Education</option>
-                    <option value="Pet Care">Pet Care</option>
+                    <option value="">--Select Category--</option>
+                    <% for (model.Category cat : categories) { %>
+                        <option value="<%= cat.getCategoryId() %>"><%= cat.getCategoryName() %> </option>
+                    <% } %>
                 </select>
             </div>
             <div class="form-group">
@@ -489,5 +524,3 @@
     </div>
 </body>
 </html>
-
-
