@@ -1,16 +1,8 @@
-<<<<<<< Updated upstream
-=======
 
->>>>>>> Stashed changes
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="model.User"%>
 <%@ page import="model.Family"%>
 <%@ page import="java.util.*" %>
-<<<<<<< Updated upstream
-<%-- Import your feature model here --%>
-
-=======
->>>>>>> Stashed changes
 <html>
     <head>
         <title>Record Expense - Famney</title>
@@ -245,33 +237,6 @@
                 <div style="text-align:center; margin-top:2rem;">
                     <a href="expenses.jsp" class="btn-secondary">View All Expenses</a>
                 </div>
-<<<<<<< Updated upstream
-                
-                <!-- Fill your content feature here guys -->
-                <h2>Record Expense</h2>
-
-<form action="ExpenseServlet" method="post">
-    Amount: <input type="number" name="amount" step="0.01" required/><br/><br/>
-    Description: <input type="text" name="description"/><br/><br/>
-    Date: <input type="date" name="expenseDate" required/><br/><br/>
-
-    Category:
-    <select name="categoryId" required>
-        <option value="">--Select--</option>
-        <option value="Food">Food</option>
-        <option value="Transport">Transport</option>
-        <option value="Utilities">Utilities</option>
-    </select><br/><br/>
-
-
-    <input type="submit" value="Add Expense"/>
-</form>
-
-<p><a href="expenses.jsp">View All Expenses</a></p>
-</html>
-
-=======
->>>>>>> Stashed changes
             </div>
         </div>
         <footer class="footer">

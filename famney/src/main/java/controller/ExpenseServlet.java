@@ -33,11 +33,6 @@ public class ExpenseServlet extends HttpServlet {
             exp.setUserId(userId);
             exp.setExpenseDate(expenseDate);
 
-<<<<<<< Updated upstream
-
-            // Redirect to list page
-            response.sendRedirect("expenses.jsp");
-=======
             // Set attributes so they are available in expenses.jsp
             request.setAttribute("category", categoryId);
             request.setAttribute("amount", amount);
@@ -47,13 +42,8 @@ public class ExpenseServlet extends HttpServlet {
             // Forward to expenses.jsp
             RequestDispatcher dispatcher = request.getRequestDispatcher("expenses.jsp");
             dispatcher.forward(request, response);
->>>>>>> Stashed changes
         } catch (Exception e) {
             throw new ServletException(e);
         }
     }
-<<<<<<< Updated upstream
 }
-=======
-}
->>>>>>> Stashed changes
