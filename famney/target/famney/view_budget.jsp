@@ -1,8 +1,7 @@
 <%@ page import="model.User"%>
 <%@ page import="model.Family"%>
 <%@ page import="model.Budget"%>
-<%@ page import="model.Category" %>
-<%@ page import="java.util.*" %>
+
 <html>
     <head>
         <title>View Budget - Famney</title>
@@ -191,9 +190,9 @@
     </head>
     
     <body>
-
         <%
             String category = (String) session.getAttribute("selectedCategory");
+            // Get current user and family info from session
             User user = (User) session.getAttribute("user");
             Family family = (Family) session.getAttribute("family");
             Budget budget = (Budget) session.getAttribute("currentBudget");
@@ -202,54 +201,9 @@
                 response.sendRedirect("login.jsp");
                 return;
             }
+            
+            // Debug information
 
-            // Prepopulated categories (copied from categories.jsp)
-            List<Category> categories = new ArrayList<>();
-            Category cat1 = new Category(family.getFamilyId(), "Food & Dining", "Expense", true, "Groceries, restaurants, takeaways");
-            cat1.setCategoryId("CAT001");
-            categories.add(cat1);
-            Category cat2 = new Category(family.getFamilyId(), "Transportation", "Expense", true, "Petrol, public transport, car maintenance");
-            cat2.setCategoryId("CAT002");
-            categories.add(cat2);
-            Category cat3 = new Category(family.getFamilyId(), "Utilities", "Expense", true, "Electricity, water, gas, internet");
-            cat3.setCategoryId("CAT003");
-            categories.add(cat3);
-            Category cat4 = new Category(family.getFamilyId(), "Entertainment", "Expense", true, "Movies, games, hobbies");
-            cat4.setCategoryId("CAT004");
-            categories.add(cat4);
-            Category cat5 = new Category(family.getFamilyId(), "Healthcare", "Expense", true, "Medical expenses, insurance");
-            cat5.setCategoryId("CAT005");
-            categories.add(cat5);
-            Category cat6 = new Category(family.getFamilyId(), "Shopping", "Expense", true, "Clothes, electronics, household items");
-            cat6.setCategoryId("CAT006");
-            categories.add(cat6);
-            Category cat7 = new Category(family.getFamilyId(), "Salary", "Income", true, "Monthly salary from employment");
-            cat7.setCategoryId("CAT007");
-            categories.add(cat7);
-            Category cat8 = new Category(family.getFamilyId(), "Freelance", "Income", true, "Freelance work and contracts");
-            cat8.setCategoryId("CAT008");
-            categories.add(cat8);
-            Category cat9 = new Category(family.getFamilyId(), "Allowance", "Income", true, "Pocket money and allowances");
-            cat9.setCategoryId("CAT009");
-            categories.add(cat9);
-            Category cat10 = new Category(family.getFamilyId(), "Investment", "Income", true, "Dividends, interest, capital gains");
-            cat10.setCategoryId("CAT010");
-            categories.add(cat10);
-            Category cat11 = new Category(family.getFamilyId(), "Education", "Expense", false, "School fees, books, courses");
-            cat11.setCategoryId("CAT011");
-            categories.add(cat11);
-            Category cat12 = new Category(family.getFamilyId(), "Pet Care", "Expense", false, "Pet food, vet bills, grooming");
-            cat12.setCategoryId("CAT012");
-            categories.add(cat12);
-
-            // Find category name by ID
-            String categoryName = category;
-            for (Category cat : categories) {
-                if (cat.getCategoryId().equals(category)) {
-                    categoryName = cat.getCategoryName();
-                    break;
-                }
-            }
         %>
         
         <header class="header">
@@ -287,7 +241,7 @@
                             </div>
                             <div class="detail-item">
                                 <h4>Category</h4>
-                                <p><%= categoryName %></p>
+                                <p><%= category%></p>
                             </div>
                         </div>
                     </div>
