@@ -1,9 +1,9 @@
+model\BudgetCategory.class
+model\Expense.class
 controller\ExpenseServlet.class
 model\Budget.class
 model\Category.class
 model\Income.class
 model\SavingsGoal.class
 model\User.class
-model\BudgetCategory.class
-model\Expense.class
 model\Family.class

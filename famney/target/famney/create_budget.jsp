@@ -21,7 +21,7 @@
         int month = Integer.parseInt(request.getParameter("month"));
         double amount = Double.parseDouble(request.getParameter("budget"));
         String category = request.getParameter("category");
-        
+
         // Create new budget object
         Budget budget = new Budget(
             family.getFamilyId(),
@@ -31,8 +31,22 @@
             amount,
             user.getUserId()
         );
-        
-        // Store in session and redirect
+
+        // Store all budgets and categories in session
+        List<Budget> allBudgets = (List<Budget>) session.getAttribute("allBudgets");
+        List<String> allCategories = (List<String>) session.getAttribute("allCategories");
+        if (allBudgets == null) {
+            allBudgets = new ArrayList<>();
+        }
+        if (allCategories == null) {
+            allCategories = new ArrayList<>();
+        }
+        allBudgets.add(budget);
+        allCategories.add(category);
+        session.setAttribute("allBudgets", allBudgets);
+        session.setAttribute("allCategories", allCategories);
+
+        // Store current budget and category for immediate use
         session.setAttribute("currentBudget", budget);
         session.setAttribute("selectedCategory", category);
         response.sendRedirect("view_budget.jsp");
@@ -479,7 +493,7 @@
     <div class="budget-container">
         <h2 class="budget-title">Create New Budget</h2>
         
-        <form action="create_budget.jsp" method="POST" class="budget-form">
+    <form action="BudgetServlet" method="POST" class="budget-form">
             <div class="form-group">
                 <label for="name">Budget Name</label>
                 <input type="text" id="name" name="name" placeholder="Enter budget name" required>
@@ -502,6 +516,7 @@
                     <option value="12">December</option>
                 </select>
             </div>
+
             <div class="form-group" id="categorySelect">
                 <label for="category">Category</label>
                 <select id="category" name="category" required>

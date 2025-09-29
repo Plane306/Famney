@@ -161,7 +161,7 @@
                 <p><strong>Amount:</strong> ${amount}</p>
                 <p><strong>Date:</strong> ${date}</p>
                 <p><strong>Description:</strong> ${description}</p>
-            </div>
+                <p><strong>Budget for this category:</strong> $<%= request.getAttribute("categoryBudget") != null ? request.getAttribute("categoryBudget") : "N/A" %></p>            </div>
             <a href="expense_form.jsp" class="btn-primary">Add another expense</a>
         </div>
     </div>

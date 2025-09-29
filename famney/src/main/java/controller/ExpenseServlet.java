@@ -39,6 +39,24 @@ public class ExpenseServlet extends HttpServlet {
             request.setAttribute("date", new SimpleDateFormat("yyyy-MM-dd").format(expenseDate));
             request.setAttribute("description", description);
 
+            // Get category-specific budget from session
+            double categoryBudget = 0.0;
+            java.util.List budgetCategories = (java.util.List) request.getSession().getAttribute("budgetCategories");
+            if (budgetCategories != null) {
+                for (Object obj : budgetCategories) {
+                    // Use reflection to avoid import issues
+                    try {
+                        String catId = (String) obj.getClass().getMethod("getCategoryId").invoke(obj);
+                        if (catId != null && catId.equals(categoryId)) {
+                            Double allocated = (Double) obj.getClass().getMethod("getAllocatedAmount").invoke(obj);
+                            categoryBudget = allocated != null ? allocated : 0.0;
+                            break;
+                        }
+                    } catch (Exception ignore) {}
+                }
+            }
+            request.setAttribute("categoryBudget", categoryBudget);
+
             // Forward to expenses.jsp
             RequestDispatcher dispatcher = request.getRequestDispatcher("expenses.jsp");
             dispatcher.forward(request, response);
