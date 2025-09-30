@@ -19,7 +19,7 @@ public class ExpenseServlet extends HttpServlet {
         try {
             double amount = Double.parseDouble(request.getParameter("amount"));
             String description = request.getParameter("description");
-            String categoryId = request.getParameter("categoryId");
+            String categoryId = request.getParameter("category");
             String userId = request.getParameter("userId");
 
             Date expenseDate = new SimpleDateFormat("yyyy-MM-dd")

@@ -3,6 +3,11 @@
 <%@ page import="model.Budget"%>
 <%@ page import="model.Category" %>
 <%@ page import="java.util.*" %>
+
+<%
+    // Use centralized categories from session
+    List<Category> categories = (List<Category>) session.getAttribute("categories");
+%>
 <html>
     <head>
         <title>View Budget - Famney</title>
@@ -204,43 +209,6 @@
             }
 
             // Prepopulated categories (copied from categories.jsp)
-            List<Category> categories = new ArrayList<>();
-            Category cat1 = new Category(family.getFamilyId(), "Food & Dining", "Expense", true, "Groceries, restaurants, takeaways");
-            cat1.setCategoryId("CAT001");
-            categories.add(cat1);
-            Category cat2 = new Category(family.getFamilyId(), "Transportation", "Expense", true, "Petrol, public transport, car maintenance");
-            cat2.setCategoryId("CAT002");
-            categories.add(cat2);
-            Category cat3 = new Category(family.getFamilyId(), "Utilities", "Expense", true, "Electricity, water, gas, internet");
-            cat3.setCategoryId("CAT003");
-            categories.add(cat3);
-            Category cat4 = new Category(family.getFamilyId(), "Entertainment", "Expense", true, "Movies, games, hobbies");
-            cat4.setCategoryId("CAT004");
-            categories.add(cat4);
-            Category cat5 = new Category(family.getFamilyId(), "Healthcare", "Expense", true, "Medical expenses, insurance");
-            cat5.setCategoryId("CAT005");
-            categories.add(cat5);
-            Category cat6 = new Category(family.getFamilyId(), "Shopping", "Expense", true, "Clothes, electronics, household items");
-            cat6.setCategoryId("CAT006");
-            categories.add(cat6);
-            Category cat7 = new Category(family.getFamilyId(), "Salary", "Income", true, "Monthly salary from employment");
-            cat7.setCategoryId("CAT007");
-            categories.add(cat7);
-            Category cat8 = new Category(family.getFamilyId(), "Freelance", "Income", true, "Freelance work and contracts");
-            cat8.setCategoryId("CAT008");
-            categories.add(cat8);
-            Category cat9 = new Category(family.getFamilyId(), "Allowance", "Income", true, "Pocket money and allowances");
-            cat9.setCategoryId("CAT009");
-            categories.add(cat9);
-            Category cat10 = new Category(family.getFamilyId(), "Investment", "Income", true, "Dividends, interest, capital gains");
-            cat10.setCategoryId("CAT010");
-            categories.add(cat10);
-            Category cat11 = new Category(family.getFamilyId(), "Education", "Expense", false, "School fees, books, courses");
-            cat11.setCategoryId("CAT011");
-            categories.add(cat11);
-            Category cat12 = new Category(family.getFamilyId(), "Pet Care", "Expense", false, "Pet food, vet bills, grooming");
-            cat12.setCategoryId("CAT012");
-            categories.add(cat12);
 
             // Find category name by ID
             String categoryName = category;
@@ -268,6 +236,8 @@
                 <div class="content-header">
                     <h1>Budget Overview</h1>
                     <p>View and manage your family budget details</p>
+                    <a href="create_budget.jsp" class="btn-primary">Create New Budget</a>
+
                 </div>
 
                 <% 
@@ -286,6 +256,8 @@
                                     }
                                 }
                             }
+                            String[] monthNames = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"};
+                            String monthName = (b.getMonth() >= 1 && b.getMonth() <= 12) ? monthNames[b.getMonth() - 1] : "Unknown";
                 %>
                     <div class="budget-info">
                         <div class="budget-detail">
@@ -299,16 +271,14 @@
                             </div>
                             <div class="detail-item">
                                 <h4>Month</h4>
-                                <p><%= b.getMonth() %></p>
+                                <p><%= monthName %></p>
                             </div>
                             <div class="detail-item">
                                 <h4>Category</h4>
                                 <p><%= catName %></p>
                             </div>
                         </div>
-                        <div style="text-align:center; margin-top:10px;">
-                            <a href="create_budget.jsp" class="btn-primary" style="text-align: left;">Create New Budget</a>
-
+                        <div style="text-align:right; margin-top:10px;">
                             <form action="EditBudgetServlet" method="get" style="display:inline;">
                                 <input type="hidden" name="index" value="<%= i %>" />
                                 <button type="submit" class="btn-primary" style="background:#f1c40f; color:#2c3e50;">Edit</button>
@@ -317,11 +287,11 @@
                                 <input type="hidden" name="index" value="<%= i %>" />
                                 <button type="submit" class="btn-primary" style="background:#e74c3c; color:white;">Delete</button>
                             </form>
-                            
-
                         </div>
+                        <!-- Removed per-budget create button -->
                     </div>
                 <%     }
+
                     } else { %>
                     <div class="budget-info" style="text-align: center;">
                         <h3>No Budget Found</h3>

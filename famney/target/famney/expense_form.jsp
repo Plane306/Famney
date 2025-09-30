@@ -2,7 +2,15 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="model.User"%>
 <%@ page import="model.Family"%>
+<%@ page import="model.Category" %>
 <%@ page import="java.util.*" %>
+
+<%
+    // Use centralized categories from session, fallback if missing
+    List<Category> categories = (List<Category>) session.getAttribute("categories");
+    Family family = (Family) session.getAttribute("family");
+
+%>
 <html>
     <head>
         <title>Record Expense - Famney</title>
@@ -188,7 +196,6 @@
     <body>
         <%
             User user = (User) session.getAttribute("user");
-            Family family = (Family) session.getAttribute("family");
             if (user == null || family == null) {
                 response.sendRedirect("login.jsp");
                 return;
@@ -223,15 +230,15 @@
                         <label for="expenseDate">Date</label>
                         <input type="date" id="expenseDate" name="expenseDate" required />
                     </div>
-                    <div class="form-group">
-                        <label for="categoryId">Category</label>
-                        <select id="categoryId" name="categoryId" required>
-                            <option value="">--Select--</option>
-                            <option value="Food">Food</option>
-                            <option value="Transport">Transport</option>
-                            <option value="Utilities">Utilities</option>
-                        </select>
-                    </div>
+            <div class="form-group" id="categorySelect">
+                <label for="category">Category</label>
+                <select id="category" name="category" required>
+                    <option value="">--Select Category--</option>
+                    <% for (model.Category cat : categories) { %>
+                        <option value="<%= cat.getCategoryId() %>"><%= cat.getCategoryName() %> </option>
+                    <% } %>
+                </select>
+            </div>
                     <button type="submit" class="btn-primary">Add Expense</button>
                 </form>
                 <div style="text-align:center; margin-top:2rem;">

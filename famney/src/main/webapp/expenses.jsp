@@ -2,6 +2,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="model.User"%>
 <%@ page import="model.Family"%>
+<%@ page import="model.Category" %>
 <%@ page import="java.util.*" %>
 <html>
 <head>
@@ -157,7 +158,21 @@
                 <p>See the details of your submitted expense</p>
             </div>
             <div class="expense-details">
-                <p><strong>Category:</strong> ${category}</p>
+                <%-- Get category name from session list --%>
+                <%
+                    List<Category> categories = (List<Category>) session.getAttribute("categories");
+                    String categoryId = (String) request.getAttribute("category");
+                    String categoryName = categoryId;
+                    if (categories != null && categoryId != null) {
+                        for (Category cat : categories) {
+                            if (cat.getCategoryId().equals(categoryId)) {
+                                categoryName = cat.getCategoryName();
+                                break;
+                            }
+                        }
+                    }
+                %>
+                <p><strong>Category:</strong> <%= categoryName %></p>
                 <p><strong>Amount:</strong> ${amount}</p>
                 <p><strong>Date:</strong> ${date}</p>
                 <p><strong>Description:</strong> ${description}</p>
