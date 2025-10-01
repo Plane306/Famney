@@ -25,10 +25,14 @@ public class ConnServlet extends HttpServlet {
     private Connection conn;
     
     // Famney DAO Managers
+    @SuppressWarnings("unused")
     private UserManager userManager;
+    @SuppressWarnings("unused")
     private FamilyManager familyManager;
+    @SuppressWarnings("unused")
     private CategoryManager categoryManager;
     private BudgetManager budgetManager;
+    @SuppressWarnings("unused")
     private ExpenseManager expenseManager;
 
     

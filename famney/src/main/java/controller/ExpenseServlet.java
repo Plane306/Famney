@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.List;
 
 @WebServlet("/ExpenseServlet")
+@SuppressWarnings("unchecked")
 public class ExpenseServlet extends HttpServlet {
 
     // Helper to get expenses list from session
@@ -33,6 +34,7 @@ public class ExpenseServlet extends HttpServlet {
     }
 
     // READ: Get all expenses
+    @SuppressWarnings("unused")
     private List<Expense> getAllExpenses(HttpSession session) {
         return getExpenses(session);
     }
