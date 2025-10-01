@@ -27,3 +27,9 @@ steps:
     ArtifactName: 'drop'
     publishLocation: 'Container'
 
+- task: Maven@3
+  inputs:
+    mavenPomFile: 'pom.xml'
+    goals: 'test'
+    publishJUnitResults: true
+    testResultsFiles: '**/TEST-*.xml'
