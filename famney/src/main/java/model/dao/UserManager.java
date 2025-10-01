@@ -26,10 +26,8 @@ public class UserManager {
     // Create new user in database
     // Generates user ID automatically and hashes password
     // Returns true if successful, false if failed (duplicate email)
+    // Uses retry logic if duplicate userId occurs (2-layer prevention)
     public boolean createUser(User user) throws SQLException {
-        // Generate unique user ID
-        user.setUserId(IdGenerator.generateUserId());
-        
         // Hash password before storing
         String hashedPassword = PasswordUtil.hashPassword(user.getPassword());
         
@@ -37,28 +35,56 @@ public class UserManager {
                      "joinDate, createdDate, lastModifiedDate, isActive) " +
                      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, user.getUserId());
-            stmt.setString(2, user.getEmail().trim());
-            stmt.setString(3, hashedPassword);
-            stmt.setString(4, user.getFullName().trim());
-            stmt.setString(5, user.getRole());
-            stmt.setString(6, user.getFamilyId());
-            stmt.setTimestamp(7, new Timestamp(System.currentTimeMillis()));
-            stmt.setTimestamp(8, new Timestamp(System.currentTimeMillis()));
-            stmt.setTimestamp(9, new Timestamp(System.currentTimeMillis()));
-            stmt.setBoolean(10, true);
+        // Try up to 3 times in case of duplicate userId
+        int maxAttempts = 3;
+        for (int attempt = 0; attempt < maxAttempts; attempt++) {
+            // Generate unique user ID for each attempt
+            user.setUserId(IdGenerator.generateUserId());
             
-            int rowsAffected = stmt.executeUpdate();
-            return rowsAffected > 0;
-            
-        } catch (SQLException e) {
-            // Check if error is due to duplicate email
-            if (e.getMessage().contains("UNIQUE constraint failed")) {
-                return false;
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setString(1, user.getUserId());
+                stmt.setString(2, user.getEmail().trim());
+                stmt.setString(3, hashedPassword);
+                stmt.setString(4, user.getFullName().trim());
+                stmt.setString(5, user.getRole());
+                stmt.setString(6, user.getFamilyId());
+                stmt.setTimestamp(7, new Timestamp(System.currentTimeMillis()));
+                stmt.setTimestamp(8, new Timestamp(System.currentTimeMillis()));
+                stmt.setTimestamp(9, new Timestamp(System.currentTimeMillis()));
+                stmt.setBoolean(10, true);
+                
+                int rowsAffected = stmt.executeUpdate();
+                return rowsAffected > 0;
+                
+            } catch (SQLException e) {
+                String errorMsg = e.getMessage();
+                
+                // If duplicate email - return false immediately (no retry)
+                if (errorMsg.contains("UNIQUE constraint failed: Users.email")) {
+                    return false;
+                }
+                
+                // If duplicate userId - retry with new ID
+                if (errorMsg.contains("UNIQUE constraint failed: Users.userId")) {
+                    if (attempt == maxAttempts - 1) {
+                        // Last attempt failed - return false
+                        return false;
+                    }
+                    // Continue to next attempt
+                    try {
+                        Thread.sleep(10); // Small delay before retry
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                    }
+                    continue;
+                }
+                
+                // Other SQL errors - throw exception
+                throw e;
             }
-            throw e;
         }
+        
+        return false;
     }
     
     // Find user by email for login

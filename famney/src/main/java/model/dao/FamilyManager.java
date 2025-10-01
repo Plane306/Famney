@@ -23,33 +23,59 @@ public class FamilyManager {
     // Create new family in database
     // Generates family ID and code automatically
     // Returns the created Family object with generated values
+    // Uses retry logic if duplicate familyId or familyCode occurs (2-layer prevention)
     public Family createFamily(Family family) throws SQLException {
-        // Generate unique family ID and code
-        family.setFamilyId(IdGenerator.generateFamilyId());
-        family.setFamilyCode(IdGenerator.generateFamilyCode());
-        
         String sql = "INSERT INTO Families (familyId, familyCode, familyName, familyHead, " +
                      "memberCount, createdDate, lastModifiedDate, isActive) " +
                      "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, family.getFamilyId());
-            stmt.setString(2, family.getFamilyCode());
-            stmt.setString(3, family.getFamilyName().trim());
-            stmt.setString(4, family.getFamilyHead());
-            stmt.setInt(5, 1); // Initial member count is 1 (the family head)
-            stmt.setTimestamp(6, new Timestamp(System.currentTimeMillis()));
-            stmt.setTimestamp(7, new Timestamp(System.currentTimeMillis()));
-            stmt.setBoolean(8, true);
+        // Try up to 3 times in case of duplicate familyId or familyCode
+        int maxAttempts = 3;
+        for (int attempt = 0; attempt < maxAttempts; attempt++) {
+            // Generate unique family ID and code for each attempt
+            family.setFamilyId(IdGenerator.generateFamilyId());
+            family.setFamilyCode(IdGenerator.generateFamilyCode());
             
-            int rowsAffected = stmt.executeUpdate();
-            
-            if (rowsAffected > 0) {
-                return family;
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setString(1, family.getFamilyId());
+                stmt.setString(2, family.getFamilyCode());
+                stmt.setString(3, family.getFamilyName().trim());
+                stmt.setString(4, family.getFamilyHead());
+                stmt.setInt(5, 1); // Initial member count is 1 (the family head)
+                stmt.setTimestamp(6, new Timestamp(System.currentTimeMillis()));
+                stmt.setTimestamp(7, new Timestamp(System.currentTimeMillis()));
+                stmt.setBoolean(8, true);
+                
+                int rowsAffected = stmt.executeUpdate();
+                
+                if (rowsAffected > 0) {
+                    return family;
+                }
+                
+            } catch (SQLException e) {
+                String errorMsg = e.getMessage();
+                
+                // If duplicate familyId or familyCode - retry with new IDs
+                if (errorMsg.contains("UNIQUE constraint failed")) {
+                    if (attempt == maxAttempts - 1) {
+                        // Last attempt failed - return null
+                        return null;
+                    }
+                    // Continue to next attempt
+                    try {
+                        Thread.sleep(10); // Small delay before retry
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                    }
+                    continue;
+                }
+                
+                // Other SQL errors - throw exception
+                throw e;
             }
-            
-            return null;
         }
+        
+        return null;
     }
     
     // Find family by family code
