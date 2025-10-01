@@ -1,10 +1,14 @@
 <%@ page import="model.User"%>
 <%@ page import="model.Family"%>
 <%@ page import="model.Category"%>
+<%@ page import="model.dao.CategoryManager"%>
+
+<!-- Initialise database connection -->
+<jsp:include page="/ConnServlet" flush="true"/>
 
 <html>
     <head>
-        <title>Category Form - Famney</title>
+        <title><%= request.getParameter("action") != null && "edit".equals(request.getParameter("action")) ? "Edit" : "Create" %> Category - Famney</title>
         <style>
             * {
                 margin: 0;
@@ -20,7 +24,6 @@
                 flex-direction: column;
             }
             
-            /* Header */
             .header {
                 background: #2c3e50;
                 padding: 1rem 0;
@@ -67,7 +70,6 @@
                 opacity: 0.9;
             }
             
-            /* Main Container */
             .main-container {
                 flex: 1;
                 display: flex;
@@ -137,6 +139,7 @@
             .form-group textarea {
                 resize: vertical;
                 min-height: 100px;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             }
             
             .type-selection {
@@ -173,53 +176,6 @@
             .type-option label:hover {
                 border-color: #667eea;
                 background: rgba(102, 126, 234, 0.05);
-            }
-            
-            .category-preview {
-                background: #f8f9fa;
-                border: 2px dashed #dee2e6;
-                border-radius: 10px;
-                padding: 1.5rem;
-                text-align: center;
-                margin: 1.5rem 0;
-            }
-            
-            .preview-icon {
-                font-size: 3rem;
-                margin-bottom: 0.5rem;
-                display: block;
-            }
-            
-            .preview-name {
-                font-size: 1.3rem;
-                font-weight: 600;
-                color: #2c3e50;
-                margin-bottom: 0.5rem;
-            }
-            
-            .preview-type {
-                display: inline-block;
-                padding: 0.3rem 0.8rem;
-                border-radius: 15px;
-                font-size: 0.8rem;
-                font-weight: 600;
-                text-transform: uppercase;
-                margin-bottom: 0.5rem;
-            }
-            
-            .preview-expense {
-                background: #ffebee;
-                color: #c62828;
-            }
-            
-            .preview-income {
-                background: #e8f5e8;
-                color: #2e7d32;
-            }
-            
-            .preview-description {
-                color: #7f8c8d;
-                font-style: italic;
             }
             
             .form-actions {
@@ -259,6 +215,7 @@
                 text-align: center;
                 cursor: pointer;
                 transition: all 0.3s ease;
+                display: inline-block;
             }
             
             .btn-secondary:hover {
@@ -293,7 +250,6 @@
                 margin-top: 0.5rem;
             }
             
-            /* Footer */
             .footer {
                 background: #2c3e50;
                 color: white;
@@ -301,7 +257,6 @@
                 text-align: center;
             }
             
-            /* Responsive */
             @media (max-width: 768px) {
                 .category-form {
                     margin: 1rem;
@@ -330,10 +285,21 @@
                 return;
             }
             
-            // Check permissions
+            // Check permissions - only Family Head and Adult can manage categories
             if (!"Family Head".equals(user.getRole()) && !"Adult".equals(user.getRole())) {
-                response.sendRedirect("main.jsp");
+                response.sendRedirect("categories.jsp");
                 return;
+            }
+            
+            // Get flash messages
+            String successMessage = (String) session.getAttribute("successMessage");
+            String errorMessage = (String) session.getAttribute("errorMessage");
+            
+            if (successMessage != null) {
+                session.removeAttribute("successMessage");
+            }
+            if (errorMessage != null) {
+                session.removeAttribute("errorMessage");
             }
             
             // Determine if editing or creating
@@ -341,27 +307,28 @@
             String categoryId = request.getParameter("id");
             boolean isEditing = "edit".equals(action) && categoryId != null;
             
-            // R0 only: hardcode a sample Category to simulate pre-filled edit form
+            // Get category data if editing
             Category editCategory = null;
+            
             if (isEditing) {
-                editCategory = new Category(family.getFamilyId(), "Food & Dining", "Expense", true, "Groceries, restaurants, takeaways");
-                editCategory.setCategoryId(categoryId);
-            }
-            
-            // Handle form submission
-            String submitted = request.getParameter("submitted");
-            String successMessage = "";
-            String errorMessage = "";
-            
-            if ("true".equals(submitted)) {
-                String categoryName = request.getParameter("categoryName");
-                String categoryType = request.getParameter("categoryType");
-                String description = request.getParameter("description");
+                CategoryManager categoryManager = (CategoryManager) session.getAttribute("categoryManager");
                 
-                if (categoryName != null && !categoryName.trim().isEmpty() && categoryType != null) {
-                    successMessage = "Category '" + categoryName + "' " + (isEditing ? "updated" : "created") + " successfully!";
-                } else {
-                    errorMessage = "Please fill in all required fields.";
+                if (categoryManager != null) {
+                    try {
+                        editCategory = categoryManager.findByCategoryId(categoryId);
+                        
+                        // If category not found or is default, redirect to categories page
+                        if (editCategory == null || editCategory.isDefault()) {
+                            session.setAttribute("errorMessage", "Cannot edit this category");
+                            response.sendRedirect("categories.jsp");
+                            return;
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        session.setAttribute("errorMessage", "Error loading category");
+                        response.sendRedirect("categories.jsp");
+                        return;
+                    }
                 }
             }
         %>
@@ -374,7 +341,7 @@
                     <span><%= user.getFullName() %> (<%= user.getRole() %>)</span>
                     <a href="categories.jsp">Categories</a>
                     <a href="main.jsp">Dashboard</a>
-                    <a href="logout.jsp">Logout</a>
+                    <a href="LogoutServlet">Logout</a>
                 </nav>
             </div>
         </header>
@@ -386,59 +353,78 @@
                     <p><%= isEditing ? "Update the category details below" : "Add a new category to organise your family finances" %></p>
                 </div>
                 
-                <% if (!successMessage.isEmpty()) { %>
+                <% if (successMessage != null) { %>
                     <div class="success-message">
                         <%= successMessage %>
                     </div>
                 <% } %>
                 
-                <% if (!errorMessage.isEmpty()) { %>
+                <% if (errorMessage != null) { %>
                     <div class="error-message">
                         <%= errorMessage %>
                     </div>
                 <% } %>
                 
-                <form action="category_form.jsp<%= isEditing ? "?action=edit&id=" + categoryId : "" %>" method="post">
-                    <input type="hidden" name="submitted" value="true">
+                <form action="CategoryServlet" method="post">
+                    <input type="hidden" name="action" value="<%= isEditing ? "edit" : "create" %>">
+                    <% if (isEditing && editCategory != null) { %>
+                        <input type="hidden" name="categoryId" value="<%= editCategory.getCategoryId() %>">
+                    <% } %>
                     
                     <div class="form-group">
                         <label for="categoryName">Category Name <span class="required">*</span></label>
                         <input type="text" 
                                id="categoryName" 
                                name="categoryName" 
-                               value="<%= isEditing && editCategory != null ? editCategory.getCategoryName() : (request.getParameter("categoryName") != null ? request.getParameter("categoryName") : "") %>" 
+                               value="<%= isEditing && editCategory != null ? editCategory.getCategoryName() : "" %>" 
                                placeholder="e.g. Food & Dining, Transportation, Salary" 
-                               required maxlength="50">
+                               required 
+                               maxlength="50">
+                        <div class="help-text">2-50 characters, can include letters, numbers, and symbols</div>
                     </div>
                     
-                    <div class="form-group">
-                        <label>Category Type <span class="required">*</span></label>
-                        <div class="type-selection">
-                            <div class="type-option">
-                                <input type="radio" 
-                                       id="expense" 
-                                       name="categoryType" 
-                                       value="Expense" 
-                                       <%= (!isEditing || (editCategory != null && "Expense".equals(editCategory.getCategoryType()))) && !"Income".equals(request.getParameter("categoryType")) ? "checked" : "" %> required>
-                                <label for="expense">Expense Category</label>
+                    <% if (!isEditing) { %>
+                        <div class="form-group">
+                            <label>Category Type <span class="required">*</span></label>
+                            <div class="type-selection">
+                                <div class="type-option">
+                                    <input type="radio" 
+                                           id="expense" 
+                                           name="categoryType" 
+                                           value="Expense" 
+                                           checked 
+                                           required>
+                                    <label for="expense">&#128179; Expense Category</label>
+                                </div>
+                                <div class="type-option">
+                                    <input type="radio" 
+                                           id="income" 
+                                           name="categoryType" 
+                                           value="Income" 
+                                           required>
+                                    <label for="income">&#128176; Income Category</label>
+                                </div>
                             </div>
-                            <div class="type-option">
-                                <input type="radio" 
-                                       id="income" 
-                                       name="categoryType" 
-                                       value="Income" 
-                                       <%= (isEditing && editCategory != null && "Income".equals(editCategory.getCategoryType())) || "Income".equals(request.getParameter("categoryType")) ? "checked" : "" %> required>
-                                <label for="income">Income Category</label>
-                            </div>
+                            <div class="help-text">Category type cannot be changed after creation</div>
                         </div>
-                    </div>
+                    <% } else if (editCategory != null) { %>
+                        <div class="form-group">
+                            <label>Category Type</label>
+                            <input type="text" 
+                                   value="<%= editCategory.getCategoryType() %>" 
+                                   disabled
+                                   style="background: #e9ecef; cursor: not-allowed;">
+                            <div class="help-text">Category type cannot be changed</div>
+                        </div>
+                    <% } %>
                     
                     <div class="form-group">
                         <label for="description">Description (Optional)</label>
                         <textarea id="description" 
                                   name="description" 
                                   placeholder="Brief description of what this category includes..."
-                                  maxlength="200"><%= isEditing && editCategory != null && editCategory.getDescription() != null ? editCategory.getDescription() : (request.getParameter("description") != null ? request.getParameter("description") : "") %></textarea>
+                                  maxlength="200"><%= isEditing && editCategory != null && editCategory.getDescription() != null ? editCategory.getDescription() : "" %></textarea>
+                        <div class="help-text">Maximum 200 characters</div>
                     </div>
                     
                     <div class="form-actions">
@@ -463,16 +449,25 @@
             // Simple form validation
             function validateForm() {
                 const name = document.getElementById('categoryName').value.trim();
-                const typeSelected = document.querySelector('input[name="categoryType"]:checked');
                 
                 if (!name) {
                     alert('Please enter a category name.');
                     return false;
                 }
-                if (!typeSelected) {
-                    alert('Please select a category type.');
+                
+                if (name.length < 2 || name.length > 50) {
+                    alert('Category name must be between 2 and 50 characters.');
                     return false;
                 }
+                
+                <% if (!isEditing) { %>
+                    const typeSelected = document.querySelector('input[name="categoryType"]:checked');
+                    if (!typeSelected) {
+                        alert('Please select a category type.');
+                        return false;
+                    }
+                <% } %>
+                
                 return true;
             }
             

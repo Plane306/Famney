@@ -1,6 +1,8 @@
 <%@ page import="model.User"%>
 <%@ page import="model.Family"%>
-<%@ page import="java.util.Date"%>
+
+<!-- Initialise database connection -->
+<jsp:include page="/ConnServlet" flush="true"/>
 
 <html>
     <head>
@@ -20,7 +22,6 @@
                 flex-direction: column;
             }
             
-            /* Header */
             .header {
                 background: #2c3e50;
                 padding: 1rem 0;
@@ -62,7 +63,6 @@
                 border-color: rgba(255, 255, 255, 0.3);
             }
             
-            /* Main Container */
             .main-container {
                 flex: 1;
                 display: flex;
@@ -171,7 +171,16 @@
                 text-align: center;
             }
             
-            /* Footer */
+            .success-message {
+                background: #d4edda;
+                color: #155724;
+                padding: 1rem;
+                border-radius: 10px;
+                margin-bottom: 1rem;
+                border: 1px solid #c3e6cb;
+                text-align: center;
+            }
+            
             .footer {
                 background: #2c3e50;
                 color: white;
@@ -179,7 +188,6 @@
                 text-align: center;
             }
             
-            /* Responsive */
             @media (max-width: 768px) {
                 .login-form {
                     margin: 1rem;
@@ -194,6 +202,27 @@
     </head>
     
     <body>
+        <%
+            // Check if already logged in
+            User user = (User) session.getAttribute("user");
+            if (user != null) {
+                response.sendRedirect("main.jsp");
+                return;
+            }
+            
+            // Get flash messages from session
+            String errorMessage = (String) session.getAttribute("errorMessage");
+            String successMessage = (String) session.getAttribute("successMessage");
+            
+            // Remove messages after displaying (flash message pattern)
+            if (errorMessage != null) {
+                session.removeAttribute("errorMessage");
+            }
+            if (successMessage != null) {
+                session.removeAttribute("successMessage");
+            }
+        %>
+        
         <header class="header">
             <div class="nav-container">
                 <a href="index.jsp" class="logo">Famney</a>
@@ -211,59 +240,19 @@
                     <p>Sign in to your family account</p>
                 </div>
                 
-                <%
-                    String email = request.getParameter("email");
-                    String password = request.getParameter("password");
-                    String errorMessage = request.getParameter("error");
-                    
-                    // Hardcoded sample users for R0 demo (using full constructor)
-                    if (email != null && password != null) {
-                        User user = null;
-                        Family family = null;
-                        
-                        // Create family object with full constructor (consistent data)
-                        Date now = new Date();
-                        family = new Family("FAM001", "FAMNEY-12345", "The Smith Family", "USER001", now, now, true, 4);
-                        
-                        // Sample hardcoded login credentials using full constructor
-                        if ("john@smith.com".equals(email) && "password123".equals(password)) {
-                            user = new User("USER001", "john@smith.com", "password123", "John Smith", "Family Head", "FAM001", now, now, now, true);
-                        } else if ("jane@smith.com".equals(email) && "password123".equals(password)) {
-                            user = new User("USER002", "jane@smith.com", "password123", "Jane Smith", "Adult", "FAM001", now, now, now, true);
-                        } else if ("mike@smith.com".equals(email) && "password123".equals(password)) {
-                            user = new User("USER003", "mike@smith.com", "password123", "Mike Smith", "Teen", "FAM001", now, now, now, true);
-                        } else if ("lucy@smith.com".equals(email) && "password123".equals(password)) {
-                            user = new User("USER004", "lucy@smith.com", "password123", "Lucy Smith", "Kid", "FAM001", now, now, now, true);
-                        }
-                        
-                        if (user != null) {
-                            // Store in session and redirect
-                            session.setAttribute("user", user);
-                            session.setAttribute("family", family);
-                            response.sendRedirect("main.jsp");
-                            return;
-                        } else {
-                            response.sendRedirect("login.jsp?error=invalid");
-                            return;
-                        }
-                    }
-                    
-                    if (errorMessage != null) {
-                %>
-                    <div class="error-message">
-                        <% if ("invalid".equals(errorMessage)) { %>
-                            Invalid email or password. Please try again.
-                        <% } else if ("required".equals(errorMessage)) { %>
-                            Please fill in all required fields.
-                        <% } else { %>
-                            An error occurred. Please try again.
-                        <% } %>
+                <% if (successMessage != null) { %>
+                    <div class="success-message">
+                        <%= successMessage %>
                     </div>
                 <% } %>
                 
-                <form action="login.jsp" method="post">
-                    <input type="hidden" name="action" value="login">
-                    
+                <% if (errorMessage != null) { %>
+                    <div class="error-message">
+                        <%= errorMessage %>
+                    </div>
+                <% } %>
+                
+                <form action="LoginServlet" method="post">
                     <div class="form-group">
                         <label for="email">Email Address</label>
                         <input type="email" id="email" name="email" required 

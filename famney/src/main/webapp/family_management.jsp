@@ -1,7 +1,10 @@
 <%@ page import="model.User"%>
 <%@ page import="model.Family"%>
-<%@ page import="java.util.ArrayList"%>
+<%@ page import="model.dao.UserManager"%>
 <%@ page import="java.util.List"%>
+
+<!-- Initialise database connection -->
+<jsp:include page="/ConnServlet" flush="true"/>
 
 <html>
     <head>
@@ -21,7 +24,6 @@
                 flex-direction: column;
             }
             
-            /* Header */
             .header {
                 background: #2c3e50;
                 padding: 1rem 0;
@@ -68,7 +70,6 @@
                 opacity: 0.9;
             }
             
-            /* Main Container */
             .main-container {
                 flex: 1;
                 max-width: 1200px;
@@ -119,10 +120,22 @@
                 margin-bottom: 0.3rem;
             }
             
-            .members-section h2 {
+            .section-title {
                 color: #2c3e50;
                 margin-bottom: 1.5rem;
                 font-size: 1.8rem;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+            
+            .pending-badge {
+                background: #ffc107;
+                color: #212529;
+                padding: 0.3rem 0.8rem;
+                border-radius: 15px;
+                font-size: 0.8rem;
+                font-weight: 600;
             }
             
             .members-table {
@@ -132,6 +145,7 @@
                 border-radius: 15px;
                 overflow: hidden;
                 box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+                margin-bottom: 2rem;
             }
             
             .members-table thead {
@@ -176,6 +190,7 @@
             .role-adult { background: #d4edda; color: #155724; }
             .role-teen { background: #fff3cd; color: #856404; }
             .role-kid { background: #f8d7da; color: #721c24; }
+            .role-pending { background: #ffc107; color: #212529; }
             
             .action-buttons {
                 display: flex;
@@ -216,6 +231,16 @@
                 transform: translateY(-1px);
             }
             
+            .btn-assign {
+                background: #28a745;
+                color: white;
+            }
+            
+            .btn-assign:hover {
+                background: #218838;
+                transform: translateY(-1px);
+            }
+            
             .role-select {
                 padding: 0.3rem 0.5rem;
                 border: 2px solid #e9ecef;
@@ -241,11 +266,33 @@
                 text-decoration: none;
                 transition: all 0.3s ease;
                 margin-top: 2rem;
+                margin-right: 1rem;
             }
             
             .btn-back:hover {
                 transform: translateY(-2px);
                 box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+            }
+            
+            .btn-danger {
+                display: inline-block;
+                background: #dc3545;
+                color: white;
+                padding: 1rem 2rem;
+                border: none;
+                border-radius: 10px;
+                font-size: 1rem;
+                font-weight: 600;
+                text-decoration: none;
+                transition: all 0.3s ease;
+                margin-top: 2rem;
+                cursor: pointer;
+            }
+            
+            .btn-danger:hover {
+                background: #c82333;
+                transform: translateY(-2px);
+                box-shadow: 0 8px 20px rgba(220, 53, 69, 0.3);
             }
             
             .success-message {
@@ -280,7 +327,39 @@
                 color: #495057;
             }
             
-            /* Footer */
+            .danger-zone {
+                background: #fff3f3;
+                border: 2px solid #dc3545;
+                padding: 2rem;
+                border-radius: 15px;
+                margin-top: 3rem;
+            }
+            
+            .danger-zone h3 {
+                color: #dc3545;
+                margin-bottom: 1rem;
+            }
+            
+            .danger-zone p {
+                color: #721c24;
+                margin-bottom: 1.5rem;
+                line-height: 1.6;
+            }
+            
+            .close-family-form {
+                display: flex;
+                gap: 1rem;
+                align-items: center;
+            }
+            
+            .close-family-form input {
+                padding: 0.8rem;
+                border: 2px solid #dc3545;
+                border-radius: 8px;
+                font-size: 1rem;
+                width: 200px;
+            }
+            
             .footer {
                 background: #2c3e50;
                 color: white;
@@ -288,7 +367,6 @@
                 text-align: center;
             }
             
-            /* Responsive */
             @media (max-width: 768px) {
                 .management-card {
                     margin: 1rem;
@@ -313,6 +391,14 @@
                 .nav-menu {
                     gap: 1rem;
                 }
+                
+                .close-family-form {
+                    flex-direction: column;
+                }
+                
+                .close-family-form input {
+                    width: 100%;
+                }
             }
         </style>
     </head>
@@ -334,56 +420,31 @@
                 return;
             }
             
-            // Handle actions
-            String action = request.getParameter("action");
-            String successMessage = "";
+            // Get flash messages
+            String successMessage = (String) session.getAttribute("successMessage");
+            String errorMessage = (String) session.getAttribute("errorMessage");
             
-            // Hardcoded sample for family members
-            List<User> familyMembers = new ArrayList<>();
-            
-            User member1 = new User("john@smith.com", "password123", "John Smith", "Family Head", "FAM001");
-            member1.setUserId("USER001");
-            
-            User member2 = new User("jane@smith.com", "password123", "Jane Smith", "Adult", "FAM001");
-            member2.setUserId("USER002");
-            
-            User member3 = new User("mike@smith.com", "password123", "Mike Smith", "Teen", "FAM001");
-            member3.setUserId("USER003");
-            
-            User member4 = new User("lucy@smith.com", "password123", "Lucy Smith", "Kid", "FAM001");
-            member4.setUserId("USER004");
-            
-            familyMembers.add(member1);
-            familyMembers.add(member2);
-            familyMembers.add(member3);
-            familyMembers.add(member4);
-            
-            // Handle role change action
-            if (action != null && action.equals("change_role")) {
-                String memberId = request.getParameter("memberId");
-                String newRole = request.getParameter("newRole");
-                
-                if (memberId != null && newRole != null) {
-                    // Find and update member role
-                    for (User member : familyMembers) {
-                        if (member.getUserId().equals(memberId)) {
-                            member.setRole(newRole);
-                            successMessage = "Member role updated successfully!";
-                            break;
-                        }
-                    }
-                }
+            if (successMessage != null) {
+                session.removeAttribute("successMessage");
+            }
+            if (errorMessage != null) {
+                session.removeAttribute("errorMessage");
             }
             
-            // Handle remove member action
-            if (action != null && action.equals("remove")) {
-                String memberId = request.getParameter("memberId");
-                
-                if (memberId != null) {
-                    // Remove from list
-                    familyMembers.removeIf(member -> member.getUserId().equals(memberId));
-                    successMessage = "Member removed from family successfully!";
+            // Get UserManager from session
+            UserManager userManager = (UserManager) session.getAttribute("userManager");
+            
+            // Get all family members and pending users from database
+            List<User> familyMembers = null;
+            List<User> pendingUsers = null;
+            
+            try {
+                if (userManager != null) {
+                    familyMembers = userManager.getUsersByFamily(family.getFamilyId());
+                    pendingUsers = userManager.getPendingUsers(family.getFamilyId());
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         %>
         
@@ -393,7 +454,7 @@
                 <nav class="nav-menu">
                     <span>Family Head: <%= user.getFullName() %></span>
                     <a href="main.jsp">Dashboard</a>
-                    <a href="logout.jsp">Logout</a>
+                    <a href="LogoutServlet">Logout</a>
                 </nav>
             </div>
         </header>
@@ -408,20 +469,83 @@
                 <div class="family-info">
                     <h3><%= family.getFamilyName() %> Family</h3>
                     <p><strong>Family Code:</strong> <%= family.getFamilyCode() %></p>
-                    <p><strong>Total Members:</strong> <%= familyMembers.size() %></p>
-                    <p><strong>Created:</strong> <%= family.getCreatedDate() != null ? family.getCreatedDate().toString() : "Recently" %></p>
+                    <p><strong>Total Members:</strong> <%= familyMembers != null ? familyMembers.size() : 0 %></p>
+                    <p><strong>Created:</strong> <%= family.getCreatedDate() != null ? 
+                        new java.text.SimpleDateFormat("dd MMM yyyy").format(family.getCreatedDate()) : "Recently" %></p>
                 </div>
                 
-                <% if (!successMessage.isEmpty()) { %>
+                <% if (successMessage != null) { %>
                     <div class="success-message">
                         <%= successMessage %>
                     </div>
                 <% } %>
                 
+                <% if (errorMessage != null) { %>
+                    <div class="error-message">
+                        <%= errorMessage %>
+                    </div>
+                <% } %>
+                
+                <!-- Pending Users Section (Role Assignment) -->
+                <% if (pendingUsers != null && !pendingUsers.isEmpty()) { %>
+                    <div class="members-section">
+                        <h2 class="section-title">
+                            Pending Approval 
+                            <span class="pending-badge"><%= pendingUsers.size() %> Waiting</span>
+                        </h2>
+                        
+                        <table class="members-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Joined</th>
+                                    <th>Assign Role</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% for (User member : pendingUsers) { %>
+                                    <tr>
+                                        <td class="member-name"><%= member.getFullName() %></td>
+                                        <td><%= member.getEmail() %></td>
+                                        <td>
+                                            <%= member.getJoinDate() != null ? 
+                                                new java.text.SimpleDateFormat("dd MMM yyyy").format(member.getJoinDate()) : "Recently" %>
+                                        </td>
+                                        <td>
+                                            <form action="ManageFamilyServlet" method="post" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                                                <input type="hidden" name="action" value="assign_role">
+                                                <input type="hidden" name="memberId" value="<%= member.getUserId() %>">
+                                                <select name="newRole" class="role-select" required>
+                                                    <option value="">Select role...</option>
+                                                    <option value="Adult">Adult</option>
+                                                    <option value="Teen">Teen</option>
+                                                    <option value="Kid">Kid</option>
+                                                </select>
+                                                <button type="submit" class="btn-small btn-assign">Assign</button>
+                                            </form>
+                                        </td>
+                                        <td>
+                                            <form action="ManageFamilyServlet" method="post" style="display: inline;" 
+                                                  onsubmit="return confirm('Are you sure you want to remove <%= member.getFullName() %>?')">
+                                                <input type="hidden" name="action" value="remove_member">
+                                                <input type="hidden" name="memberId" value="<%= member.getUserId() %>">
+                                                <button type="submit" class="btn-small btn-remove">Remove</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                <% } %>
+                            </tbody>
+                        </table>
+                    </div>
+                <% } %>
+                
+                <!-- Active Family Members Section -->
                 <div class="members-section">
-                    <h2>Family Members</h2>
+                    <h2 class="section-title">Active Family Members</h2>
                     
-                    <% if (familyMembers.isEmpty()) { %>
+                    <% if (familyMembers == null || familyMembers.isEmpty()) { %>
                         <div class="empty-state">
                             <h3>No family members found</h3>
                             <p>Invite family members using your family code: <strong><%= family.getFamilyCode() %></strong></p>
@@ -439,51 +563,58 @@
                             </thead>
                             <tbody>
                                 <% for (User member : familyMembers) { %>
-                                    <tr>
-                                        <td class="member-name"><%= member.getFullName() %></td>
-                                        <td><%= member.getEmail() %></td>
-                                        <td>
-                                            <span class="member-role role-<%= member.getRole().toLowerCase().replace(" ", "-") %>">
-                                                <%= member.getRole() %>
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <%= member.getJoinDate() != null ? member.getJoinDate().toString() : "Recently" %>
-                                        </td>
-                                        <td>
-                                            <% if (member.getUserId().equals(user.getUserId())) { %>
-                                                <span style="color: #6c757d; font-style: italic;">You</span>
-                                            <% } else { %>
-                                                <div class="action-buttons">
-                                                    <!-- Role Change Form -->
-                                                    <form action="family_management.jsp" method="post" style="display: inline-flex; align-items: center; gap: 0.5rem;">
-                                                        <input type="hidden" name="action" value="change_role">
-                                                        <input type="hidden" name="memberId" value="<%= member.getUserId() %>">
-                                                        <select name="newRole" class="role-select">
-                                                            <option value="Adult" <%= "Adult".equals(member.getRole()) ? "selected" : "" %>>Adult</option>
-                                                            <option value="Teen" <%= "Teen".equals(member.getRole()) ? "selected" : "" %>>Teen</option>
-                                                            <option value="Kid" <%= "Kid".equals(member.getRole()) ? "selected" : "" %>>Kid</option>
-                                                        </select>
-                                                        <button type="submit" class="btn-small btn-edit">Update</button>
-                                                    </form>
-                                                    
-                                                    <!-- Remove Member Form -->
-                                                    <form action="family_management.jsp" method="post" style="display: inline;">
-                                                        <input type="hidden" name="action" value="remove">
-                                                        <input type="hidden" name="memberId" value="<%= member.getUserId() %>">
-                                                        <button type="submit" class="btn-small btn-remove" 
-                                                                onclick="return confirm('Are you sure you want to remove <%= member.getFullName() %> from the family?')">
-                                                            Remove
-                                                        </button>
-                                                    </form>
-                                                </div>
-                                            <% } %>
-                                        </td>
-                                    </tr>
+                                    <% if (member.getRole() != null) { // Only show members with assigned roles %>
+                                        <tr>
+                                            <td class="member-name"><%= member.getFullName() %></td>
+                                            <td><%= member.getEmail() %></td>
+                                            <td>
+                                                <span class="member-role role-<%= member.getRole().toLowerCase().replace(" ", "-") %>">
+                                                    <%= member.getRole() %>
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <%= member.getJoinDate() != null ? 
+                                                    new java.text.SimpleDateFormat("dd MMM yyyy").format(member.getJoinDate()) : "Recently" %>
+                                            </td>
+                                            <td>
+                                                <% if (member.getUserId().equals(user.getUserId())) { %>
+                                                    <span style="color: #6c757d; font-style: italic;">You</span>
+                                                <% } else { %>
+                                                    <div class="action-buttons">
+                                                        <form action="ManageFamilyServlet" method="post" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                                                            <input type="hidden" name="action" value="change_role">
+                                                            <input type="hidden" name="memberId" value="<%= member.getUserId() %>">
+                                                            <select name="newRole" class="role-select">
+                                                                <option value="Adult" <%= "Adult".equals(member.getRole()) ? "selected" : "" %>>Adult</option>
+                                                                <option value="Teen" <%= "Teen".equals(member.getRole()) ? "selected" : "" %>>Teen</option>
+                                                                <option value="Kid" <%= "Kid".equals(member.getRole()) ? "selected" : "" %>>Kid</option>
+                                                            </select>
+                                                            <button type="submit" class="btn-small btn-edit">Update</button>
+                                                        </form>
+                                                        
+                                                        <form action="ManageFamilyServlet" method="post" style="display: inline;" 
+                                                              onsubmit="return confirm('Are you sure you want to remove <%= member.getFullName() %> from the family?')">
+                                                            <input type="hidden" name="action" value="remove_member">
+                                                            <input type="hidden" name="memberId" value="<%= member.getUserId() %>">
+                                                            <button type="submit" class="btn-small btn-remove">Remove</button>
+                                                        </form>
+                                                    </div>
+                                                <% } %>
+                                            </td>
+                                        </tr>
+                                    <% } %>
                                 <% } %>
                             </tbody>
                         </table>
                     <% } %>
+                </div>
+                
+                <!-- Danger Zone - Close Family -->
+                <div class="danger-zone">
+                    <h3>Danger Zone</h3>
+                    <p><strong>Close Family Account:</strong> This action will permanently close your family account. All family members will be logged out and will no longer be able to access this family's financial data. This action cannot be undone.</p>
+                    
+                    <a href="close_family.jsp" class="btn-danger">Close Family Account</a>
                 </div>
                 
                 <div style="text-align: center;">
