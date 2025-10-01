@@ -12,9 +12,10 @@ import model.User;
 import model.Family;
 import model.dao.UserManager;
 import model.dao.FamilyManager;
+import model.dao.CategoryManager;
 
 // Handles family account creation with Family Head registration
-// Creates new family and first user account
+// Creates new family, initialises default categories, and creates first user account
 @WebServlet("/CreateFamilyServlet")
 public class CreateFamilyServlet extends HttpServlet {
     
@@ -83,6 +84,7 @@ public class CreateFamilyServlet extends HttpServlet {
             // Get DAO managers from session
             UserManager userManager = (UserManager) session.getAttribute("userManager");
             FamilyManager familyManager = (FamilyManager) session.getAttribute("familyManager");
+            CategoryManager categoryManager = (CategoryManager) session.getAttribute("categoryManager");
             
             if (userManager == null || familyManager == null) {
                 session.setAttribute("errorMessage", "System error. Please try again");
@@ -115,6 +117,19 @@ public class CreateFamilyServlet extends HttpServlet {
                 session.setAttribute("errorMessage", "Failed to create family. Please try again");
                 response.sendRedirect("register_family.jsp");
                 return;
+            }
+            
+            // Initialise default categories for the new family
+            // Creates 10 default categories (6 Expense + 4 Income)
+            // This ensures every family starts with standard categories
+            if (categoryManager != null) {
+                try {
+                    categoryManager.initialiseFamilyDefaultCategories(createdFamily.getFamilyId());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    // Don't fail family creation if category initialisation fails
+                    // Family can still create categories manually later
+                }
             }
             
             // Create Family Head user account
