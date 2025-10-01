@@ -115,7 +115,7 @@
                 font-weight: 600;
             }
             
-            .form-group input, .form-group select {
+            .form-group input {
                 width: 100%;
                 padding: 1rem;
                 border: 2px solid #e1e8ed;
@@ -125,7 +125,7 @@
                 background: #f8f9fa;
             }
             
-            .form-group input:focus, .form-group select:focus {
+            .form-group input:focus {
                 outline: none;
                 border-color: #667eea;
                 background: white;
@@ -195,6 +195,25 @@
                 font-size: 0.9rem;
                 line-height: 1.4;
                 margin-bottom: 0.5rem;
+            }
+            
+            .warning-box {
+                background: #fff3cd;
+                color: #856404;
+                padding: 1rem;
+                border-radius: 10px;
+                margin-bottom: 1.5rem;
+                border-left: 4px solid #ffc107;
+            }
+            
+            .warning-box h3 {
+                margin-bottom: 0.5rem;
+                font-size: 1rem;
+            }
+            
+            .warning-box p {
+                font-size: 0.85rem;
+                line-height: 1.4;
             }
             
             .footer {
@@ -267,6 +286,11 @@
                     <p>Ask your Family Head for the unique family code. It looks like: <strong>FAMNEY-A1B2</strong></p>
                 </div>
                 
+                <div class="warning-box">
+                    <h3>Role Assignment Process</h3>
+                    <p>After registration, the Family Head will assign your role (Adult, Teen, or Kid). You'll be able to access the system once your role is approved.</p>
+                </div>
+                
                 <form action="JoinFamilyServlet" method="post">
                     <div class="form-group">
                         <label for="familyCode">Family Code *</label>
@@ -289,22 +313,10 @@
                         </div>
                     </div>
                     
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="password">Password *</label>
-                            <input type="password" id="password" name="password" 
-                                   placeholder="Create your password (min 6 characters)" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="role">Your Role in Family *</label>
-                            <select id="role" name="role" required>
-                                <option value="">Select your role</option>
-                                <option value="Adult">Adult (Full access)</option>
-                                <option value="Teen">Teen (Personal expenses)</option>
-                                <option value="Kid">Kid (View only)</option>
-                            </select>
-                        </div>
+                    <div class="form-group">
+                        <label for="password">Password *</label>
+                        <input type="password" id="password" name="password" 
+                               placeholder="Create your password (min 6 characters)" required>
                     </div>
                     
                     <button type="submit" class="btn-primary">Join Family</button>

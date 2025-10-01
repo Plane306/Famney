@@ -14,7 +14,7 @@ import model.dao.UserManager;
 import model.dao.FamilyManager;
 
 // Handles family member registration using family code
-// Allows users to join existing family as Adult, Teen, or Kid
+// Role assignment is done by Family Head after registration
 @WebServlet("/JoinFamilyServlet")
 public class JoinFamilyServlet extends HttpServlet {
     
@@ -25,19 +25,17 @@ public class JoinFamilyServlet extends HttpServlet {
         HttpSession session = request.getSession();
         UserValidator validator = new UserValidator();
         
-        // Get form inputs
+        // Get form inputs (role is no longer selected by user)
         String familyCode = request.getParameter("familyCode");
         String fullName = request.getParameter("fullName");
         String email = request.getParameter("email");
         String password = request.getParameter("password");
-        String role = request.getParameter("role");
         
         // Validate all required fields are filled
         if (familyCode == null || familyCode.trim().isEmpty() ||
             fullName == null || fullName.trim().isEmpty() ||
             email == null || email.trim().isEmpty() ||
-            password == null || password.isEmpty() ||
-            role == null || role.trim().isEmpty()) {
+            password == null || password.isEmpty()) {
             
             session.setAttribute("errorMessage", "Please fill in all required fields");
             response.sendRedirect("join_family.jsp");
@@ -72,13 +70,6 @@ public class JoinFamilyServlet extends HttpServlet {
             return;
         }
         
-        // Validate role selection (cannot be Family Head)
-        if (!validator.validateRole(role) || role.equals("Family Head")) {
-            session.setAttribute("errorMessage", "Invalid role selection. Choose Adult, Teen, or Kid");
-            response.sendRedirect("join_family.jsp");
-            return;
-        }
-        
         try {
             // Get DAO managers from session
             UserManager userManager = (UserManager) session.getAttribute("userManager");
@@ -90,11 +81,22 @@ public class JoinFamilyServlet extends HttpServlet {
                 return;
             }
             
+            // Clean up any inactive account with this email (from closed families)
+            // This allows users to re-register after their previous family was closed
+            userManager.cleanupInactiveUser(email);
+            
             // Check if family code exists
             Family family = familyManager.findByFamilyCode(familyCode.trim().toUpperCase());
             
             if (family == null) {
                 session.setAttribute("errorMessage", "Family code not found. Please check and try again");
+                response.sendRedirect("join_family.jsp");
+                return;
+            }
+            
+            // Check if email already exists (for active users)
+            if (userManager.emailExists(email)) {
+                session.setAttribute("errorMessage", "Email already registered. Please login instead");
                 response.sendRedirect("join_family.jsp");
                 return;
             }
@@ -106,12 +108,12 @@ public class JoinFamilyServlet extends HttpServlet {
                 return;
             }
             
-            // Create new user account
+            // Create new user account with NULL role (pending Family Head approval)
             User user = new User();
             user.setFullName(fullName.trim());
             user.setEmail(email.trim());
             user.setPassword(password); // Will be hashed by UserManager
-            user.setRole(role);
+            user.setRole(null); // Role is NULL until Family Head assigns it
             user.setFamilyId(family.getFamilyId());
             
             boolean userCreated = userManager.createUser(user);
@@ -130,16 +132,12 @@ public class JoinFamilyServlet extends HttpServlet {
                 System.out.println("Warning: Member count not updated for family " + family.getFamilyId());
             }
             
-            // Update family object with new member count
-            family.setMemberCount(family.getMemberCount() + 1);
+            // Registration successful - redirect to pending approval page
+            session.setAttribute("successMessage", 
+                "Registration successful! Please wait for Family Head to assign your role before logging in.");
             
-            // Registration successful - create session
-            session.setAttribute("user", user);
-            session.setAttribute("family", family);
-            session.setAttribute("successMessage", "Welcome to " + family.getFamilyName() + "!");
-            
-            // Redirect to family joined success page
-            response.sendRedirect("family_created.jsp");
+            // Redirect to login with success message
+            response.sendRedirect("login.jsp");
             
         } catch (Exception e) {
             e.printStackTrace();

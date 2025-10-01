@@ -19,4 +19,5 @@ model\SavingsGoal.class
 model\dao\UserManager.class
 model\dao\FamilyManager.class
 model\User.class
+controller\CloseFamilyServlet.class
 model\Family.class

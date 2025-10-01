@@ -28,7 +28,7 @@ CREATE TABLE Users (
     email VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     fullName VARCHAR(100) NOT NULL,
-    role VARCHAR(20) NOT NULL CHECK (role IN ('Family Head', 'Adult', 'Teen', 'Kid')),
+    role VARCHAR(20) CHECK (role IN ('Family Head', 'Adult', 'Teen', 'Kid') OR role IS NULL),
     familyId VARCHAR(8) NOT NULL,
     joinDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     createdDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

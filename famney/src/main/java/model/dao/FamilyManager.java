@@ -10,7 +10,7 @@ import model.Family;
 import controller.IdGenerator;
 
 // Data Access Object for Family table operations
-// Handles family creation and member management
+// Handles family creation, member management, and family closure
 public class FamilyManager {
     
     private Connection conn;
@@ -175,6 +175,21 @@ public class FamilyManager {
             stmt.setString(1, newName.trim());
             stmt.setTimestamp(2, new Timestamp(System.currentTimeMillis()));
             stmt.setString(3, familyId);
+            
+            int rowsAffected = stmt.executeUpdate();
+            return rowsAffected > 0;
+        }
+    }
+    
+    // Close/delete family (soft delete - sets isActive to false)
+    // Only Family Head can close the family
+    // This will cascade to all family members (handled in servlet)
+    public boolean deleteFamily(String familyId) throws SQLException {
+        String sql = "UPDATE Families SET isActive = 0, lastModifiedDate = ? WHERE familyId = ?";
+        
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
+            stmt.setString(2, familyId);
             
             int rowsAffected = stmt.executeUpdate();
             return rowsAffected > 0;

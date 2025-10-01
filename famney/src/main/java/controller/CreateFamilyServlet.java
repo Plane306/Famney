@@ -90,7 +90,11 @@ public class CreateFamilyServlet extends HttpServlet {
                 return;
             }
             
-            // Check if email already exists
+            // Clean up any inactive account with this email (from closed families)
+            // This allows users to re-register after their previous family was closed
+            userManager.cleanupInactiveUser(email);
+            
+            // Check if email already exists (for active users)
             if (userManager.emailExists(email)) {
                 session.setAttribute("errorMessage", "Email already registered. Please login instead");
                 response.sendRedirect("register_family.jsp");

@@ -14,7 +14,7 @@ import model.dao.UserManager;
 import model.dao.FamilyManager;
 
 // Handles user login authentication
-// Validates credentials and creates user session
+// Validates credentials and checks role assignment status
 @WebServlet("/LoginServlet")
 public class LoginServlet extends HttpServlet {
     
@@ -57,11 +57,26 @@ public class LoginServlet extends HttpServlet {
                 return;
             }
             
+            // Check if user role is still pending (NULL)
+            if (user.getRole() == null) {
+                session.setAttribute("errorMessage", 
+                    "Your account is pending role assignment. Please ask your Family Head to assign your role.");
+                response.sendRedirect("login.jsp");
+                return;
+            }
+            
             // Get user's family details
             Family family = familyManager.findByFamilyId(user.getFamilyId());
             
             if (family == null) {
                 session.setAttribute("errorMessage", "Family not found. Please contact support");
+                response.sendRedirect("login.jsp");
+                return;
+            }
+            
+            // Check if family is still active
+            if (!family.isActive()) {
+                session.setAttribute("errorMessage", "This family account has been closed. Please contact your Family Head");
                 response.sendRedirect("login.jsp");
                 return;
             }

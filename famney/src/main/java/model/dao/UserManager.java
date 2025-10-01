@@ -25,6 +25,7 @@ public class UserManager {
     
     // Create new user in database
     // Generates user ID automatically and hashes password
+    // Role can be NULL for pending approval (join family scenario)
     // Returns true if successful, false if failed (duplicate email)
     // Uses retry logic if duplicate userId occurs (2-layer prevention)
     public boolean createUser(User user) throws SQLException {
@@ -46,7 +47,7 @@ public class UserManager {
                 stmt.setString(2, user.getEmail().trim());
                 stmt.setString(3, hashedPassword);
                 stmt.setString(4, user.getFullName().trim());
-                stmt.setString(5, user.getRole());
+                stmt.setString(5, user.getRole()); // Can be NULL for pending approval
                 stmt.setString(6, user.getFamilyId());
                 stmt.setTimestamp(7, new Timestamp(System.currentTimeMillis()));
                 stmt.setTimestamp(8, new Timestamp(System.currentTimeMillis()));
@@ -103,7 +104,7 @@ public class UserManager {
                 user.setEmail(rs.getString("email"));
                 user.setPassword(rs.getString("password"));
                 user.setFullName(rs.getString("fullName"));
-                user.setRole(rs.getString("role"));
+                user.setRole(rs.getString("role")); // Can be NULL
                 user.setFamilyId(rs.getString("familyId"));
                 user.setJoinDate(rs.getTimestamp("joinDate"));
                 user.setCreatedDate(rs.getTimestamp("createdDate"));
@@ -138,7 +139,13 @@ public class UserManager {
     // Used by family management page
     public List<User> getUsersByFamily(String familyId) throws SQLException {
         List<User> users = new ArrayList<>();
-        String sql = "SELECT * FROM Users WHERE familyId = ? AND isActive = 1 ORDER BY role";
+        String sql = "SELECT * FROM Users WHERE familyId = ? AND isActive = 1 ORDER BY " +
+                     "CASE WHEN role IS NULL THEN 0 ELSE 1 END, " +
+                     "CASE role " +
+                     "WHEN 'Family Head' THEN 1 " +
+                     "WHEN 'Adult' THEN 2 " +
+                     "WHEN 'Teen' THEN 3 " +
+                     "WHEN 'Kid' THEN 4 END";
         
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, familyId);
@@ -151,7 +158,39 @@ public class UserManager {
                 user.setEmail(rs.getString("email"));
                 user.setPassword(rs.getString("password"));
                 user.setFullName(rs.getString("fullName"));
-                user.setRole(rs.getString("role"));
+                user.setRole(rs.getString("role")); // Can be NULL
+                user.setFamilyId(rs.getString("familyId"));
+                user.setJoinDate(rs.getTimestamp("joinDate"));
+                user.setCreatedDate(rs.getTimestamp("createdDate"));
+                user.setLastModifiedDate(rs.getTimestamp("lastModifiedDate"));
+                user.setActive(rs.getBoolean("isActive"));
+                
+                users.add(user);
+            }
+        }
+        
+        return users;
+    }
+    
+    // Get users with pending role approval (role is NULL)
+    // Used by Family Head to see who needs role assignment
+    public List<User> getPendingUsers(String familyId) throws SQLException {
+        List<User> users = new ArrayList<>();
+        String sql = "SELECT * FROM Users WHERE familyId = ? AND role IS NULL AND isActive = 1 " +
+                     "ORDER BY joinDate DESC";
+        
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, familyId);
+            
+            ResultSet rs = stmt.executeQuery();
+            
+            while (rs.next()) {
+                User user = new User();
+                user.setUserId(rs.getString("userId"));
+                user.setEmail(rs.getString("email"));
+                user.setPassword(rs.getString("password"));
+                user.setFullName(rs.getString("fullName"));
+                user.setRole(null); // Explicitly NULL
                 user.setFamilyId(rs.getString("familyId"));
                 user.setJoinDate(rs.getTimestamp("joinDate"));
                 user.setCreatedDate(rs.getTimestamp("createdDate"));
@@ -201,6 +240,7 @@ public class UserManager {
     
     // Update user role
     // Only Family Head can change roles
+    // Also used to assign initial role for pending users
     public boolean updateUserRole(String userId, String newRole) throws SQLException {
         String sql = "UPDATE Users SET role = ?, lastModifiedDate = ? WHERE userId = ?";
         
@@ -228,10 +268,25 @@ public class UserManager {
         }
     }
     
-    // Check if email already exists in database
+    // Deactivate all users in a family (when family is closed)
+    // Called when Family Head closes the entire family
+    public boolean deactivateAllFamilyUsers(String familyId) throws SQLException {
+        String sql = "UPDATE Users SET isActive = 0, lastModifiedDate = ? WHERE familyId = ?";
+        
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
+            stmt.setString(2, familyId);
+            
+            int rowsAffected = stmt.executeUpdate();
+            return rowsAffected > 0;
+        }
+    }
+    
+    // Check if email already exists in database FOR ACTIVE USERS ONLY
+    // Inactive users (from closed families) can re-register
     // Used during registration validation
     public boolean emailExists(String email) throws SQLException {
-        String sql = "SELECT COUNT(*) FROM Users WHERE email = ?";
+        String sql = "SELECT COUNT(*) FROM Users WHERE email = ? AND isActive = 1";
         
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, email.trim());
@@ -243,5 +298,19 @@ public class UserManager {
         }
         
         return false;
+    }
+
+    // Clean up old inactive user data to allow re-registration
+    // Called when user wants to create/join new family after previous family closed
+    // This deletes the old inactive account to allow fresh registration
+    public boolean cleanupInactiveUser(String email) throws SQLException {
+        String sql = "DELETE FROM Users WHERE email = ? AND isActive = 0";
+        
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, email.trim());
+            
+            int rowsAffected = stmt.executeUpdate();
+            return rowsAffected > 0;
+        }
     }
 }

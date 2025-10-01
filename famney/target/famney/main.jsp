@@ -114,6 +114,20 @@
                 text-align: center;
             }
             
+            .warning-message {
+                background: #fff3cd;
+                color: #856404;
+                padding: 1.5rem;
+                border-radius: 10px;
+                margin-bottom: 1rem;
+                border: 2px solid #ffc107;
+                text-align: center;
+            }
+            
+            .warning-message h3 {
+                margin-bottom: 0.5rem;
+            }
+            
             .dashboard-stats {
                 display: grid;
                 grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -240,6 +254,14 @@
                 return;
             }
             
+            // Check if user role is still pending (NULL)
+            if (user.getRole() == null) {
+                session.setAttribute("errorMessage", 
+                    "Your account is pending role assignment. Please ask your Family Head to assign your role.");
+                response.sendRedirect("login.jsp");
+                return;
+            }
+            
             // Get flash message
             String successMessage = (String) session.getAttribute("successMessage");
             if (successMessage != null) {
@@ -252,9 +274,17 @@
             
             // Get real member count from database
             int memberCount = 0;
+            int pendingCount = 0;
+            
             try {
-                if (familyManager != null) {
+                if (userManager != null && familyManager != null) {
                     memberCount = familyManager.getMemberCount(family.getFamilyId());
+                    
+                    // Get pending users count (only for Family Head)
+                    if ("Family Head".equals(user.getRole())) {
+                        List<User> pendingUsers = userManager.getPendingUsers(family.getFamilyId());
+                        pendingCount = pendingUsers != null ? pendingUsers.size() : 0;
+                    }
                 }
             } catch (Exception e) {
                 memberCount = family.getMemberCount();
@@ -277,6 +307,14 @@
                     <% if (successMessage != null) { %>
                         <div class="success-message">
                             <%= successMessage %>
+                        </div>
+                    <% } %>
+                    
+                    <% if ("Family Head".equals(user.getRole()) && pendingCount > 0) { %>
+                        <div class="warning-message">
+                            <h3>Pending Approvals</h3>
+                            <p><strong><%= pendingCount %></strong> family member(s) are waiting for role assignment. 
+                            <a href="family_management.jsp" style="color: #667eea; font-weight: bold;">Manage now</a></p>
                         </div>
                     <% } %>
                     
@@ -336,6 +374,50 @@
                             <a href="categories.jsp" class="feature-link">
                                 <h4>View Categories</h4>
                                 <span>Browse available expense & income categories</span>
+                            </a>
+                        <% } %>
+                        
+                        <!-- F103 Budget Features -->
+                        <% if ("Family Head".equals(user.getRole()) || "Adult".equals(user.getRole())) { %>
+                            <a href="budget_form.jsp" class="feature-link">
+                                <h4>Budget Planning</h4>
+                                <span>Create and manage monthly family budgets</span>
+                            </a>
+                        <% } %>
+                        
+                        <!-- F104 Expense Features -->
+                        <% if (!"Kid".equals(user.getRole())) { %>
+                            <a href="expense_form.jsp" class="feature-link">
+                                <h4>Add Expense</h4>
+                                <span>Record family expenses</span>
+                            </a>
+                        <% } %>
+                        
+                        <!-- F105 Income Features -->
+                        <% if ("Family Head".equals(user.getRole()) || "Adult".equals(user.getRole())) { %>
+                            <a href="income_form.jsp" class="feature-link">
+                                <h4>Add Income</h4>
+                                <span>Record family income sources</span>
+                            </a>
+                            
+                            <!-- F106 Financial Dashboard Features -->
+                            <a href="dashboard_summary.jsp" class="feature-link">
+                                <h4>Financial Reports</h4>
+                                <span>View charts, summaries & analytics</span>
+                            </a>
+                        <% } %>
+                        
+                        <!-- F107 Savings Goals Features -->
+                        <a href="savings_goals.jsp" class="feature-link">
+                            <h4>Savings Goals</h4>
+                            <span>Track family savings targets and progress</span>
+                        </a>
+                        
+                        <!-- F108 Transaction History Features -->
+                        <% if (!"Kid".equals(user.getRole())) { %>
+                            <a href="transaction_history.jsp" class="feature-link">
+                                <h4>Transaction History</h4>
+                                <span>View all financial activities and history</span>
                             </a>
                         <% } %>
                     </div>

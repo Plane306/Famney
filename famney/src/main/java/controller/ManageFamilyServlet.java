@@ -13,7 +13,7 @@ import model.dao.UserManager;
 import model.dao.FamilyManager;
 
 // Handles family member management actions by Family Head
-// Supports role changes and member removal
+// Supports role assignment, role changes, member removal, and family closure
 @WebServlet("/ManageFamilyServlet")
 public class ManageFamilyServlet extends HttpServlet {
     
@@ -57,12 +57,14 @@ public class ManageFamilyServlet extends HttpServlet {
             }
             
             // Handle different actions
-            if ("change_role".equals(action)) {
+            if ("assign_role".equals(action)) {
+                handleAssignRole(request, response, session, userManager, currentUser);
+                
+            } else if ("change_role".equals(action)) {
                 handleRoleChange(request, response, session, userManager, currentUser);
                 
             } else if ("remove_member".equals(action)) {
-                handleRemoveMember(request, response, session, userManager, familyManager, currentUser);
-                
+                handleRemoveMember(request, response, session, userManager, familyManager, currentUser); 
             } else {
                 session.setAttribute("errorMessage", "Unknown action");
                 response.sendRedirect("family_management.jsp");
@@ -75,7 +77,44 @@ public class ManageFamilyServlet extends HttpServlet {
         }
     }
     
-    // Handle role change for family member
+    // Handle assigning role to pending user (role is NULL)
+    // Only Family Head can assign initial roles
+    private void handleAssignRole(HttpServletRequest request, HttpServletResponse response,
+                                  HttpSession session, UserManager userManager, User currentUser)
+            throws Exception {
+        
+        String memberId = request.getParameter("memberId");
+        String newRole = request.getParameter("newRole");
+        
+        // Validate inputs
+        if (memberId == null || newRole == null) {
+            session.setAttribute("errorMessage", "Missing required information");
+            response.sendRedirect("family_management.jsp");
+            return;
+        }
+        
+        // Validate new role (cannot assign Family Head role)
+        UserValidator validator = new UserValidator();
+        if (!validator.validateRole(newRole) || "Family Head".equals(newRole)) {
+            session.setAttribute("errorMessage", "Invalid role selection");
+            response.sendRedirect("family_management.jsp");
+            return;
+        }
+        
+        // Assign role in database
+        boolean updated = userManager.updateUserRole(memberId, newRole);
+        
+        if (updated) {
+            session.setAttribute("successMessage", "Role assigned successfully. Member can now login");
+        } else {
+            session.setAttribute("errorMessage", "Failed to assign role. Please try again");
+        }
+        
+        response.sendRedirect("family_management.jsp");
+    }
+    
+    // Handle role change for existing family member
+    // Only Family Head can change member roles
     private void handleRoleChange(HttpServletRequest request, HttpServletResponse response,
                                   HttpSession session, UserManager userManager, User currentUser)
             throws Exception {
@@ -118,6 +157,7 @@ public class ManageFamilyServlet extends HttpServlet {
     }
     
     // Handle member removal from family
+    // Only Family Head can remove members
     private void handleRemoveMember(HttpServletRequest request, HttpServletResponse response,
                                     HttpSession session, UserManager userManager,
                                     FamilyManager familyManager, User currentUser)
@@ -139,7 +179,7 @@ public class ManageFamilyServlet extends HttpServlet {
             return;
         }
         
-        // Remove member (soft delete)
+        // Remove member (soft delete - sets isActive to false)
         boolean removed = userManager.deleteUser(memberId);
         
         if (removed) {
