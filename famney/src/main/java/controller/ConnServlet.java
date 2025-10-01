@@ -32,8 +32,8 @@ public class ConnServlet extends HttpServlet {
     @SuppressWarnings("unused")
     private CategoryManager categoryManager;
     private BudgetManager budgetManager;
-    @SuppressWarnings("unused")
     private ExpenseManager expenseManager;
+
 
     
     @Override
@@ -54,17 +54,14 @@ public class ConnServlet extends HttpServlet {
         
         try {
             // Initialise all DAO managers
-
             budgetManager = new BudgetManager(conn);
-
-            
+            expenseManager = new ExpenseManager(conn);
         } catch (SQLException ex) {
             Logger.getLogger(ConnServlet.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
         // Export all DAO managers to session for JSP access
         session.setAttribute("budgetManager", budgetManager);
-
+        session.setAttribute("expenseManager", expenseManager);
         // Redirect to original target if present
         String redirect = request.getParameter("redirect");
         if (redirect != null && !redirect.isEmpty()) {

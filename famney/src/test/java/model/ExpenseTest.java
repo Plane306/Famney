@@ -49,4 +49,12 @@ public class ExpenseTest {
         expense.setAmount(0.0);
         assertFalse(expense.isValid());
     }
+
+    @Test
+    public void testNegativeExpense() {
+    Expense expense = new Expense(null, "", null, -10.0, "", null);
+    assertFalse(expense.isValid());
+    expense.setAmount(Double.MAX_VALUE);
+    assertTrue(expense.getAmount() > 0);
+    }
 }

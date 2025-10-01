@@ -177,16 +177,16 @@
                     }
                 %>
                 <p><strong>Category:</strong> <%= catName %></p>
-                <p><strong>Amount:</strong> $<%= exp.getAmount() %></p>
+                <p><strong>Amount:</strong> $<%= String.format("%.2f", exp.getAmount()) %></p>
                 <p><strong>Date:</strong> <%= new java.text.SimpleDateFormat("yyyy-MM-dd").format(exp.getExpenseDate()) %></p>
                 <p><strong>Description:</strong> <%= exp.getDescription() %></p>
                 <form action="ExpenseServlet" method="post" style="display:inline;">
                     <input type="hidden" name="action" value="delete" />
-                    <input type="hidden" name="index" value="<%= allExpenses.indexOf(exp) %>" />
+                    <input type="hidden" name="expenseId" value="<%= exp.getExpenseId() %>" />
                     <button type="submit" class="btn-primary" style="width:auto;display:inline-block;background:#e74c3c;">Delete</button>
                 </form>
                 <form action="edit_expense.jsp" method="get" style="display:inline;">
-                    <input type="hidden" name="index" value="<%= allExpenses.indexOf(exp) %>" />
+                    <input type="hidden" name="expenseId" value="<%= exp.getExpenseId() %>" />
                     <button type="submit" class="btn-primary" style="width:auto;display:inline-block;background:#f1c40f;color:#2c3e50;">Edit</button>
                 </form>
             </div>

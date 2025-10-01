@@ -215,13 +215,8 @@
                 </div>
                 <form action="ExpenseServlet" method="post" class="expense-form">
                     <div class="form-group">
-                        <label for="userId">User</label>
-                        <select id="userId" name="userId" required>
-                            <option value="">--Select User--</option>
-                            <option value="user1">User 1</option>
-                            <option value="user2">User 2</option>
-                            <option value="user3">User 3</option>
-                        </select>
+                        <label>User</label>
+                        <span><%= user.getFullName() %></span>
                     </div>
                     <div class="form-group">
                         <label for="amount">Amount</label>
@@ -247,7 +242,9 @@
                     <button type="submit" class="btn-primary">Add Expense</button>
                 </form>
                 <div style="text-align:center; margin-top:2rem;">
-                    <a href="expenses.jsp" class="btn-secondary">View All Expenses</a>
+                    <form action="ExpenseServlet" method="get" style="display:inline;">
+                        <button type="submit" class="btn-secondary">View All Expenses</button>
+                    </form>
                 </div>
             </div>
         </div>
