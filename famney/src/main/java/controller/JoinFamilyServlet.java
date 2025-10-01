@@ -81,10 +81,6 @@ public class JoinFamilyServlet extends HttpServlet {
                 return;
             }
             
-            // Clean up any inactive account with this email (from closed families)
-            // This allows users to re-register after their previous family was closed
-            userManager.cleanupInactiveUser(email);
-            
             // Check if family code exists
             Family family = familyManager.findByFamilyCode(familyCode.trim().toUpperCase());
             
@@ -94,14 +90,8 @@ public class JoinFamilyServlet extends HttpServlet {
                 return;
             }
             
-            // Check if email already exists (for active users)
-            if (userManager.emailExists(email)) {
-                session.setAttribute("errorMessage", "Email already registered. Please login instead");
-                response.sendRedirect("join_family.jsp");
-                return;
-            }
-            
-            // Check if email already exists
+            // Check if email already exists for ACTIVE users only
+            // This allows email reuse if previous user account is inactive (from closed family)
             if (userManager.emailExists(email)) {
                 session.setAttribute("errorMessage", "Email already registered. Please login instead");
                 response.sendRedirect("join_family.jsp");

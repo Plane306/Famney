@@ -77,10 +77,11 @@ public class UpdateProfileServlet extends HttpServlet {
                 return;
             }
             
-            // Check if email changed and already exists
+            // Check if email changed and already exists for another ACTIVE user
+            // Email can be reused if it only belongs to inactive (soft deleted) users
             if (!email.trim().equalsIgnoreCase(currentUser.getEmail())) {
                 if (userManager.emailExists(email.trim())) {
-                    session.setAttribute("errorMessage", "Email already in use by another account");
+                    session.setAttribute("errorMessage", "Email already in use by another active account");
                     response.sendRedirect("edit_profile.jsp");
                     return;
                 }

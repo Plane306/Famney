@@ -4,12 +4,12 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
 import model.Category;
 import controller.IdGenerator;
+import controller.DateUtil;
 
 // Data Access Object for Category table operations
 // Handles category creation, retrieval, updates, and default category initialisation
@@ -38,14 +38,16 @@ public class CategoryManager {
             category.setCategoryId(IdGenerator.generateCategoryId());
             
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                String currentDateTime = DateUtil.getCurrentDateTime();
+                
                 stmt.setString(1, category.getCategoryId());
                 stmt.setString(2, category.getFamilyId());
                 stmt.setString(3, category.getCategoryName().trim());
                 stmt.setString(4, category.getCategoryType());
                 stmt.setBoolean(5, category.isDefault());
                 stmt.setString(6, category.getDescription());
-                stmt.setTimestamp(7, new Timestamp(System.currentTimeMillis()));
-                stmt.setTimestamp(8, new Timestamp(System.currentTimeMillis()));
+                stmt.setString(7, currentDateTime);
+                stmt.setString(8, currentDateTime);
                 stmt.setBoolean(9, true);
                 
                 int rowsAffected = stmt.executeUpdate();
@@ -102,8 +104,8 @@ public class CategoryManager {
                 category.setCategoryType(rs.getString("categoryType"));
                 category.setDefault(rs.getBoolean("isDefault"));
                 category.setDescription(rs.getString("description"));
-                category.setCreatedDate(rs.getTimestamp("createdDate"));
-                category.setLastModifiedDate(rs.getTimestamp("lastModifiedDate"));
+                category.setCreatedDate(DateUtil.parseToTimestamp(rs.getString("createdDate")));
+                category.setLastModifiedDate(DateUtil.parseToTimestamp(rs.getString("lastModifiedDate")));
                 category.setActive(rs.getBoolean("isActive"));
                 
                 categories.add(category);
@@ -134,8 +136,8 @@ public class CategoryManager {
                 category.setCategoryType(rs.getString("categoryType"));
                 category.setDefault(rs.getBoolean("isDefault"));
                 category.setDescription(rs.getString("description"));
-                category.setCreatedDate(rs.getTimestamp("createdDate"));
-                category.setLastModifiedDate(rs.getTimestamp("lastModifiedDate"));
+                category.setCreatedDate(DateUtil.parseToTimestamp(rs.getString("createdDate")));
+                category.setLastModifiedDate(DateUtil.parseToTimestamp(rs.getString("lastModifiedDate")));
                 category.setActive(rs.getBoolean("isActive"));
                 
                 categories.add(category);
@@ -163,8 +165,8 @@ public class CategoryManager {
                 category.setCategoryType(rs.getString("categoryType"));
                 category.setDefault(rs.getBoolean("isDefault"));
                 category.setDescription(rs.getString("description"));
-                category.setCreatedDate(rs.getTimestamp("createdDate"));
-                category.setLastModifiedDate(rs.getTimestamp("lastModifiedDate"));
+                category.setCreatedDate(DateUtil.parseToTimestamp(rs.getString("createdDate")));
+                category.setLastModifiedDate(DateUtil.parseToTimestamp(rs.getString("lastModifiedDate")));
                 category.setActive(rs.getBoolean("isActive"));
                 
                 return category;
@@ -184,7 +186,7 @@ public class CategoryManager {
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, category.getCategoryName().trim());
             stmt.setString(2, category.getDescription());
-            stmt.setTimestamp(3, new Timestamp(System.currentTimeMillis()));
+            stmt.setString(3, DateUtil.getCurrentDateTime());
             stmt.setString(4, category.getCategoryId());
             
             int rowsAffected = stmt.executeUpdate();
@@ -195,12 +197,13 @@ public class CategoryManager {
     // Soft delete category (set isActive to false)
     // Only Family Head can delete categories
     // Cannot delete default categories (enforced in servlet)
+    // Data is preserved for analytics purposes
     public boolean deleteCategory(String categoryId) throws SQLException {
         String sql = "UPDATE Categories SET isActive = 0, lastModifiedDate = ? " +
                      "WHERE categoryId = ? AND isDefault = 0";
         
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
+            stmt.setString(1, DateUtil.getCurrentDateTime());
             stmt.setString(2, categoryId);
             
             int rowsAffected = stmt.executeUpdate();

@@ -25,7 +25,7 @@ CREATE TABLE Families (
 -- Family members with role-based access control
 CREATE TABLE Users (
     userId VARCHAR(8) PRIMARY KEY,
-    email VARCHAR(100) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL,
     password VARCHAR(255) NOT NULL,
     fullName VARCHAR(100) NOT NULL,
     role VARCHAR(20) CHECK (role IN ('Family Head', 'Adult', 'Teen', 'Kid') OR role IS NULL),
@@ -62,7 +62,7 @@ CREATE TABLE Categories (
 -- F101 & F102: CONSTRAINTS & BUSINESS RULES:
 -- 1. Family Head role: Only one per family
 -- 2. Family Code: Must be unique across all families
--- 3. Email: Must be unique across all users
+-- 3. Email: Must be unique per active user (allows email reuse after account deactivation)
 -- 4. Category Name: Must be unique within each family
 -- 5. Member Count: Must be >= 1 (family must have at least one member)
 -- 6. Roles: Restricted to 'Family Head', 'Adult', 'Teen', 'Kid'

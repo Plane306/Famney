@@ -4,16 +4,16 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
 import model.User;
 import controller.PasswordUtil;
 import controller.IdGenerator;
+import controller.DateUtil;
 
 // Data Access Object for User table operations
-// Handles all database operations for users
+// Handles all database operations for users including authentication and role management
 public class UserManager {
     
     private Connection conn;
@@ -26,7 +26,7 @@ public class UserManager {
     // Create new user in database
     // Generates user ID automatically and hashes password
     // Role can be NULL for pending approval (join family scenario)
-    // Returns true if successful, false if failed (duplicate email)
+    // Returns true if successful, false if failed
     // Uses retry logic if duplicate userId occurs (2-layer prevention)
     public boolean createUser(User user) throws SQLException {
         // Hash password before storing
@@ -43,15 +43,17 @@ public class UserManager {
             user.setUserId(IdGenerator.generateUserId());
             
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                String currentDateTime = DateUtil.getCurrentDateTime();
+                
                 stmt.setString(1, user.getUserId());
                 stmt.setString(2, user.getEmail().trim());
                 stmt.setString(3, hashedPassword);
                 stmt.setString(4, user.getFullName().trim());
                 stmt.setString(5, user.getRole()); // Can be NULL for pending approval
                 stmt.setString(6, user.getFamilyId());
-                stmt.setTimestamp(7, new Timestamp(System.currentTimeMillis()));
-                stmt.setTimestamp(8, new Timestamp(System.currentTimeMillis()));
-                stmt.setTimestamp(9, new Timestamp(System.currentTimeMillis()));
+                stmt.setString(7, currentDateTime);
+                stmt.setString(8, currentDateTime);
+                stmt.setString(9, currentDateTime);
                 stmt.setBoolean(10, true);
                 
                 int rowsAffected = stmt.executeUpdate();
@@ -59,11 +61,6 @@ public class UserManager {
                 
             } catch (SQLException e) {
                 String errorMsg = e.getMessage();
-                
-                // If duplicate email - return false immediately (no retry)
-                if (errorMsg.contains("UNIQUE constraint failed: Users.email")) {
-                    return false;
-                }
                 
                 // If duplicate userId - retry with new ID
                 if (errorMsg.contains("UNIQUE constraint failed: Users.userId")) {
@@ -80,7 +77,7 @@ public class UserManager {
                     continue;
                 }
                 
-                // Other SQL errors - throw exception
+                // For other SQL errors - throw exception
                 throw e;
             }
         }
@@ -90,6 +87,7 @@ public class UserManager {
     
     // Find user by email for login
     // Returns User object if found, null if not found
+    // Only returns active users (isActive = 1)
     public User findByEmail(String email) throws SQLException {
         String sql = "SELECT * FROM Users WHERE email = ? AND isActive = 1";
         
@@ -106,9 +104,9 @@ public class UserManager {
                 user.setFullName(rs.getString("fullName"));
                 user.setRole(rs.getString("role")); // Can be NULL
                 user.setFamilyId(rs.getString("familyId"));
-                user.setJoinDate(rs.getTimestamp("joinDate"));
-                user.setCreatedDate(rs.getTimestamp("createdDate"));
-                user.setLastModifiedDate(rs.getTimestamp("lastModifiedDate"));
+                user.setJoinDate(DateUtil.parseToTimestamp(rs.getString("joinDate")));
+                user.setCreatedDate(DateUtil.parseToTimestamp(rs.getString("createdDate")));
+                user.setLastModifiedDate(DateUtil.parseToTimestamp(rs.getString("lastModifiedDate")));
                 user.setActive(rs.getBoolean("isActive"));
                 
                 return user;
@@ -137,6 +135,7 @@ public class UserManager {
     
     // Get all users in a family
     // Used by family management page
+    // Orders by pending status first, then by role hierarchy
     public List<User> getUsersByFamily(String familyId) throws SQLException {
         List<User> users = new ArrayList<>();
         String sql = "SELECT * FROM Users WHERE familyId = ? AND isActive = 1 ORDER BY " +
@@ -160,9 +159,9 @@ public class UserManager {
                 user.setFullName(rs.getString("fullName"));
                 user.setRole(rs.getString("role")); // Can be NULL
                 user.setFamilyId(rs.getString("familyId"));
-                user.setJoinDate(rs.getTimestamp("joinDate"));
-                user.setCreatedDate(rs.getTimestamp("createdDate"));
-                user.setLastModifiedDate(rs.getTimestamp("lastModifiedDate"));
+                user.setJoinDate(DateUtil.parseToTimestamp(rs.getString("joinDate")));
+                user.setCreatedDate(DateUtil.parseToTimestamp(rs.getString("createdDate")));
+                user.setLastModifiedDate(DateUtil.parseToTimestamp(rs.getString("lastModifiedDate")));
                 user.setActive(rs.getBoolean("isActive"));
                 
                 users.add(user);
@@ -192,9 +191,9 @@ public class UserManager {
                 user.setFullName(rs.getString("fullName"));
                 user.setRole(null); // Explicitly NULL
                 user.setFamilyId(rs.getString("familyId"));
-                user.setJoinDate(rs.getTimestamp("joinDate"));
-                user.setCreatedDate(rs.getTimestamp("createdDate"));
-                user.setLastModifiedDate(rs.getTimestamp("lastModifiedDate"));
+                user.setJoinDate(DateUtil.parseToTimestamp(rs.getString("joinDate")));
+                user.setCreatedDate(DateUtil.parseToTimestamp(rs.getString("createdDate")));
+                user.setLastModifiedDate(DateUtil.parseToTimestamp(rs.getString("lastModifiedDate")));
                 user.setActive(rs.getBoolean("isActive"));
                 
                 users.add(user);
@@ -205,7 +204,7 @@ public class UserManager {
     }
     
     // Update user profile
-    // Only updates email, full name, and optionally password
+    // Only updates email, full name, and lastModifiedDate
     public boolean updateUser(User user) throws SQLException {
         String sql = "UPDATE Users SET email = ?, fullName = ?, lastModifiedDate = ? " +
                      "WHERE userId = ?";
@@ -213,7 +212,7 @@ public class UserManager {
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, user.getEmail().trim());
             stmt.setString(2, user.getFullName().trim());
-            stmt.setTimestamp(3, new Timestamp(System.currentTimeMillis()));
+            stmt.setString(3, DateUtil.getCurrentDateTime());
             stmt.setString(4, user.getUserId());
             
             int rowsAffected = stmt.executeUpdate();
@@ -222,7 +221,7 @@ public class UserManager {
     }
     
     // Update user password
-    // Separate method for password updates
+    // Separate method for password updates with hashing
     public boolean updatePassword(String userId, String newPassword) throws SQLException {
         String hashedPassword = PasswordUtil.hashPassword(newPassword);
         
@@ -230,7 +229,7 @@ public class UserManager {
         
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, hashedPassword);
-            stmt.setTimestamp(2, new Timestamp(System.currentTimeMillis()));
+            stmt.setString(2, DateUtil.getCurrentDateTime());
             stmt.setString(3, userId);
             
             int rowsAffected = stmt.executeUpdate();
@@ -246,7 +245,7 @@ public class UserManager {
         
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, newRole);
-            stmt.setTimestamp(2, new Timestamp(System.currentTimeMillis()));
+            stmt.setString(2, DateUtil.getCurrentDateTime());
             stmt.setString(3, userId);
             
             int rowsAffected = stmt.executeUpdate();
@@ -256,11 +255,12 @@ public class UserManager {
     
     // Soft delete user (set isActive to false)
     // Only Family Head can remove members
+    // Data is preserved for analytics
     public boolean deleteUser(String userId) throws SQLException {
         String sql = "UPDATE Users SET isActive = 0, lastModifiedDate = ? WHERE userId = ?";
         
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
+            stmt.setString(1, DateUtil.getCurrentDateTime());
             stmt.setString(2, userId);
             
             int rowsAffected = stmt.executeUpdate();
@@ -270,11 +270,12 @@ public class UserManager {
     
     // Deactivate all users in a family (when family is closed)
     // Called when Family Head closes the entire family
+    // All member data is preserved for analytics
     public boolean deactivateAllFamilyUsers(String familyId) throws SQLException {
         String sql = "UPDATE Users SET isActive = 0, lastModifiedDate = ? WHERE familyId = ?";
         
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
+            stmt.setString(1, DateUtil.getCurrentDateTime());
             stmt.setString(2, familyId);
             
             int rowsAffected = stmt.executeUpdate();
@@ -282,9 +283,9 @@ public class UserManager {
         }
     }
     
-    // Check if email already exists in database FOR ACTIVE USERS ONLY
-    // Inactive users (from closed families) can re-register
+    // Check if email already exists for ACTIVE users only
     // Used during registration validation
+    // Allows email reuse if previous user is inactive (soft deleted)
     public boolean emailExists(String email) throws SQLException {
         String sql = "SELECT COUNT(*) FROM Users WHERE email = ? AND isActive = 1";
         
@@ -298,19 +299,5 @@ public class UserManager {
         }
         
         return false;
-    }
-
-    // Clean up old inactive user data to allow re-registration
-    // Called when user wants to create/join new family after previous family closed
-    // This deletes the old inactive account to allow fresh registration
-    public boolean cleanupInactiveUser(String email) throws SQLException {
-        String sql = "DELETE FROM Users WHERE email = ? AND isActive = 0";
-        
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, email.trim());
-            
-            int rowsAffected = stmt.executeUpdate();
-            return rowsAffected > 0;
-        }
     }
 }
