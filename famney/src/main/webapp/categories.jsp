@@ -11,7 +11,6 @@
     <head>
         <title>Manage Categories - Famney</title>
         <style>
-            /* Same CSS as before - tidak berubah */
             * {
                 margin: 0;
                 padding: 0;
