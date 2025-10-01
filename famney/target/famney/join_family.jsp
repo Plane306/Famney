@@ -1,6 +1,9 @@
 <%@ page import="model.User"%>
 <%@ page import="model.Family"%>
 
+<!-- Initialise database connection -->
+<jsp:include page="/ConnServlet" flush="true"/>
+
 <html>
     <head>
         <title>Join Family - Famney</title>
@@ -19,7 +22,6 @@
                 flex-direction: column;
             }
             
-            /* Header */
             .header {
                 background: #2c3e50;
                 padding: 1rem 0;
@@ -61,7 +63,6 @@
                 border-color: rgba(255, 255, 255, 0.3);
             }
             
-            /* Main Content */
             .main-container {
                 flex: 1;
                 display: flex;
@@ -196,17 +197,6 @@
                 margin-bottom: 0.5rem;
             }
             
-            .family-code-example {
-                background: #f5f5f5;
-                padding: 0.5rem 1rem;
-                border-radius: 5px;
-                font-family: monospace;
-                font-weight: bold;
-                display: inline-block;
-                margin-top: 0.5rem;
-            }
-            
-            /* Footer */
             .footer {
                 background: #2c3e50;
                 color: white;
@@ -214,7 +204,6 @@
                 text-align: center;
             }
             
-            /* Responsive */
             @media (max-width: 768px) {
                 .join-form {
                     margin: 1rem;
@@ -234,6 +223,21 @@
     </head>
     
     <body>
+        <%
+            // Check if already logged in
+            User user = (User) session.getAttribute("user");
+            if (user != null) {
+                response.sendRedirect("main.jsp");
+                return;
+            }
+            
+            // Get flash message from session
+            String errorMessage = (String) session.getAttribute("errorMessage");
+            if (errorMessage != null) {
+                session.removeAttribute("errorMessage");
+            }
+        %>
+        
         <header class="header">
             <div class="nav-container">
                 <a href="index.jsp" class="logo">Famney</a>
@@ -252,46 +256,44 @@
                     <p>Join an existing family using your family code</p>
                 </div>
                 
-                <%
-                    String errorMessage = request.getParameter("error");
-                    if (errorMessage != null) {
-                %>
+                <% if (errorMessage != null) { %>
                     <div class="error-message">
-                        <% if ("invalid_code".equals(errorMessage)) { %>
-                            Invalid family code. Please check and try again.
-                        <% } else if ("validation".equals(errorMessage)) { %>
-                            Please fill in all required fields correctly.
-                        <% } else if ("exists".equals(errorMessage)) { %>
-                            An account with this email already exists.
-                        <% } else { %>
-                            An error occurred. Please try again.
-                        <% } %>
+                        <%= errorMessage %>
                     </div>
                 <% } %>
                 
-                <form action="family_created.jsp" method="post">
+                <div class="info-box">
+                    <h3>Need a Family Code?</h3>
+                    <p>Ask your Family Head for the unique family code. It looks like: <strong>FAMNEY-A1B2</strong></p>
+                </div>
+                
+                <form action="JoinFamilyServlet" method="post">
                     <div class="form-group">
                         <label for="familyCode">Family Code *</label>
-                        <input type="text" id="familyCode" name="familyCode" placeholder="Enter your family code (e.g., FAMNEY-12345)" style="text-transform: uppercase;">
+                        <input type="text" id="familyCode" name="familyCode" 
+                               placeholder="Enter your family code (e.g., FAMNEY-12345)" 
+                               style="text-transform: uppercase;" required>
                     </div>
                     
                     <div class="form-row">
                         <div class="form-group">
                             <label for="fullName">Your Full Name *</label>
-                            <input type="text" id="fullName" name="fullName" required 
-                                   placeholder="Enter your full name">
+                            <input type="text" id="fullName" name="fullName" 
+                                   placeholder="Enter your full name" required>
                         </div>
                         
                         <div class="form-group">
                             <label for="email">Email Address *</label>
-                            <input type="email" id="email" name="email" placeholder="Enter your email" required>
+                            <input type="email" id="email" name="email" 
+                                   placeholder="Enter your email" required>
                         </div>
                     </div>
                     
                     <div class="form-row">
                         <div class="form-group">
                             <label for="password">Password *</label>
-                            <input type="password" id="password" name="password" placeholder="Create your password" required>
+                            <input type="password" id="password" name="password" 
+                                   placeholder="Create your password (min 6 characters)" required>
                         </div>
                         
                         <div class="form-group">
@@ -304,8 +306,6 @@
                             </select>
                         </div>
                     </div>
-                    
-                    <input type="hidden" name="action" value="join_family">
                     
                     <button type="submit" class="btn-primary">Join Family</button>
                 </form>

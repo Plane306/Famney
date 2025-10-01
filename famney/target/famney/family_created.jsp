@@ -1,6 +1,8 @@
 <%@ page import="model.User"%>
 <%@ page import="model.Family"%>
-<%@ page import="java.util.Date"%>
+
+<!-- Initialise database connection -->
+<jsp:include page="/ConnServlet" flush="true"/>
 
 <html>
     <head>
@@ -20,7 +22,6 @@
                 flex-direction: column;
             }
             
-            /* Header */
             .header {
                 background: #2c3e50;
                 padding: 1rem 0;
@@ -67,7 +68,6 @@
                 opacity: 0.9;
             }
             
-            /* Main Container */
             .main-container {
                 flex: 1;
                 display: flex;
@@ -216,7 +216,6 @@
                 color: white;
             }
             
-            /* Footer */
             .footer {
                 background: #2c3e50;
                 color: white;
@@ -224,7 +223,6 @@
                 text-align: center;
             }
             
-            /* Responsive */
             @media (max-width: 768px) {
                 .success-card {
                     margin: 1rem;
@@ -245,84 +243,65 @@
     
     <body>
         <%
-            // Security check (prevent direct URL access)
-            String action = request.getParameter("action");
-            boolean isNewFamily = "create_family".equals(action);
-            boolean isJoinFamily = "join_family".equals(action);
+            // Check if user is logged in
+            User user = (User) session.getAttribute("user");
+            Family family = (Family) session.getAttribute("family");
             
-            // Redirect if accessed directly without form submission
-            if (action == null || (!isNewFamily && !isJoinFamily)) {
+            if (user == null || family == null) {
                 response.sendRedirect("login.jsp");
                 return;
             }
             
-            // Consistent sample data with login.jsp using full constructor
-            Date now = new Date();
-            String familyName = "The Smith Family";
-            String familyCode = "FAMNEY-12345";
-            
-            User sampleUser;
-            Family sampleFamily;
-            
-            if (isNewFamily) {
-                // Create Family Head account
-                sampleFamily = new Family("FAM001", familyCode, familyName, "USER001", now, now, true, 1);
-                sampleUser = new User("USER001", "john@smith.com", "password123", "John Smith", "Family Head", "FAM001", now, now, now, true);
-            } else {
-                // Join existing family as Adult member
-                sampleFamily = new Family("FAM001", familyCode, familyName, "USER001", now, now, true, 4);
-                sampleUser = new User("USER002", "jane@smith.com", "password123", "Jane Smith", "Adult", "FAM001", now, now, now, true);
+            // Get success message
+            String successMessage = (String) session.getAttribute("successMessage");
+            if (successMessage != null) {
+                session.removeAttribute("successMessage");
             }
             
-            // Store in session for demo
-            session.setAttribute("user", sampleUser);
-            session.setAttribute("family", sampleFamily);
+            // Determine if new family or joined existing
+            boolean isNewFamily = "Family Head".equals(user.getRole());
         %>
         
         <header class="header">
             <div class="nav-container">
-                <a href="index.jsp" class="logo">Famney</a>
+                <a href="main.jsp" class="logo">Famney</a>
                 <nav class="nav-menu">
-                    <span>Welcome, <%= sampleUser.getFullName() %></span>
+                    <span>Welcome, <%= user.getFullName() %></span>
                     <a href="main.jsp">Dashboard</a>
-                    <a href="logout.jsp">Logout</a>
+                    <a href="LogoutServlet">Logout</a>
                 </nav>
             </div>
         </header>
         
         <div class="main-container">
             <div class="success-card">
-                <div class="success-icon">&check;</div>
+                <div class="success-icon">&#10003;</div>
                 
                 <% if (isNewFamily) { %>
                     <h1>Family Account Created Successfully!</h1>
                     <p>Congratulations! You've successfully created your family financial management account. You're now ready to start tracking expenses, managing budgets, and achieving your savings goals together.</p>
                 <% } else { %>
                     <h1>Welcome to the Family!</h1>
-                    <p>You've successfully joined <%= sampleFamily.getFamilyName() %>. You now have access to your family's financial dashboard and can start contributing to your shared financial goals.</p>
+                    <p>You've successfully joined <%= family.getFamilyName() %>. You now have access to your family's financial dashboard and can start contributing to your shared financial goals.</p>
                 <% } %>
                 
                 <div class="family-info">
                     <h3>Your Account Details</h3>
                     <div class="info-item">
                         <span class="info-label">Family Name:</span>
-                        <span class="info-value"><%= sampleFamily.getFamilyName() %></span>
+                        <span class="info-value"><%= family.getFamilyName() %></span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">Your Name:</span>
-                        <span class="info-value"><%= sampleUser.getFullName() %></span>
+                        <span class="info-value"><%= user.getFullName() %></span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">Email:</span>
-                        <span class="info-value"><%= sampleUser.getEmail() %></span>
+                        <span class="info-value"><%= user.getEmail() %></span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">Role:</span>
-                        <span class="info-value"><%= sampleUser.getRole() %></span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">User ID:</span>
-                        <span class="info-value"><%= sampleUser.getUserId() %></span>
+                        <span class="info-value"><%= user.getRole() %></span>
                     </div>
                 </div>
                 
@@ -333,7 +312,7 @@
                     </div>
                     
                     <div class="family-code-highlight">
-                        <%= sampleFamily.getFamilyCode() %>
+                        <%= family.getFamilyCode() %>
                     </div>
                 <% } %>
                 
