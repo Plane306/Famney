@@ -5,6 +5,7 @@
 <%@ page import="model.Category" %>
 <%@ page import="java.util.*" %>
 <html>
+<%@ page import="java.text.SimpleDateFormat" %>
 <head>
     <title>Submitted Expense - Famney</title>
     <style>
@@ -135,18 +136,55 @@
     // Check if user is logged in
     User user = (User) session.getAttribute("user");
     Family family = (Family) session.getAttribute("family");
-
     if (user == null || family == null) {
         response.sendRedirect("login.jsp");
         return;
     }
+    // --- Begin: Copy categories logic from categories.jsp ---
+    List<Category> categories = new ArrayList<>();
+    Category cat1 = new Category(family.getFamilyId(), "Food & Dining", "Expense", true, "Groceries, restaurants, takeaways");
+    cat1.setCategoryId("CAT001");
+    categories.add(cat1);
+    Category cat2 = new Category(family.getFamilyId(), "Transportation", "Expense", true, "Petrol, public transport, car maintenance");
+    cat2.setCategoryId("CAT002");
+    categories.add(cat2);
+    Category cat3 = new Category(family.getFamilyId(), "Utilities", "Expense", true, "Electricity, water, gas, internet");
+    cat3.setCategoryId("CAT003");
+    categories.add(cat3);
+    Category cat4 = new Category(family.getFamilyId(), "Entertainment", "Expense", true, "Movies, games, hobbies");
+    cat4.setCategoryId("CAT004");
+    categories.add(cat4);
+    Category cat5 = new Category(family.getFamilyId(), "Healthcare", "Expense", true, "Medical expenses, insurance");
+    cat5.setCategoryId("CAT005");
+    categories.add(cat5);
+    Category cat6 = new Category(family.getFamilyId(), "Shopping", "Expense", true, "Clothes, electronics, household items");
+    cat6.setCategoryId("CAT006");
+    categories.add(cat6);
+    Category cat7 = new Category(family.getFamilyId(), "Salary", "Income", true, "Monthly salary from employment");
+    cat7.setCategoryId("CAT007");
+    categories.add(cat7);
+    Category cat8 = new Category(family.getFamilyId(), "Freelance", "Income", true, "Freelance work and contracts");
+    cat8.setCategoryId("CAT008");
+    categories.add(cat8);
+    Category cat9 = new Category(family.getFamilyId(), "Allowance", "Income", true, "Pocket money and allowances");
+    cat9.setCategoryId("CAT009");
+    categories.add(cat9);
+    Category cat10 = new Category(family.getFamilyId(), "Investment", "Income", true, "Dividends, interest, capital gains");
+    cat10.setCategoryId("CAT010");
+    categories.add(cat10);
+    Category cat11 = new Category(family.getFamilyId(), "Education", "Expense", false, "School fees, books, courses");
+    cat11.setCategoryId("CAT011");
+    categories.add(cat11);
+    Category cat12 = new Category(family.getFamilyId(), "Pet Care", "Expense", false, "Pet food, vet bills, grooming");
+    cat12.setCategoryId("CAT012");
+    categories.add(cat12);
+    // --- End: Copy categories logic from categories.jsp ---
 %>
     <header class="header">
         <div class="nav-container">
             <a href="index.jsp" class="logo">Famney</a>
             <nav class="nav-menu">
                 <a href="main.jsp">Dashboard</a>
-                <a href="expense_form.jsp">Add Expense</a>
                     <a href="logout.jsp">Logout</a>
             </nav>
         </div>
@@ -157,26 +195,36 @@
                 <h1>Expense Details</h1>
                 <p>See the details of your submitted expense</p>
             </div>
+            <%
+                List<model.Expense> allExpenses = (List<model.Expense>) session.getAttribute("allExpenses");
+                if (allExpenses != null && !allExpenses.isEmpty()) {
+                    for (model.Expense exp : allExpenses) {
+            %>
             <div class="expense-details">
-                <%-- Get category name from session list --%>
+                <p><strong>User:</strong> <%= exp.getUserId() %></p>
                 <%
-                    List<Category> categories = (List<Category>) session.getAttribute("categories");
-                    String categoryId = (String) request.getAttribute("category");
-                    String categoryName = categoryId;
-                    if (categories != null && categoryId != null) {
-                        for (Category cat : categories) {
-                            if (cat.getCategoryId().equals(categoryId)) {
-                                categoryName = cat.getCategoryName();
-                                break;
-                            }
+                    String catName = exp.getCategoryId();
+                    for (Category cat : categories) {
+                        if (cat.getCategoryId().equals(exp.getCategoryId())) {
+                            catName = cat.getCategoryName();
+                            break;
                         }
                     }
                 %>
-                <p><strong>Category:</strong> <%= categoryName %></p>
-                <p><strong>Amount:</strong> ${amount}</p>
-                <p><strong>Date:</strong> ${date}</p>
-                <p><strong>Description:</strong> ${description}</p>
-                <p><strong>Budget for this category:</strong> $<%= request.getAttribute("categoryBudget") != null ? request.getAttribute("categoryBudget") : "N/A" %></p>            </div>
+                <p><strong>Category:</strong> <%= catName %></p>
+                <p><strong>Amount:</strong> <%= exp.getAmount() %></p>
+                <p><strong>Date:</strong> <%= new java.text.SimpleDateFormat("yyyy-MM-dd").format(exp.getExpenseDate()) %></p>
+                <p><strong>Description:</strong> <%= exp.getDescription() %></p>
+            </div>
+            <hr/>
+            <%
+                    }
+                } else {
+            %>
+            <p>No expenses recorded yet.</p>
+            <%
+                }
+            %>
             <a href="expense_form.jsp" class="btn-primary">Add another expense</a>
         </div>
     </div>

@@ -15,8 +15,8 @@ public class DeleteBudgetServlet extends HttpServlet {
         if (indexStr != null) {
             int index = Integer.parseInt(indexStr);
             HttpSession session = request.getSession();
-            List allBudgets = (List) session.getAttribute("allBudgets");
-            List allCategories = (List) session.getAttribute("allCategories");
+            List<?> allBudgets = (List<?>) session.getAttribute("allBudgets");
+            List<?> allCategories = (List<?>) session.getAttribute("allCategories");
             if (allBudgets != null && allBudgets.size() > index) {
                 allBudgets.remove(index);
             }

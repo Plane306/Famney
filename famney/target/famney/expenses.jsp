@@ -5,6 +5,7 @@
 <%@ page import="model.Category" %>
 <%@ page import="java.util.*" %>
 <html>
+<%@ page import="java.text.SimpleDateFormat" %>
 <head>
     <title>Submitted Expense - Famney</title>
     <style>
@@ -146,7 +147,6 @@
             <a href="index.jsp" class="logo">Famney</a>
             <nav class="nav-menu">
                 <a href="main.jsp">Dashboard</a>
-                <a href="expense_form.jsp">Add Expense</a>
                     <a href="logout.jsp">Logout</a>
             </nav>
         </div>
@@ -157,26 +157,39 @@
                 <h1>Expense Details</h1>
                 <p>See the details of your submitted expense</p>
             </div>
+            <%
+                List<model.Expense> allExpenses = (List<model.Expense>) session.getAttribute("allExpenses");
+                if (allExpenses != null && !allExpenses.isEmpty()) {
+                    for (model.Expense exp : allExpenses) {
+            %>
             <div class="expense-details">
-                <%-- Get category name from session list --%>
+                <p><strong>User:</strong> <%= exp.getUserId() %></p>
                 <%
+                    String catName = exp.getCategoryId();
                     List<Category> categories = (List<Category>) session.getAttribute("categories");
-                    String categoryId = (String) request.getAttribute("category");
-                    String categoryName = categoryId;
-                    if (categories != null && categoryId != null) {
+                    if (categories != null) {
                         for (Category cat : categories) {
-                            if (cat.getCategoryId().equals(categoryId)) {
-                                categoryName = cat.getCategoryName();
+                            if (cat.getCategoryId().equals(exp.getCategoryId())) {
+                                catName = cat.getCategoryName();
                                 break;
                             }
                         }
                     }
                 %>
-                <p><strong>Category:</strong> <%= categoryName %></p>
-                <p><strong>Amount:</strong> ${amount}</p>
-                <p><strong>Date:</strong> ${date}</p>
-                <p><strong>Description:</strong> ${description}</p>
-                <p><strong>Budget for this category:</strong> $<%= request.getAttribute("categoryBudget") != null ? request.getAttribute("categoryBudget") : "N/A" %></p>            </div>
+                <p><strong>Category:</strong> <%= catName %></p>
+                <p><strong>Amount:</strong> <%= exp.getAmount() %></p>
+                <p><strong>Date:</strong> <%= new java.text.SimpleDateFormat("yyyy-MM-dd").format(exp.getExpenseDate()) %></p>
+                <p><strong>Description:</strong> <%= exp.getDescription() %></p>
+            </div>
+            <hr/>
+            <%
+                    }
+                } else {
+            %>
+            <p>No expenses recorded yet.</p>
+            <%
+                }
+            %>
             <a href="expense_form.jsp" class="btn-primary">Add another expense</a>
         </div>
     </div>

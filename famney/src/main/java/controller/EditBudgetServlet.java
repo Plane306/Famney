@@ -10,6 +10,8 @@ import java.util.List;
 @WebServlet("/EditBudgetServlet")
 public class EditBudgetServlet extends HttpServlet {
     @Override
+    @SuppressWarnings("unchecked")
+
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String indexStr = request.getParameter("index");
@@ -33,6 +35,7 @@ public class EditBudgetServlet extends HttpServlet {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String indexStr = request.getParameter("index");

@@ -6,10 +6,51 @@
 <%@ page import="java.util.*" %>
 
 <%
-    // Use centralized categories from session, fallback if missing
-    List<Category> categories = (List<Category>) session.getAttribute("categories");
+    // --- Begin: Copy categories logic from categories.jsp ---
+    User user = (User) session.getAttribute("user");
     Family family = (Family) session.getAttribute("family");
-
+    if (user == null || family == null) {
+        response.sendRedirect("login.jsp");
+        return;
+    }
+    List<Category> categories = new ArrayList<>();
+    Category cat1 = new Category(family.getFamilyId(), "Food & Dining", "Expense", true, "Groceries, restaurants, takeaways");
+    cat1.setCategoryId("CAT001");
+    categories.add(cat1);
+    Category cat2 = new Category(family.getFamilyId(), "Transportation", "Expense", true, "Petrol, public transport, car maintenance");
+    cat2.setCategoryId("CAT002");
+    categories.add(cat2);
+    Category cat3 = new Category(family.getFamilyId(), "Utilities", "Expense", true, "Electricity, water, gas, internet");
+    cat3.setCategoryId("CAT003");
+    categories.add(cat3);
+    Category cat4 = new Category(family.getFamilyId(), "Entertainment", "Expense", true, "Movies, games, hobbies");
+    cat4.setCategoryId("CAT004");
+    categories.add(cat4);
+    Category cat5 = new Category(family.getFamilyId(), "Healthcare", "Expense", true, "Medical expenses, insurance");
+    cat5.setCategoryId("CAT005");
+    categories.add(cat5);
+    Category cat6 = new Category(family.getFamilyId(), "Shopping", "Expense", true, "Clothes, electronics, household items");
+    cat6.setCategoryId("CAT006");
+    categories.add(cat6);
+    Category cat7 = new Category(family.getFamilyId(), "Salary", "Income", true, "Monthly salary from employment");
+    cat7.setCategoryId("CAT007");
+    categories.add(cat7);
+    Category cat8 = new Category(family.getFamilyId(), "Freelance", "Income", true, "Freelance work and contracts");
+    cat8.setCategoryId("CAT008");
+    categories.add(cat8);
+    Category cat9 = new Category(family.getFamilyId(), "Allowance", "Income", true, "Pocket money and allowances");
+    cat9.setCategoryId("CAT009");
+    categories.add(cat9);
+    Category cat10 = new Category(family.getFamilyId(), "Investment", "Income", true, "Dividends, interest, capital gains");
+    cat10.setCategoryId("CAT010");
+    categories.add(cat10);
+    Category cat11 = new Category(family.getFamilyId(), "Education", "Expense", false, "School fees, books, courses");
+    cat11.setCategoryId("CAT011");
+    categories.add(cat11);
+    Category cat12 = new Category(family.getFamilyId(), "Pet Care", "Expense", false, "Pet food, vet bills, grooming");
+    cat12.setCategoryId("CAT012");
+    categories.add(cat12);
+    // --- End: Copy categories logic from categories.jsp ---
 %>
 <html>
     <head>
@@ -194,13 +235,6 @@
         </style>
     </head>
     <body>
-        <%
-            User user = (User) session.getAttribute("user");
-            if (user == null || family == null) {
-                response.sendRedirect("login.jsp");
-                return;
-            }
-        %>
         <header class="header">
             <div class="nav-container">
                 <a href="index.jsp" class="logo">Famney</a>
@@ -218,6 +252,15 @@
                     <p>Log a new expense for your family budget</p>
                 </div>
                 <form action="ExpenseServlet" method="post" class="expense-form">
+                    <div class="form-group">
+                        <label for="userId">User</label>
+                        <select id="userId" name="userId" required>
+                            <option value="">--Select User--</option>
+                            <option value="user1">User 1</option>
+                            <option value="user2">User 2</option>
+                            <option value="user3">User 3</option>
+                        </select>
+                    </div>
                     <div class="form-group">
                         <label for="amount">Amount</label>
                         <input type="number" id="amount" name="amount" step="0.01" required placeholder="e.g. 25.00" />

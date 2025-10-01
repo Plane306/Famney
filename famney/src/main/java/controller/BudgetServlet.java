@@ -16,6 +16,7 @@ import java.util.List;
 @WebServlet("/BudgetServlet")
 public class BudgetServlet extends HttpServlet {
     @Override
+    @SuppressWarnings("unchecked")
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         User user = (User) request.getSession().getAttribute("user");
@@ -63,12 +64,10 @@ public class BudgetServlet extends HttpServlet {
         allBudgets.add(budget);
         request.getSession().setAttribute("allBudgets", allBudgets);
 
-        // Store category IDs for each budget in allCategories
         List<String> allCategories = (List<String>) request.getSession().getAttribute("allCategories");
         if (allCategories == null) {
             allCategories = new ArrayList<>();
         }
-        // For each category selected, add its ID to allCategories
         if (categoriesSelected != null) {
             for (String catId : categoriesSelected) {
                 if (catId != null && !catId.isEmpty()) {
@@ -78,7 +77,6 @@ public class BudgetServlet extends HttpServlet {
         }
         request.getSession().setAttribute("allCategories", allCategories);
 
-        // Store categories for this budget (optional: you may want a map of budgetId -> categories)
         List<List<BudgetCategory>> allBudgetCategories = (List<List<BudgetCategory>>) request.getSession().getAttribute("allBudgetCategories");
         if (allBudgetCategories == null) {
             allBudgetCategories = new ArrayList<>();
@@ -86,7 +84,6 @@ public class BudgetServlet extends HttpServlet {
         allBudgetCategories.add(budgetCategories);
         request.getSession().setAttribute("allBudgetCategories", allBudgetCategories);
 
-        // Optionally keep currentBudget and budgetCategories for immediate use
         request.getSession().setAttribute("currentBudget", budget);
         request.getSession().setAttribute("budgetCategories", budgetCategories);
         response.sendRedirect("view_budget.jsp");
