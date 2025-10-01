@@ -282,7 +282,7 @@
 
                 <% 
                     List<Budget> allBudgets = (List<Budget>) request.getAttribute("allBudgets");
-                    model.dao.BudgetManager budgetManager = (model.dao.BudgetManager) session.getAttribute("budgetManager");
+                    BudgetManager budgetManager = (BudgetManager) session.getAttribute("budgetManager");
                     if (allBudgets != null && allBudgets.size() > 0) {
                         int idx = 0;
                         for (Budget b : allBudgets) {

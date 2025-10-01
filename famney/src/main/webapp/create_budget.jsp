@@ -487,7 +487,7 @@
                 <label for="category">Category</label>
                 <select id="category" name="category" required>
                     <option value="">--Select Category--</option>
-                    <% for (model.Category cat : categories) { %>
+                    <% for (Category cat : categories) { %>
                         <option value="<%= cat.getCategoryId() %>"><%= cat.getCategoryName() %> </option>
                     <% } %>
                 </select>
