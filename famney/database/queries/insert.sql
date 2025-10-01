@@ -11,5 +11,5 @@ VALUES
 ('CAT008', 'FAM001', 'Freelance', 'Income', 1, 'Freelance work and contracts', 1),
 ('CAT009', 'FAM001', 'Allowance', 'Income', 1, 'Pocket money and allowances', 1),
 ('CAT010', 'FAM001', 'Investment', 'Income', 1, 'Dividends, interest, capital gains', 1),
-('CAT011', 'FAM001', 'Education', 'Expense', 0, 'School fees, books, courses', 1),
-('CAT012', 'FAM001', 'Pet Care', 'Expense', 0, 'Pet food, vet bills, grooming', 1);
+('CAT011', 'FAM001', 'Education', 'Expense', 1, 'School fees, books, courses', 1),
+('CAT012', 'FAM001', 'Pet Care', 'Expense', 1, 'Pet food, vet bills, grooming', 1);

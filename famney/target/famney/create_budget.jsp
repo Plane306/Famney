@@ -50,10 +50,10 @@
     Category cat10 = new Category(family.getFamilyId(), "Investment", "Income", true, "Dividends, interest, capital gains");
     cat10.setCategoryId("CAT010");
     categories.add(cat10);
-    Category cat11 = new Category(family.getFamilyId(), "Education", "Expense", false, "School fees, books, courses");
+    Category cat11 = new Category(family.getFamilyId(), "Education", "Expense", true, "School fees, books, courses");
     cat11.setCategoryId("CAT011");
     categories.add(cat11);
-    Category cat12 = new Category(family.getFamilyId(), "Pet Care", "Expense", false, "Pet food, vet bills, grooming");
+    Category cat12 = new Category(family.getFamilyId(), "Pet Care", "Expense", true, "Pet food, vet bills, grooming");
     cat12.setCategoryId("CAT012");
     categories.add(cat12);
     // --- End: Copy categories logic from categories.jsp ---
@@ -487,7 +487,7 @@
                 <label for="category">Category</label>
                 <select id="category" name="category" required>
                     <option value="">--Select Category--</option>
-                    <% for (model.Category cat : categories) { %>
+                    <% for (Category cat : categories) { %>
                         <option value="<%= cat.getCategoryId() %>"><%= cat.getCategoryName() %> </option>
                     <% } %>
                 </select>
