@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.1" name="model.BudgetTest" time="0.065" tests="3" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.1" name="model.BudgetTest" time="0.083" tests="3" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="21"/>
     <property name="sun.cpu.isalist" value="amd64"/>
@@ -15,7 +15,7 @@
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
     <property name="user.country" value="AU"/>
     <property name="sun.boot.library.path" value="C:\Program Files\Microsoft\jdk-21.0.4.7-hotspot\bin"/>
-    <property name="sun.java.command" value="C:\Users\flyin\AppData\Local\Temp\surefire3125596752257215283\surefirebooter-20251001184034584_3.jar C:\Users\flyin\AppData\Local\Temp\surefire3125596752257215283 2025-10-01T18-40-34_418-jvmRun1 surefire-20251001184034584_1tmp surefire_0-20251001184034584_2tmp"/>
+    <property name="sun.java.command" value="C:\Users\flyin\AppData\Local\Temp\surefire1786339280158327499\surefirebooter-20251001201652765_3.jar C:\Users\flyin\AppData\Local\Temp\surefire1786339280158327499 2025-10-01T20-16-52_633-jvmRun1 surefire-20251001201652765_1tmp surefire_0-20251001201652765_2tmp"/>
     <property name="jdk.debug" value="release"/>
     <property name="surefire.test.class.path" value="C:\Users\flyin\Famney\famney\target\test-classes;C:\Users\flyin\Famney\famney\target\classes;C:\Users\flyin\.m2\repository\junit\junit\4.11\junit-4.11.jar;C:\Users\flyin\.m2\repository\org\hamcrest\hamcrest-core\1.3\hamcrest-core-1.3.jar;C:\Users\flyin\.m2\repository\org\postgresql\postgresql\42.7.5\postgresql-42.7.5.jar;C:\Users\flyin\.m2\repository\org\checkerframework\checker-qual\3.48.3\checker-qual-3.48.3.jar;C:\Users\flyin\.m2\repository\org\xerial\sqlite-jdbc\3.49.1.0\sqlite-jdbc-3.49.1.0.jar;C:\Users\flyin\.m2\repository\jakarta\servlet\jakarta.servlet-api\6.1.0\jakarta.servlet-api-6.1.0.jar;"/>
     <property name="sun.cpu.endian" value="little"/>
@@ -30,7 +30,7 @@
     <property name="line.separator" value="&#10;"/>
     <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
     <property name="java.specification.name" value="Java Platform API Specification"/>
-    <property name="surefire.real.class.path" value="C:\Users\flyin\AppData\Local\Temp\surefire3125596752257215283\surefirebooter-20251001184034584_3.jar"/>
+    <property name="surefire.real.class.path" value="C:\Users\flyin\AppData\Local\Temp\surefire1786339280158327499\surefirebooter-20251001201652765_3.jar"/>
     <property name="user.script" value=""/>
     <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
     <property name="java.runtime.version" value="21.0.4+7-LTS"/>
@@ -61,5 +61,5 @@
   </properties>
   <testcase name="testSettersAndGetters" classname="model.BudgetTest" time="0.005"/>
   <testcase name="testBudgetCreation" classname="model.BudgetTest" time="0.0"/>
-  <testcase name="testIsValid" classname="model.BudgetTest" time="0.0"/>
+  <testcase name="testIsValid" classname="model.BudgetTest" time="0.001"/>
 </testsuite>
