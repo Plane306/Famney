@@ -1,4 +1,2 @@
-controller\PasswordUtilTest.class
 model\dao\FamilyManagerTest.class
 model\dao\UserManagerTest.class
-controller\UserValidatorTest.class
