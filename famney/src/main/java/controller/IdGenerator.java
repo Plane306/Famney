@@ -4,8 +4,9 @@ import java.util.Random;
 
 // Utility class for generating unique IDs and codes
 // Used by servlets when creating new families, users, and categories
-// Note: In production should check database for truly unique IDs
-// For this project, timestamp-based generation has very low collision chance
+// For this project, we will use 2-layer duplicate prevention:
+// 1. Timestamp-based generation has very low collision chance
+// 2. Database PRIMARY KEY constraint as safety net (rejects duplicates automatically)
 public class IdGenerator {
     
     private static final Random random = new Random();

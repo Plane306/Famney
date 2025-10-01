@@ -40,7 +40,7 @@ CREATE TABLE Users (
 );
 
 -- F102: CATEGORIES TABLE
--- Expense and income categories for budget organization
+-- Expense and income categories for budget organisation
 CREATE TABLE Categories (
     categoryId VARCHAR(8) PRIMARY KEY,
     familyId VARCHAR(8) NOT NULL,
