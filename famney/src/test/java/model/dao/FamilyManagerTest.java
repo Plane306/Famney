@@ -11,7 +11,7 @@ import java.sql.Statement;
 
 /**
  * JUnit tests for FamilyManager DAO class.
- * Tests family creation, member count management, and family code operations.
+ * Tests family creation, member count management, family closure, and family code operations.
  * Uses in-memory SQLite database for test isolation.
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -145,6 +145,30 @@ public class FamilyManagerTest {
     }
     
     /**
+     * Test that findByFamilyCode only returns active families.
+     * Closed families should not be found.
+     */
+    @Test
+    public void testFindByFamilyCode_OnlyActiveFamily() throws SQLException {
+        // Create family
+        Family family = new Family();
+        family.setFamilyName("Active Family");
+        family.setFamilyHead("U0004");
+        
+        Family created = familyManager.createFamily(family);
+        String familyCode = created.getFamilyCode();
+        
+        // Close the family
+        familyManager.deleteFamily(created.getFamilyId());
+        
+        // Try to find closed family
+        Family found = familyManager.findByFamilyCode(familyCode);
+        
+        // Verify closed family is not found
+        assertNull(found, "Should not find inactive family");
+    }
+    
+    /**
      * Test finding family by family ID.
      * Used to get family details for logged in user.
      */
@@ -153,7 +177,7 @@ public class FamilyManagerTest {
         // Create test family
         Family family = new Family();
         family.setFamilyName("ID Search Family");
-        family.setFamilyHead("U0004");
+        family.setFamilyHead("U0005");
         
         Family created = familyManager.createFamily(family);
         String familyId = created.getFamilyId();
@@ -181,6 +205,30 @@ public class FamilyManagerTest {
     }
     
     /**
+     * Test that findByFamilyId only returns active families.
+     * Closed families should not be found.
+     */
+    @Test
+    public void testFindByFamilyId_OnlyActiveFamily() throws SQLException {
+        // Create family
+        Family family = new Family();
+        family.setFamilyName("Active Family");
+        family.setFamilyHead("U0006");
+        
+        Family created = familyManager.createFamily(family);
+        String familyId = created.getFamilyId();
+        
+        // Close the family
+        familyManager.deleteFamily(familyId);
+        
+        // Try to find closed family
+        Family found = familyManager.findByFamilyId(familyId);
+        
+        // Verify closed family is not found
+        assertNull(found, "Should not find inactive family");
+    }
+    
+    /**
      * Test incrementing family member count.
      * Called when new member joins the family.
      */
@@ -189,7 +237,7 @@ public class FamilyManagerTest {
         // Create test family
         Family family = new Family();
         family.setFamilyName("Growing Family");
-        family.setFamilyHead("U0005");
+        family.setFamilyHead("U0007");
         
         Family created = familyManager.createFamily(family);
         String familyId = created.getFamilyId();
@@ -218,7 +266,7 @@ public class FamilyManagerTest {
         // Create test family with 3 members
         Family family = new Family();
         family.setFamilyName("Shrinking Family");
-        family.setFamilyHead("U0006");
+        family.setFamilyHead("U0008");
         
         Family created = familyManager.createFamily(family);
         String familyId = created.getFamilyId();
@@ -246,7 +294,7 @@ public class FamilyManagerTest {
         // Create test family
         Family family = new Family();
         family.setFamilyName("Single Member Family");
-        family.setFamilyHead("U0007");
+        family.setFamilyHead("U0009");
         
         Family created = familyManager.createFamily(family);
         String familyId = created.getFamilyId();
@@ -271,7 +319,7 @@ public class FamilyManagerTest {
         // Create test family
         Family family = new Family();
         family.setFamilyName("Old Family Name");
-        family.setFamilyHead("U0008");
+        family.setFamilyHead("U0010");
         
         Family created = familyManager.createFamily(family);
         String familyId = created.getFamilyId();
@@ -288,6 +336,75 @@ public class FamilyManagerTest {
     }
     
     /**
+     * Test closing family account (soft delete).
+     * Sets isActive to false, making family inaccessible.
+     * This is called when Family Head closes the family.
+     */
+    @Test
+    public void testDeleteFamily() throws SQLException {
+        // Create test family
+        Family family = new Family();
+        family.setFamilyName("Closing Family");
+        family.setFamilyHead("U0011");
+        
+        Family created = familyManager.createFamily(family);
+        String familyId = created.getFamilyId();
+        
+        // Verify family exists and is active
+        Family beforeDelete = familyManager.findByFamilyId(familyId);
+        assertNotNull(beforeDelete, "Family should exist before deletion");
+        assertTrue(beforeDelete.isActive(), "Family should be active before deletion");
+        
+        // Delete (close) the family
+        boolean deleted = familyManager.deleteFamily(familyId);
+        
+        // Verify deletion was successful
+        assertTrue(deleted, "Family should be deleted successfully");
+        
+        // Verify family is no longer found (only active families returned)
+        Family afterDelete = familyManager.findByFamilyId(familyId);
+        assertNull(afterDelete, "Family should not be found after deletion");
+    }
+    
+    /**
+     * Test that deleting family sets isActive to false (soft delete).
+     * Data remains in database but marked as inactive.
+     */
+    @Test
+    public void testDeleteFamily_SetsInactive() throws SQLException {
+        // Create test family
+        Family family = new Family();
+        family.setFamilyName("Soft Delete Family");
+        family.setFamilyHead("U0012");
+        
+        Family created = familyManager.createFamily(family);
+        String familyId = created.getFamilyId();
+        
+        // Delete the family
+        familyManager.deleteFamily(familyId);
+        
+        // Query database directly (bypassing active filter)
+        Statement stmt = testConn.createStatement();
+        var rs = stmt.executeQuery("SELECT isActive FROM Families WHERE familyId = '" + familyId + "'");
+        
+        // Verify isActive is false
+        assertTrue(rs.next(), "Family record should still exist in database");
+        assertFalse(rs.getBoolean("isActive"), "Family should be marked as inactive");
+    }
+    
+    /**
+     * Test deleting non-existent family returns false.
+     */
+    @Test
+    public void testDeleteFamily_NotExists() throws SQLException {
+        // Try to delete non-existent family
+        boolean deleted = familyManager.deleteFamily("F9999");
+        
+        // Verify returns false
+        assertFalse(deleted, "Should return false when family doesn't exist");
+    }
+    
+    /**
      * Test checking if family code exists in database.
      * Used during family creation to ensure unique codes.
      */
@@ -296,7 +413,7 @@ public class FamilyManagerTest {
         // Create test family
         Family family = new Family();
         family.setFamilyName("Exists Check Family");
-        family.setFamilyHead("U0009");
+        family.setFamilyHead("U0013");
         
         Family created = familyManager.createFamily(family);
         String familyCode = created.getFamilyCode();
@@ -319,7 +436,7 @@ public class FamilyManagerTest {
         // Create test family
         Family family = new Family();
         family.setFamilyName("Count Check Family");
-        family.setFamilyHead("U0010");
+        family.setFamilyHead("U0014");
         
         Family created = familyManager.createFamily(family);
         String familyId = created.getFamilyId();
@@ -345,7 +462,7 @@ public class FamilyManagerTest {
         // Create first family
         Family family1 = new Family();
         family1.setFamilyName("First Family");
-        family1.setFamilyHead("U0011");
+        family1.setFamilyHead("U0015");
         
         Family created1 = familyManager.createFamily(family1);
         assertNotNull(created1, "First family should be created");
@@ -353,7 +470,7 @@ public class FamilyManagerTest {
         // Create second family (should have different code)
         Family family2 = new Family();
         family2.setFamilyName("Second Family");
-        family2.setFamilyHead("U0012");
+        family2.setFamilyHead("U0016");
         
         Family created2 = familyManager.createFamily(family2);
         assertNotNull(created2, "Second family should be created");
@@ -361,5 +478,17 @@ public class FamilyManagerTest {
         // Verify different family codes
         assertNotEquals(created1.getFamilyCode(), created2.getFamilyCode(),
                        "Each family should have unique family code");
+    }
+    
+    /**
+     * Test getMemberCount returns 0 for non-existent family.
+     */
+    @Test
+    public void testGetMemberCount_NonExistentFamily() throws SQLException {
+        // Get member count for non-existent family
+        int count = familyManager.getMemberCount("F9999");
+        
+        // Verify returns 0
+        assertEquals(0, count, "Should return 0 for non-existent family");
     }
 }

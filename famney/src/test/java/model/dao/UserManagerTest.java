@@ -9,11 +9,12 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
 
 /**
  * JUnit tests for UserManager DAO class.
- * Tests user authentication, CRUD operations, and email validation.
- * These tests use an in-memory SQLite database for isolation.
+ * Tests user authentication, CRUD operations, role management, and cleanup functionality.
+ * Uses in-memory SQLite database for test isolation.
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class UserManagerTest {
@@ -39,7 +40,7 @@ public class UserManagerTest {
             "email VARCHAR(100) NOT NULL UNIQUE, " +
             "password VARCHAR(255) NOT NULL, " +
             "fullName VARCHAR(100) NOT NULL, " +
-            "role VARCHAR(20) NOT NULL, " +
+            "role VARCHAR(20) CHECK (role IN ('Family Head', 'Adult', 'Teen', 'Kid') OR role IS NULL), " +
             "familyId VARCHAR(8) NOT NULL, " +
             "joinDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
             "createdDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
@@ -90,6 +91,32 @@ public class UserManagerTest {
         // Verify creation was successful
         assertTrue(result, "User should be created successfully");
         assertNotNull(user.getUserId(), "User ID should be generated");
+    }
+    
+    /**
+     * Test creating user with NULL role (pending approval scenario).
+     * Used when member joins family and waits for Family Head to assign role.
+     */
+    @Test
+    public void testCreateUser_WithNullRole() throws SQLException {
+        // Create test user with NULL role
+        User user = new User();
+        user.setEmail("pending@test.com");
+        user.setPassword("password123");
+        user.setFullName("Pending User");
+        user.setRole(null); // Pending role assignment
+        user.setFamilyId(testFamilyId);
+        
+        // Create user in database
+        boolean result = userManager.createUser(user);
+        
+        // Verify creation was successful
+        assertTrue(result, "User with NULL role should be created successfully");
+        
+        // Verify user can be retrieved with NULL role
+        User found = userManager.findByEmail("pending@test.com");
+        assertNotNull(found, "Should find user with NULL role");
+        assertNull(found.getRole(), "User role should be NULL");
     }
     
     /**
@@ -184,6 +211,31 @@ public class UserManagerTest {
     }
     
     /**
+     * Test authentication can succeed even with NULL role.
+     * Authentication only checks credentials, not role status.
+     * Login blocking for NULL role is handled in servlet layer.
+     */
+    @Test
+    public void testAuthenticate_PendingRole() throws SQLException {
+        // Create user with NULL role
+        User user = new User();
+        user.setEmail("pending@test.com");
+        user.setPassword("password123");
+        user.setFullName("Pending User");
+        user.setRole(null);
+        user.setFamilyId(testFamilyId);
+        
+        userManager.createUser(user);
+        
+        // Authenticate should succeed (servlet will block login later)
+        User authenticated = userManager.authenticate("pending@test.com", "password123");
+        
+        // Verify authentication succeeds
+        assertNotNull(authenticated, "Authentication should succeed even with NULL role");
+        assertNull(authenticated.getRole(), "Role should still be NULL");
+    }
+    
+    /**
      * Test finding user by email address.
      * Should return user object when email exists in database.
      */
@@ -222,28 +274,109 @@ public class UserManagerTest {
     }
     
     /**
-     * Test checking if email exists in database.
+     * Test checking if email exists in database (only active users).
      * Used during registration to prevent duplicate emails.
+     * Should only check active users, not inactive ones.
      */
     @Test
-    public void testEmailExists() throws SQLException {
-        // Create test user
-        User user = new User();
-        user.setEmail("exists@test.com");
-        user.setPassword("password123");
-        user.setFullName("Existing User");
-        user.setRole("Adult");
-        user.setFamilyId(testFamilyId);
+    public void testEmailExists_OnlyActiveUsers() throws SQLException {
+        // Create active user
+        User activeUser = new User();
+        activeUser.setEmail("active@test.com");
+        activeUser.setPassword("password123");
+        activeUser.setFullName("Active User");
+        activeUser.setRole("Adult");
+        activeUser.setFamilyId(testFamilyId);
         
-        userManager.createUser(user);
+        userManager.createUser(activeUser);
         
-        // Check if email exists
-        boolean exists = userManager.emailExists("exists@test.com");
+        // Create inactive user
+        User inactiveUser = new User();
+        inactiveUser.setEmail("inactive@test.com");
+        inactiveUser.setPassword("password123");
+        inactiveUser.setFullName("Inactive User");
+        inactiveUser.setRole("Adult");
+        inactiveUser.setFamilyId(testFamilyId);
+        
+        userManager.createUser(inactiveUser);
+        userManager.deleteUser(inactiveUser.getUserId()); // Make inactive
+        
+        // Check email exists
+        boolean activeExists = userManager.emailExists("active@test.com");
+        boolean inactiveExists = userManager.emailExists("inactive@test.com");
         boolean notExists = userManager.emailExists("notexists@test.com");
         
         // Verify results
-        assertTrue(exists, "Email should exist in database");
-        assertFalse(notExists, "Email should not exist in database");
+        assertTrue(activeExists, "Active user email should exist");
+        assertFalse(inactiveExists, "Inactive user email should not exist");
+        assertFalse(notExists, "Non-existent email should return false");
+    }
+    
+    /**
+     * Test getting pending users (users with NULL role).
+     * Used by Family Head to see who needs role assignment.
+     */
+    @Test
+    public void testGetPendingUsers() throws SQLException {
+        // Create active user with role
+        User activeUser = new User();
+        activeUser.setEmail("active@test.com");
+        activeUser.setPassword("password123");
+        activeUser.setFullName("Active User");
+        activeUser.setRole("Adult");
+        activeUser.setFamilyId(testFamilyId);
+        userManager.createUser(activeUser);
+        
+        // Create pending users (NULL role)
+        User pending1 = new User();
+        pending1.setEmail("pending1@test.com");
+        pending1.setPassword("password123");
+        pending1.setFullName("Pending User 1");
+        pending1.setRole(null);
+        pending1.setFamilyId(testFamilyId);
+        userManager.createUser(pending1);
+        
+        User pending2 = new User();
+        pending2.setEmail("pending2@test.com");
+        pending2.setPassword("password123");
+        pending2.setFullName("Pending User 2");
+        pending2.setRole(null);
+        pending2.setFamilyId(testFamilyId);
+        userManager.createUser(pending2);
+        
+        // Get pending users
+        List<User> pendingUsers = userManager.getPendingUsers(testFamilyId);
+        
+        // Verify results
+        assertNotNull(pendingUsers, "Should return list of pending users");
+        assertEquals(2, pendingUsers.size(), "Should have 2 pending users");
+        
+        // Verify all returned users have NULL role
+        for (User user : pendingUsers) {
+            assertNull(user.getRole(), "All pending users should have NULL role");
+        }
+    }
+    
+    /**
+     * Test getting pending users returns empty list when none exist.
+     */
+    @Test
+    public void testGetPendingUsers_NoPending() throws SQLException {
+        // Create only active user with role
+        User activeUser = new User();
+        activeUser.setEmail("active@test.com");
+        activeUser.setPassword("password123");
+        activeUser.setFullName("Active User");
+        activeUser.setRole("Adult");
+        activeUser.setFamilyId(testFamilyId);
+        userManager.createUser(activeUser);
+        
+        // Get pending users
+        List<User> pendingUsers = userManager.getPendingUsers(testFamilyId);
+        
+        // Verify empty list
+        assertNotNull(pendingUsers, "Should return list");
+        assertTrue(pendingUsers.isEmpty(), "Should be empty when no pending users");
     }
     
     /**
@@ -338,6 +471,35 @@ public class UserManagerTest {
     }
     
     /**
+     * Test assigning role to pending user (NULL to actual role).
+     * This is the primary use case for updateUserRole after join family.
+     */
+    @Test
+    public void testUpdateUserRole_AssignPendingRole() throws SQLException {
+        // Create user with NULL role
+        User user = new User();
+        user.setEmail("assign@test.com");
+        user.setPassword("password123");
+        user.setFullName("Assign User");
+        user.setRole(null);
+        user.setFamilyId(testFamilyId);
+        
+        userManager.createUser(user);
+        String userId = user.getUserId();
+        
+        // Assign role
+        boolean updated = userManager.updateUserRole(userId, "Adult");
+        
+        // Verify role assignment was successful
+        assertTrue(updated, "Role should be assigned successfully");
+        
+        // Verify role is no longer NULL
+        User found = userManager.findByEmail("assign@test.com");
+        assertNotNull(found.getRole(), "Role should no longer be NULL");
+        assertEquals("Adult", found.getRole());
+    }
+    
+    /**
      * Test soft deleting user (setting isActive to false).
      * User data should remain in database but marked as inactive.
      */
@@ -366,6 +528,105 @@ public class UserManagerTest {
     }
     
     /**
+     * Test deactivating all users in a family.
+     * Used when Family Head closes the entire family.
+     */
+    @Test
+    public void testDeactivateAllFamilyUsers() throws SQLException {
+        // Create multiple users in same family
+        User user1 = new User();
+        user1.setEmail("user1@test.com");
+        user1.setPassword("password123");
+        user1.setFullName("User 1");
+        user1.setRole("Family Head");
+        user1.setFamilyId(testFamilyId);
+        userManager.createUser(user1);
+        
+        User user2 = new User();
+        user2.setEmail("user2@test.com");
+        user2.setPassword("password123");
+        user2.setFullName("User 2");
+        user2.setRole("Adult");
+        user2.setFamilyId(testFamilyId);
+        userManager.createUser(user2);
+        
+        User user3 = new User();
+        user3.setEmail("user3@test.com");
+        user3.setPassword("password123");
+        user3.setFullName("User 3");
+        user3.setRole("Teen");
+        user3.setFamilyId(testFamilyId);
+        userManager.createUser(user3);
+        
+        // Deactivate all users
+        boolean deactivated = userManager.deactivateAllFamilyUsers(testFamilyId);
+        
+        // Verify deactivation was successful
+        assertTrue(deactivated, "All users should be deactivated");
+        
+        // Verify all users are inactive
+        assertNull(userManager.findByEmail("user1@test.com"), "User 1 should be inactive");
+        assertNull(userManager.findByEmail("user2@test.com"), "User 2 should be inactive");
+        assertNull(userManager.findByEmail("user3@test.com"), "User 3 should be inactive");
+    }
+    
+    /**
+     * Test cleaning up inactive user to allow re-registration.
+     * When family is closed, user becomes inactive but email remains in database.
+     * Cleanup deletes the inactive record so email can be reused.
+     */
+    @Test
+    public void testCleanupInactiveUser() throws SQLException {
+        // Create user
+        User user = new User();
+        user.setEmail("cleanup@test.com");
+        user.setPassword("password123");
+        user.setFullName("Cleanup User");
+        user.setRole("Adult");
+        user.setFamilyId(testFamilyId);
+        
+        userManager.createUser(user);
+        
+        // Deactivate user (simulate family closure)
+        userManager.deleteUser(user.getUserId());
+        
+        // Verify user is inactive (not found by active queries)
+        assertNull(userManager.findByEmail("cleanup@test.com"), "User should be inactive");
+        
+        // Cleanup inactive user
+        boolean cleaned = userManager.cleanupInactiveUser("cleanup@test.com");
+        
+        // Verify cleanup was successful
+        assertTrue(cleaned, "Inactive user should be cleaned up");
+        
+        // Verify email can now be reused
+        assertFalse(userManager.emailExists("cleanup@test.com"), "Email should be available after cleanup");
+        
+        // Create new user with same email should now succeed
+        User newUser = new User();
+        newUser.setEmail("cleanup@test.com");
+        newUser.setPassword("newpassword123");
+        newUser.setFullName("New Cleanup User");
+        newUser.setRole("Family Head");
+        newUser.setFamilyId("F0002");
+        
+        boolean created = userManager.createUser(newUser);
+        assertTrue(created, "Should be able to create new user after cleanup");
+    }
+    
+    /**
+     * Test cleanup returns false when no inactive user exists.
+     */
+    @Test
+    public void testCleanupInactiveUser_NoInactiveUser() throws SQLException {
+        // Try to cleanup non-existent inactive user
+        boolean cleaned = userManager.cleanupInactiveUser("notexist@test.com");
+        
+        // Verify returns false
+        assertFalse(cleaned, "Should return false when no inactive user to cleanup");
+    }
+    
+    /**
      * Test password hashing during user creation.
      * Password should be hashed, not stored as plain text.
      */
@@ -391,5 +652,58 @@ public class UserManagerTest {
         // Verify hashed password can be verified
         assertTrue(PasswordUtil.verifyPassword("plainpassword", found.getPassword()),
                   "Should be able to verify original password against hash");
+    }
+    
+    /**
+     * Test getting all users by family.
+     * Used by family management page to display all members.
+     */
+    @Test
+    public void testGetUsersByFamily() throws SQLException {
+        // Create multiple users in same family
+        User user1 = new User();
+        user1.setEmail("family1@test.com");
+        user1.setPassword("password123");
+        user1.setFullName("Family User 1");
+        user1.setRole("Family Head");
+        user1.setFamilyId(testFamilyId);
+        userManager.createUser(user1);
+        
+        User user2 = new User();
+        user2.setEmail("family2@test.com");
+        user2.setPassword("password123");
+        user2.setFullName("Family User 2");
+        user2.setRole("Adult");
+        user2.setFamilyId(testFamilyId);
+        userManager.createUser(user2);
+        
+        User user3 = new User();
+        user3.setEmail("family3@test.com");
+        user3.setPassword("password123");
+        user3.setFullName("Family User 3");
+        user3.setRole(null); // Pending
+        user3.setFamilyId(testFamilyId);
+        userManager.createUser(user3);
+        
+        // Create user in different family
+        User otherFamily = new User();
+        otherFamily.setEmail("other@test.com");
+        otherFamily.setPassword("password123");
+        otherFamily.setFullName("Other Family User");
+        otherFamily.setRole("Adult");
+        otherFamily.setFamilyId("F0002");
+        userManager.createUser(otherFamily);
+        
+        // Get users by family
+        List<User> familyUsers = userManager.getUsersByFamily(testFamilyId);
+        
+        // Verify results
+        assertNotNull(familyUsers, "Should return list of family users");
+        assertEquals(3, familyUsers.size(), "Should have 3 users in test family");
+        
+        // Verify pending user is listed first (ordered by pending status)
+        assertEquals("Family User 3", familyUsers.get(0).getFullName(), 
+                    "Pending users should appear first in list");
+        assertNull(familyUsers.get(0).getRole(), "First user should have NULL role");
     }
 }
