@@ -1,7 +1,10 @@
 <%@ page import="model.User"%>
 <%@ page import="model.Family"%>
-<%@ page import="java.util.ArrayList"%>
+<%@ page import="model.dao.UserManager"%>
 <%@ page import="java.util.List"%>
+
+<!-- Initialise database connection -->
+<jsp:include page="/ConnServlet" flush="true"/>
 
 <html>
     <head>
@@ -21,7 +24,6 @@
                 flex-direction: column;
             }
             
-            /* Header */
             .header {
                 background: #2c3e50;
                 padding: 1rem 0;
@@ -68,7 +70,6 @@
                 opacity: 0.9;
             }
             
-            /* Main Container */
             .main-container {
                 flex: 1;
                 max-width: 1200px;
@@ -280,7 +281,6 @@
                 color: #495057;
             }
             
-            /* Footer */
             .footer {
                 background: #2c3e50;
                 color: white;
@@ -288,7 +288,6 @@
                 text-align: center;
             }
             
-            /* Responsive */
             @media (max-width: 768px) {
                 .management-card {
                     margin: 1rem;
@@ -334,56 +333,28 @@
                 return;
             }
             
-            // Handle actions
-            String action = request.getParameter("action");
-            String successMessage = "";
+            // Get flash messages
+            String successMessage = (String) session.getAttribute("successMessage");
+            String errorMessage = (String) session.getAttribute("errorMessage");
             
-            // Hardcoded sample for family members
-            List<User> familyMembers = new ArrayList<>();
-            
-            User member1 = new User("john@smith.com", "password123", "John Smith", "Family Head", "FAM001");
-            member1.setUserId("USER001");
-            
-            User member2 = new User("jane@smith.com", "password123", "Jane Smith", "Adult", "FAM001");
-            member2.setUserId("USER002");
-            
-            User member3 = new User("mike@smith.com", "password123", "Mike Smith", "Teen", "FAM001");
-            member3.setUserId("USER003");
-            
-            User member4 = new User("lucy@smith.com", "password123", "Lucy Smith", "Kid", "FAM001");
-            member4.setUserId("USER004");
-            
-            familyMembers.add(member1);
-            familyMembers.add(member2);
-            familyMembers.add(member3);
-            familyMembers.add(member4);
-            
-            // Handle role change action
-            if (action != null && action.equals("change_role")) {
-                String memberId = request.getParameter("memberId");
-                String newRole = request.getParameter("newRole");
-                
-                if (memberId != null && newRole != null) {
-                    // Find and update member role
-                    for (User member : familyMembers) {
-                        if (member.getUserId().equals(memberId)) {
-                            member.setRole(newRole);
-                            successMessage = "Member role updated successfully!";
-                            break;
-                        }
-                    }
-                }
+            if (successMessage != null) {
+                session.removeAttribute("successMessage");
+            }
+            if (errorMessage != null) {
+                session.removeAttribute("errorMessage");
             }
             
-            // Handle remove member action
-            if (action != null && action.equals("remove")) {
-                String memberId = request.getParameter("memberId");
-                
-                if (memberId != null) {
-                    // Remove from list
-                    familyMembers.removeIf(member -> member.getUserId().equals(memberId));
-                    successMessage = "Member removed from family successfully!";
+            // Get UserManager from session
+            UserManager userManager = (UserManager) session.getAttribute("userManager");
+            
+            // Get all family members from database
+            List<User> familyMembers = null;
+            try {
+                if (userManager != null) {
+                    familyMembers = userManager.getUsersByFamily(family.getFamilyId());
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         %>
         
@@ -393,7 +364,7 @@
                 <nav class="nav-menu">
                     <span>Family Head: <%= user.getFullName() %></span>
                     <a href="main.jsp">Dashboard</a>
-                    <a href="logout.jsp">Logout</a>
+                    <a href="LogoutServlet">Logout</a>
                 </nav>
             </div>
         </header>
@@ -408,20 +379,27 @@
                 <div class="family-info">
                     <h3><%= family.getFamilyName() %> Family</h3>
                     <p><strong>Family Code:</strong> <%= family.getFamilyCode() %></p>
-                    <p><strong>Total Members:</strong> <%= familyMembers.size() %></p>
-                    <p><strong>Created:</strong> <%= family.getCreatedDate() != null ? family.getCreatedDate().toString() : "Recently" %></p>
+                    <p><strong>Total Members:</strong> <%= familyMembers != null ? familyMembers.size() : 0 %></p>
+                    <p><strong>Created:</strong> <%= family.getCreatedDate() != null ? 
+                        new java.text.SimpleDateFormat("dd MMM yyyy").format(family.getCreatedDate()) : "Recently" %></p>
                 </div>
                 
-                <% if (!successMessage.isEmpty()) { %>
+                <% if (successMessage != null) { %>
                     <div class="success-message">
                         <%= successMessage %>
+                    </div>
+                <% } %>
+                
+                <% if (errorMessage != null) { %>
+                    <div class="error-message">
+                        <%= errorMessage %>
                     </div>
                 <% } %>
                 
                 <div class="members-section">
                     <h2>Family Members</h2>
                     
-                    <% if (familyMembers.isEmpty()) { %>
+                    <% if (familyMembers == null || familyMembers.isEmpty()) { %>
                         <div class="empty-state">
                             <h3>No family members found</h3>
                             <p>Invite family members using your family code: <strong><%= family.getFamilyCode() %></strong></p>
@@ -448,15 +426,15 @@
                                             </span>
                                         </td>
                                         <td>
-                                            <%= member.getJoinDate() != null ? member.getJoinDate().toString() : "Recently" %>
+                                            <%= member.getJoinDate() != null ? 
+                                                new java.text.SimpleDateFormat("dd MMM yyyy").format(member.getJoinDate()) : "Recently" %>
                                         </td>
                                         <td>
                                             <% if (member.getUserId().equals(user.getUserId())) { %>
                                                 <span style="color: #6c757d; font-style: italic;">You</span>
                                             <% } else { %>
                                                 <div class="action-buttons">
-                                                    <!-- Role Change Form -->
-                                                    <form action="family_management.jsp" method="post" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                                                    <form action="ManageFamilyServlet" method="post" style="display: inline-flex; align-items: center; gap: 0.5rem;">
                                                         <input type="hidden" name="action" value="change_role">
                                                         <input type="hidden" name="memberId" value="<%= member.getUserId() %>">
                                                         <select name="newRole" class="role-select">
@@ -467,14 +445,11 @@
                                                         <button type="submit" class="btn-small btn-edit">Update</button>
                                                     </form>
                                                     
-                                                    <!-- Remove Member Form -->
-                                                    <form action="family_management.jsp" method="post" style="display: inline;">
-                                                        <input type="hidden" name="action" value="remove">
+                                                    <form action="ManageFamilyServlet" method="post" style="display: inline;" 
+                                                          onsubmit="return confirm('Are you sure you want to remove <%= member.getFullName() %> from the family?')">
+                                                        <input type="hidden" name="action" value="remove_member">
                                                         <input type="hidden" name="memberId" value="<%= member.getUserId() %>">
-                                                        <button type="submit" class="btn-small btn-remove" 
-                                                                onclick="return confirm('Are you sure you want to remove <%= member.getFullName() %> from the family?')">
-                                                            Remove
-                                                        </button>
+                                                        <button type="submit" class="btn-small btn-remove">Remove</button>
                                                     </form>
                                                 </div>
                                             <% } %>

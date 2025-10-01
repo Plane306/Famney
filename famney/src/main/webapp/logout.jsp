@@ -19,7 +19,6 @@
                 flex-direction: column;
             }
             
-            /* Header */
             .header {
                 background: #2c3e50;
                 padding: 1rem 0;
@@ -61,7 +60,6 @@
                 border-color: rgba(255, 255, 255, 0.3);
             }
             
-            /* Main Content */
             .main-container {
                 flex: 1;
                 display: flex;
@@ -81,9 +79,17 @@
             }
             
             .logout-icon {
-                font-size: 4rem;
-                color: #667eea;
-                margin-bottom: 1.5rem;
+                width: 80px;
+                height: 80px;
+                background: linear-gradient(135deg, #28a745, #20c997);
+                color: white;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 auto 2rem;
+                font-size: 2.5rem;
+                font-weight: bold;
             }
             
             .logout-card h1 {
@@ -140,7 +146,6 @@
                 color: white;
             }
             
-            /* Footer */
             .footer {
                 background: #2c3e50;
                 color: white;
@@ -148,7 +153,6 @@
                 text-align: center;
             }
             
-            /* Responsive */
             @media (max-width: 768px) {
                 .logout-card {
                     margin: 1rem;
@@ -164,11 +168,11 @@
     
     <body>
         <%
-            // Get user from session before logout
+            // Get user name before logout
             User currentUser = (User) session.getAttribute("user");
             String userName = (currentUser != null) ? currentUser.getFullName() : "User";
             
-            // Perform logout (clear session)
+            // Perform logout - clear all session data
             if (currentUser != null) {
                 session.removeAttribute("user");
                 session.removeAttribute("family");
@@ -189,9 +193,10 @@
         
         <div class="main-container">
             <div class="logout-card">
-                <div class="logout-icon">&check;</div>
+                <div class="logout-icon">&#10003;</div>
                 <h1>Logged Out</h1>
                 <p>You have been logged out successfully, <%= userName %>.</p>
+                <p>Thank you for using Famney. We hope to see you again soon!</p>
                 
                 <div style="margin-top: 2rem;">
                     <a href="login.jsp" class="btn-primary">Sign In Again</a>
