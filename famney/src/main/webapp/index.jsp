@@ -1,6 +1,9 @@
 <%@ page import="model.User"%>
 <%@ page import="model.Family"%>
 
+<!-- Initialise database connection -->
+<jsp:include page="/ConnServlet" flush="true"/>
+
 <html>
     <head>
         <title>Famney - Family Financial Management</title>
@@ -17,7 +20,6 @@
                 min-height: 100vh;
             }
             
-            /* Header */
             .header {
                 background: #2c3e50;
                 padding: 1rem 0;
@@ -69,7 +71,6 @@
                 border-color: rgba(255, 255, 255, 0.3);
             }
             
-            /* Hero Section */
             .hero {
                 text-align: center;
                 padding: 6rem 2rem 4rem;
@@ -136,7 +137,6 @@
                 color: #764ba2;
             }
             
-            /* Features Section */
             .features {
                 background: white;
                 padding: 5rem 2rem;
@@ -212,7 +212,6 @@
                 line-height: 1.6;
             }
             
-            /* How It Works */
             .how-it-works {
                 background: #f8f9fa;
                 padding: 5rem 2rem;
@@ -255,7 +254,6 @@
                 line-height: 1.6;
             }
             
-            /* Footer */
             .footer {
                 background: #2c3e50;
                 color: white;
@@ -263,7 +261,6 @@
                 text-align: center;
             }
             
-            /* Responsive */
             @media (max-width: 768px) {
                 .hero h1 {
                     font-size: 2.5rem;
@@ -286,38 +283,30 @@
     </head>
     
     <body>
+        <%
+            // Check if user is already logged in
+            User user = (User) session.getAttribute("user");
+            Family family = (Family) session.getAttribute("family");
+        %>
+        
         <header class="header">
             <div class="nav-container">
                 <a href="index.jsp" class="logo">Famney</a>
                 <nav class="nav-menu">
-                    <%
-                        User user = (User)session.getAttribute("user");
-                        Family family = (Family)session.getAttribute("family");
-                        if (user == null) {
-                    %>
+                    <% if (user == null) { %>
                         <a href="login.jsp">Sign In</a>
                         <a href="register_family.jsp">Get Started</a>
                     <% } else { %>
                         <span>Welcome, <%= user.getFullName() %></span>
-                        <% if ("Family Head".equals(user.getRole())) { %>
-                            <a href="main.jsp">Family Dashboard</a>
-                        <% } else if ("Adult".equals(user.getRole())) { %>
-                            <a href="main.jsp">Dashboard</a>
-                        <% } else if ("Teen".equals(user.getRole())) { %>
-                            <a href="main.jsp">My Expenses</a>
-                        <% } else { %>
-                            <a href="main.jsp">Family View</a>
-                        <% } %>
-                        <a href="logout.jsp">Logout</a>
+                        <a href="main.jsp">Dashboard</a>
+                        <a href="LogoutServlet">Logout</a>
                     <% } %>
                 </nav>
             </div>
         </header>
         
         <section class="hero">
-            <%
-                if (user == null) {
-            %>
+            <% if (user == null) { %>
                 <h1>Smart Family Financial Management</h1>
                 <p class="hero-subtitle">Track expenses, manage budgets, and achieve savings goals together. Simple financial planning that brings families closer.</p>
                 
