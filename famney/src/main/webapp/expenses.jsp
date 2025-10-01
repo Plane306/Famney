@@ -1,11 +1,11 @@
 
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ page import="model.User"%>
-<%@ page import="model.Family"%>
-<%@ page import="model.Category" %>
-<%@ page import="java.util.*" %>
-<html>
+<%@ page import="model.*"%>
+<%@ page import="model.dao.*"%>
+<%@ page import="java.util.*"%>
 <%@ page import="java.text.SimpleDateFormat" %>
+
+<html>
 <head>
     <title>Submitted Expense - Famney</title>
     <style>

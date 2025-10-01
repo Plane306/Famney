@@ -263,7 +263,7 @@
 
                 <div class="budget-actions">
                     <a href="create_budget.jsp" class="btn btn-primary">Create New Budget</a>
-                    <a href="view_budget.jsp" class="btn btn-secondary">View Existing Budgets</a>
+                    <a href="BudgetServlet" class="btn btn-secondary">View Existing Budgets</a>
                 </div>
                 
             </div>

@@ -4,19 +4,17 @@ import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import model.Budget;
-import model.BudgetCategory;
 import model.User;
 import model.Family;
+import model.dao.BudgetManager;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.sql.SQLException;
+import java.util.*;
 
 @WebServlet("/BudgetServlet")
 public class BudgetServlet extends HttpServlet {
     @Override
-    @SuppressWarnings("unchecked")
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         User user = (User) request.getSession().getAttribute("user");
@@ -25,67 +23,78 @@ public class BudgetServlet extends HttpServlet {
             response.sendRedirect("login.jsp");
             return;
         }
+
         String budgetName = request.getParameter("name");
         int month = Integer.parseInt(request.getParameter("month"));
-        String[] categoriesSelected = request.getParameterValues("category");
-        String[] amountsEntered = request.getParameterValues("budget");
+        double amount = Double.parseDouble(request.getParameter("budget"));
+        String categoryId = request.getParameter("category");
 
         Budget budget = new Budget(
             family.getFamilyId(),
             budgetName,
             month,
             2025,
-            0.0,
+            amount,
             user.getUserId()
         );
 
-        List<BudgetCategory> budgetCategories = new ArrayList<>();
-        double totalAmount = 0.0;
-        if (categoriesSelected != null && amountsEntered != null) {
-            for (int i = 0; i < categoriesSelected.length; i++) {
-                if (categoriesSelected[i] != null && !categoriesSelected[i].isEmpty() &&
-                    amountsEntered[i] != null && !amountsEntered[i].isEmpty()) {
-                    double amount = Double.parseDouble(amountsEntered[i]);
-                    totalAmount += amount;
-                    budgetCategories.add(new BudgetCategory(
-                        null, null, categoriesSelected[i], amount, new Date(), new Date(), true
-                    ));
-                }
-            }
-        }
-        budget.setTotalAmount(totalAmount);
+        // Prepare category allocations (single category for now)
+        Map<String, Double> categoryAllocations = new HashMap<>();
+        categoryAllocations.put(categoryId, amount);
 
-
-        // Retrieve or create the budgets list in session
-        List<Budget> allBudgets = (List<Budget>) request.getSession().getAttribute("allBudgets");
-        if (allBudgets == null) {
-            allBudgets = new ArrayList<>();
+        BudgetManager budgetManager = (BudgetManager) request.getSession().getAttribute("budgetManager");
+        boolean success = budgetManager.createBudgetWithAllocations(budget, categoryAllocations);
+        if (!success) {
+            request.setAttribute("error", "Failed to create budget. Please try again.");
+            request.getRequestDispatcher("create_budget.jsp").forward(request, response);
+            return;
         }
-        allBudgets.add(budget);
+
+        // After creation, always fetch all budgets from DB for session and display
+        BudgetManager bm = (BudgetManager) request.getSession().getAttribute("budgetManager");
+        List<Budget> allBudgets = new ArrayList<>();
+        try {
+            allBudgets = bm.getBudgetsForFamily(family.getFamilyId());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         request.getSession().setAttribute("allBudgets", allBudgets);
-
-        List<String> allCategories = (List<String>) request.getSession().getAttribute("allCategories");
-        if (allCategories == null) {
-            allCategories = new ArrayList<>();
+        // Optionally, set currentBudget to the most recently created budget
+        if (!allBudgets.isEmpty()) {
+            request.getSession().setAttribute("currentBudget", allBudgets.get(0));
         }
-        if (categoriesSelected != null) {
-            for (String catId : categoriesSelected) {
-                if (catId != null && !catId.isEmpty()) {
-                    allCategories.add(catId);
-                }
-            }
-        }
-        request.getSession().setAttribute("allCategories", allCategories);
+        request.getSession().setAttribute("selectedCategory", categoryId);
+        response.sendRedirect("BudgetServlet");
+    }
 
-        List<List<BudgetCategory>> allBudgetCategories = (List<List<BudgetCategory>>) request.getSession().getAttribute("allBudgetCategories");
-        if (allBudgetCategories == null) {
-            allBudgetCategories = new ArrayList<>();
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        User user = (User) request.getSession().getAttribute("user");
+        Family family = (Family) request.getSession().getAttribute("family");
+        if (user == null || family == null) {
+            response.sendRedirect("login.jsp");
+            return;
         }
-        allBudgetCategories.add(budgetCategories);
-        request.getSession().setAttribute("allBudgetCategories", allBudgetCategories);
 
-        request.getSession().setAttribute("currentBudget", budget);
-        request.getSession().setAttribute("budgetCategories", budgetCategories);
-        response.sendRedirect("view_budget.jsp");
+        BudgetManager budgetManager = (BudgetManager) request.getSession().getAttribute("budgetManager");
+        if (budgetManager == null) {
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "BudgetManager not initialized");
+            return;
+        }
+
+        // Fetch all budgets for this family from DB
+        List<Budget> allBudgets = new ArrayList<>();
+        try {
+            // You need to implement this method in BudgetManager:
+            // public List<Budget> getBudgetsForFamily(String familyId)
+            allBudgets = budgetManager.getBudgetsForFamily(family.getFamilyId());
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    request.setAttribute("allBudgets", allBudgets);
+    // Also set in session for Edit/Delete servlets
+    request.getSession().setAttribute("allBudgets", allBudgets);
+        request.getRequestDispatcher("view_budget.jsp").forward(request, response);
     }
 }

@@ -1,6 +1,5 @@
-<%@ page import="model.User"%>
-<%@ page import="model.Family"%>
-<%@ page import="model.Category"%>
+<%@ page import="model.*"%>
+<%@ page import="model.dao.*"%>
 <%@ page import="java.util.*"%>
 
 <html>

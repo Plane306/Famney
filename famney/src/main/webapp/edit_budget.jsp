@@ -67,12 +67,13 @@
         <input type="number" id="month" name="month" min="1" max="12" value="<%= budget.getMonth() %>" required />
         <label for="budget">Total Amount</label>
         <input type="number" id="budget" name="budget" min="0" step="0.01" value="<%= budget.getTotalAmount() %>" required />
-        <label for="category">Category</label>
-        <select id="category" name="category" required>
-            <% for (Category cat : categories) { %>
-                <option value="<%= cat.getCategoryId() %>" <%= cat.getCategoryId().equals(categoryId) ? "selected" : "" %>><%= cat.getCategoryName() %></option>
-            <% } %>
-        </select>
+                <label for="category">Category</label>
+                <select id="category" name="category" required>
+                    <option value="">--Select Category--</option>
+                    <% for (model.Category cat : categories) { %>
+                        <option value="<%= cat.getCategoryId() %>"><%= cat.getCategoryName() %> </option>
+                    <% } %>
+                </select>
         <button type="submit" class="btn-primary">Update Budget</button>
     </form>
 </body>

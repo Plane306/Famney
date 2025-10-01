@@ -1,8 +1,7 @@
-<%@ page import="model.User"%>
-<%@ page import="model.Family"%>
-<%@ page import="model.Budget"%>
-<%@ page import="model.Category"%>
-<%@ page import="java.util.*" %>
+<%@ page import="model.*"%>
+<%@ page import="model.dao.*"%>
+<%@ page import="java.util.*"%>
+
 
 <%
     // Get current user and family info from session
@@ -15,43 +14,9 @@
         return;
     }
 
-    // Handle form submission
-    if ("POST".equalsIgnoreCase(request.getMethod())) {
-        String budgetName = request.getParameter("name");
-        int month = Integer.parseInt(request.getParameter("month"));
-        double amount = Double.parseDouble(request.getParameter("budget"));
-        String category = request.getParameter("category");
 
-        // Create new budget object
-        Budget budget = new Budget(
-            family.getFamilyId(),
-            budgetName,
-            month,
-            2025, // Current year
-            amount,
-            user.getUserId()
-        );
-
-        // Store all budgets and categories in session
-        List<Budget> allBudgets = (List<Budget>) session.getAttribute("allBudgets");
-        List<String> allCategories = (List<String>) session.getAttribute("allCategories");
-        if (allBudgets == null) {
-            allBudgets = new ArrayList<>();
-        }
-        if (allCategories == null) {
-            allCategories = new ArrayList<>();
-        }
-        allBudgets.add(budget);
-        allCategories.add(category);
-        session.setAttribute("allBudgets", allBudgets);
-        session.setAttribute("allCategories", allCategories);
-
-        // Store current budget and category for immediate use
-        session.setAttribute("currentBudget", budget);
-        session.setAttribute("selectedCategory", category);
-        response.sendRedirect("view_budget.jsp");
-        return;
-    }
+    // Show error if present
+    String error = (String) request.getAttribute("error");
 
     // --- Begin: Copy categories logic from categories.jsp ---
     List<Category> categories = new ArrayList<>();
@@ -491,7 +456,9 @@
 
     <div class="budget-container">
         <h2 class="budget-title">Create New Budget</h2>
-        
+        <% if (error != null) { %>
+            <div class="error-message"><%= error %></div>
+        <% } %>
     <form action="BudgetServlet" method="POST" class="budget-form">
             <div class="form-group">
                 <label for="name">Budget Name</label>
@@ -532,7 +499,7 @@
 
             <div class="form-submit">
                 <button type="submit" class="btn-submit">Create Budget</button>
-                <a href="main.jsp" class="btn-cancel">Cancel</a>
+                <a href="BudgetServlet" class="btn-cancel">Cancel</a>
             </div>
         </form>
     </div>

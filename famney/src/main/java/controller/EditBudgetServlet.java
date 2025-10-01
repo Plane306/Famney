@@ -7,6 +7,8 @@ import model.Budget;
 import java.io.IOException;
 import java.util.List;
 
+import model.dao.BudgetManager;
+
 @WebServlet("/EditBudgetServlet")
 public class EditBudgetServlet extends HttpServlet {
     @Override
@@ -31,7 +33,7 @@ public class EditBudgetServlet extends HttpServlet {
                 return;
             }
         }
-        response.sendRedirect("view_budget.jsp");
+    response.sendRedirect("BudgetServlet");
     }
 
     @Override
@@ -56,10 +58,17 @@ public class EditBudgetServlet extends HttpServlet {
                 if (allCategories != null && allCategories.size() > index) {
                     allCategories.set(index, categoryId);
                 }
+                // Persist to DB
+                System.out.println("[DEBUG] EditBudgetServlet: budgetId=" + budget.getBudgetId() + ", budget=" + budget);
+                BudgetManager budgetManager = (BudgetManager) session.getAttribute("budgetManager");
+                if (budgetManager != null) {
+                    budgetManager.updateBudget(budget);
+                    budgetManager.updateBudgetCategory(budget.getBudgetId(), categoryId, amount);
+                }
                 session.setAttribute("allBudgets", allBudgets);
                 session.setAttribute("allCategories", allCategories);
             }
         }
-        response.sendRedirect("view_budget.jsp");
+        response.sendRedirect("BudgetServlet");
     }
 }

@@ -1,8 +1,7 @@
-<%@ page import="model.User"%>
-<%@ page import="model.Family"%>
-<%@ page import="model.Budget"%>
-<%@ page import="model.Category" %>
-<%@ page import="java.util.*" %>
+<%@ page import="model.*"%>
+<%@ page import="model.dao.*"%>
+<%@ page import="java.util.*"%>
+
 
 <%
     // --- Begin: Copy categories logic from categories.jsp ---
@@ -282,23 +281,15 @@
                 </div>
 
                 <% 
-                    List<Budget> allBudgets = (List<Budget>) session.getAttribute("allBudgets");
-                    List<String> allCategories = (List<String>) session.getAttribute("allCategories");
+                    List<Budget> allBudgets = (List<Budget>) request.getAttribute("allBudgets");
+                    model.dao.BudgetManager budgetManager = (model.dao.BudgetManager) session.getAttribute("budgetManager");
                     if (allBudgets != null && allBudgets.size() > 0) {
-                        for (int i = 0; i < allBudgets.size(); i++) {
-                            Budget b = allBudgets.get(i);
-                            String catId = (allCategories != null && allCategories.size() > i) ? allCategories.get(i) : null;
-                            String catName = "Unknown Category";
-                            if (catId != null) {
-                                for (Category cat : categories) {
-                                    if (cat.getCategoryId().equals(catId)) {
-                                        catName = cat.getCategoryName();
-                                        break;
-                                    }
-                                }
-                            }
-                            String[] monthNames = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"};
-                            String monthName = (b.getMonth() >= 1 && b.getMonth() <= 12) ? monthNames[b.getMonth() - 1] : "Unknown";
+                        int idx = 0;
+                        for (Budget b : allBudgets) {
+                            String monthName = b.getMonthName();
+                            // Fetch category allocations for this budget
+                            Map<String, Object> perf = budgetManager.getBudgetPerformance(b.getBudgetId());
+                            List<Map<String, Object>> cats = (List<Map<String, Object>>) perf.get("categories");
                 %>
                     <div class="budget-info">
                         <div class="budget-detail">
@@ -316,30 +307,34 @@
                             </div>
                             <div class="detail-item">
                                 <h4>Category</h4>
-                                <p><%= catName %></p>
+                                <% if (cats != null && cats.size() > 0) {
+                                    for (Map<String, Object> cat : cats) { %>
+                                        <p><%= cat.get("categoryName") %> </p>
+                                <%  } 
+                                   } else { %>
+                                    <p>No categories</p>
+                                <% } %>
                             </div>
                         </div>
                         <div style="text-align:right; margin-top:10px;">
                             <form action="EditBudgetServlet" method="get" style="display:inline;">
-                                <input type="hidden" name="index" value="<%= i %>" />
+                                <input type="hidden" name="index" value="<%= idx %>" />
                                 <button type="submit" class="btn-primary" style="background:#f1c40f; color:#2c3e50;">Edit</button>
                             </form>
                             <form action="DeleteBudgetServlet" method="post" style="display:inline;">
-                                <input type="hidden" name="index" value="<%= i %>" />
+                                <input type="hidden" name="index" value="<%= idx %>" />
                                 <button type="submit" class="btn-primary" style="background:#e74c3c; color:white;">Delete</button>
                             </form>
                         </div>
-                        <!-- Removed per-budget create button -->
                     </div>
-                <%     }
-
+                        <% idx++;
+                        } // end for
                     } else { %>
-                    <div class="budget-info" style="text-align: center;">
-                        <h3>No Budget Found</h3>
-                        <p>You have not created a budget yet.</p>
-                        <a href="create_budget.jsp" class="btn-primary">Create New Budget</a>
-                    </div>
-                <% } %>
+                        <div class="budget-info" style="text-align: center;">
+                            <h3>No Budget Found</h3>
+                            <p>You have not created a budget yet.</p>
+                        </div>
+                    <% } %>
             </div>
         </div>
         

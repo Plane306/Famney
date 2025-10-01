@@ -100,6 +100,7 @@ CREATE TABLE Budgets (
     month INT NOT NULL CHECK (month >= 1 AND month <= 12),
     year INT NOT NULL CHECK (year >= 2000),
     totalAmount DECIMAL(12,2) NOT NULL CHECK (totalAmount >= 0),
+    createdBy VARCHAR(8) NOT NULL,
     createdDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     lastModifiedDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     isActive BOOLEAN NOT NULL DEFAULT TRUE,
@@ -124,6 +125,24 @@ CREATE TABLE BudgetCategories (
 
     -- Unique constraint: Each category can only be allocated once per budget
     CONSTRAINT uk_budget_category UNIQUE (budgetId, categoryId)
+);
+
+
+-- F104: EXPENSES TABLE (Missing in create_tables.sql - needs to be added)
+CREATE TABLE Expenses (
+    expenseId VARCHAR(8) PRIMARY KEY,
+    familyId VARCHAR(8) NOT NULL,
+    userId VARCHAR(8) NOT NULL,
+    categoryId VARCHAR(8) NOT NULL,
+    amount DECIMAL(10,2) NOT NULL CHECK (amount > 0),
+    description VARCHAR(200),
+    expenseDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    createdDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    lastModifiedDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    isActive BOOLEAN NOT NULL DEFAULT TRUE,
+    CONSTRAINT fk_expenses_family FOREIGN KEY (familyId) REFERENCES Families(familyId) ON DELETE CASCADE,
+    CONSTRAINT fk_expenses_user FOREIGN KEY (userId) REFERENCES Users(userId) ON DELETE CASCADE,
+    CONSTRAINT fk_expenses_category FOREIGN KEY (categoryId) REFERENCES Categories(categoryId) ON DELETE CASCADE
 );
 
 -- F107: Savings Goals Table
