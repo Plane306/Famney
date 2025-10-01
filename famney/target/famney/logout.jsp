@@ -168,16 +168,15 @@
     
     <body>
         <%
-            // Get user name before logout
-            User currentUser = (User) session.getAttribute("user");
-            String userName = (currentUser != null) ? currentUser.getFullName() : "User";
-            
-            // Perform logout - clear all session data
-            if (currentUser != null) {
-                session.removeAttribute("user");
-                session.removeAttribute("family");
-                session.invalidate();
+            // Get userName from session (set by LogoutServlet before redirect)
+            // Session was already invalidated in LogoutServlet, new session created with userName
+            String userName = (String) session.getAttribute("logoutUserName");
+            if (userName == null) {
+                userName = "User";
             }
+            
+            // Clear the logout attribute after reading it
+            session.removeAttribute("logoutUserName");
         %>
         
         <header class="header">
@@ -194,7 +193,7 @@
         <div class="main-container">
             <div class="logout-card">
                 <div class="logout-icon">&#10003;</div>
-                <h1>Logged Out</h1>
+                <h1>Logged Out Successfully</h1>
                 <p>You have been logged out successfully, <%= userName %>.</p>
                 <p>Thank you for using Famney. We hope to see you again soon!</p>
                 

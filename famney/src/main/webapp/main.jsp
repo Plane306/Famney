@@ -4,6 +4,17 @@
 <%@ page import="model.dao.FamilyManager"%>
 <%@ page import="java.util.List"%>
 
+<%
+    // Check if user is logged in
+    User user = (User) session.getAttribute("user");
+    Family family = (Family) session.getAttribute("family");
+    
+    if (user == null || family == null) {
+        response.sendRedirect("login.jsp");
+        return;
+    }
+%>
+
 <!-- Initialise database connection -->
 <jsp:include page="/ConnServlet" flush="true"/>
 
@@ -244,16 +255,7 @@
     </head>
     
     <body>
-        <%
-            // Check if user is logged in
-            User user = (User) session.getAttribute("user");
-            Family family = (Family) session.getAttribute("family");
-            
-            if (user == null || family == null) {
-                response.sendRedirect("login.jsp");
-                return;
-            }
-            
+        <%  
             // Check if user role is still pending (NULL)
             if (user.getRole() == null) {
                 session.setAttribute("errorMessage", 

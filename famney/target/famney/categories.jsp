@@ -1,12 +1,17 @@
 <%@ page import="model.User"%>
 <%@ page import="model.Family"%>
 <%@ page import="model.Category"%>
+<%@ page import="model.dao.CategoryManager"%>
 <%@ page import="java.util.*"%>
+
+<!-- Initialise database connection -->
+<jsp:include page="/ConnServlet" flush="true"/>
 
 <html>
     <head>
         <title>Manage Categories - Famney</title>
         <style>
+            /* Same CSS as before - tidak berubah */
             * {
                 margin: 0;
                 padding: 0;
@@ -21,7 +26,6 @@
                 flex-direction: column;
             }
             
-            /* Header */
             .header {
                 background: #2c3e50;
                 padding: 1rem 0;
@@ -68,7 +72,6 @@
                 opacity: 0.9;
             }
             
-            /* Main Container */
             .main-container {
                 flex: 1;
                 max-width: 1200px;
@@ -314,7 +317,27 @@
                 margin-bottom: 1rem;
             }
             
-            /* Footer */
+            .success-message {
+                background: #d4edda;
+                color: #155724;
+                padding: 1rem;
+                border-radius: 10px;
+                margin-bottom: 1rem;
+                border: 1px solid #c3e6cb;
+                text-align: center;
+                font-weight: 600;
+            }
+            
+            .error-message {
+                background: #f8d7da;
+                color: #721c24;
+                padding: 1rem;
+                border-radius: 10px;
+                margin-bottom: 1rem;
+                border: 1px solid #f5c6cb;
+                text-align: center;
+            }
+            
             .footer {
                 background: #2c3e50;
                 color: white;
@@ -322,28 +345,22 @@
                 text-align: center;
             }
             
-            /* Responsive */
             @media (max-width: 768px) {
                 .main-container {
                     padding: 1rem;
                 }
                 
-                .category-management {
+                .management-card {
                     padding: 2rem;
-                }
-                
-                .action-bar {
-                    flex-direction: column;
-                    gap: 1rem;
-                }
-                
-                .categories-table {
-                    font-size: 0.9rem;
                 }
                 
                 .categories-table th,
                 .categories-table td {
                     padding: 0.5rem;
+                }
+                
+                .category-stats {
+                    grid-template-columns: 1fr 1fr;
                 }
             }
         </style>
@@ -360,61 +377,46 @@
                 return;
             }
             
-            // Create sample categories data
-            List<Category> categories = new ArrayList<>();
+            // Get flash messages
+            String successMessage = (String) session.getAttribute("successMessage");
+            String errorMessage = (String) session.getAttribute("errorMessage");
             
-            // Default expense categories from the model entity (Category.java)
-            Category cat1 = new Category(family.getFamilyId(), "Food & Dining", "Expense", true, "Groceries, restaurants, takeaways");
-            cat1.setCategoryId("CAT001");
-            categories.add(cat1);
+            if (successMessage != null) {
+                session.removeAttribute("successMessage");
+            }
+            if (errorMessage != null) {
+                session.removeAttribute("errorMessage");
+            }
             
-            Category cat2 = new Category(family.getFamilyId(), "Transportation", "Expense", true, "Petrol, public transport, car maintenance");
-            cat2.setCategoryId("CAT002");
-            categories.add(cat2);
+            // Get CategoryManager from session (initialised by ConnServlet)
+            CategoryManager categoryManager = (CategoryManager) session.getAttribute("categoryManager");
             
-            Category cat3 = new Category(family.getFamilyId(), "Utilities", "Expense", true, "Electricity, water, gas, internet");
-            cat3.setCategoryId("CAT003");
-            categories.add(cat3);
+            // Get categories from database
+            List<Category> categories = null;
+            int totalCount = 0;
+            int expenseCount = 0;
+            int incomeCount = 0;
+            int customCount = 0;
             
-            Category cat4 = new Category(family.getFamilyId(), "Entertainment", "Expense", true, "Movies, games, hobbies");
-            cat4.setCategoryId("CAT004");
-            categories.add(cat4);
+            try {
+                if (categoryManager != null) {
+                    // Get all categories for this family
+                    categories = categoryManager.getFamilyCategories(family.getFamilyId());
+                    
+                    // Get statistics
+                    totalCount = categoryManager.getCategoryCount(family.getFamilyId());
+                    expenseCount = categoryManager.getCategoryCountByType(family.getFamilyId(), "Expense");
+                    incomeCount = categoryManager.getCategoryCountByType(family.getFamilyId(), "Income");
+                    customCount = categoryManager.getCustomCategoryCount(family.getFamilyId());
+                } else {
+                    categories = new ArrayList<>();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                categories = new ArrayList<>();
+            }
             
-            Category cat5 = new Category(family.getFamilyId(), "Healthcare", "Expense", true, "Medical expenses, insurance");
-            cat5.setCategoryId("CAT005");
-            categories.add(cat5);
-            
-            Category cat6 = new Category(family.getFamilyId(), "Shopping", "Expense", true, "Clothes, electronics, household items");
-            cat6.setCategoryId("CAT006");
-            categories.add(cat6);
-            
-            // Default income categories  
-            Category cat7 = new Category(family.getFamilyId(), "Salary", "Income", true, "Monthly salary from employment");
-            cat7.setCategoryId("CAT007");
-            categories.add(cat7);
-            
-            Category cat8 = new Category(family.getFamilyId(), "Freelance", "Income", true, "Freelance work and contracts");
-            cat8.setCategoryId("CAT008");
-            categories.add(cat8);
-            
-            Category cat9 = new Category(family.getFamilyId(), "Allowance", "Income", true, "Pocket money and allowances");
-            cat9.setCategoryId("CAT009");
-            categories.add(cat9);
-            
-            Category cat10 = new Category(family.getFamilyId(), "Investment", "Income", true, "Dividends, interest, capital gains");
-            cat10.setCategoryId("CAT010");
-            categories.add(cat10);
-            
-            // Custom categories (non-default examples)
-            Category cat11 = new Category(family.getFamilyId(), "Education", "Expense", false, "School fees, books, courses");
-            cat11.setCategoryId("CAT011");
-            categories.add(cat11);
-            
-            Category cat12 = new Category(family.getFamilyId(), "Pet Care", "Expense", false, "Pet food, vet bills, grooming");
-            cat12.setCategoryId("CAT012");
-            categories.add(cat12);
-            
-            // Filter categories 
+            // Filter categories based on type parameter
             String filterType = request.getParameter("type");
             List<Category> filteredCategories = categories;
             
@@ -433,22 +435,6 @@
                     }
                 }
             }
-            
-            // Calculate statistics
-            int expenseCount = 0;
-            int incomeCount = 0;
-            int customCount = 0;
-            
-            for (Category cat : categories) {
-                if ("Expense".equals(cat.getCategoryType())) {
-                    expenseCount++;
-                } else {
-                    incomeCount++;
-                }
-                if (!cat.isDefault()) {
-                    customCount++;
-                }
-            }
         %>
         
         <header class="header">
@@ -458,7 +444,7 @@
                     <span>Family: <%= family.getFamilyName() %></span>
                     <span><%= user.getFullName() %> (<%= user.getRole() %>)</span>
                     <a href="main.jsp">Dashboard</a>
-                    <a href="logout.jsp">Logout</a>
+                    <a href="LogoutServlet">Logout</a>
                 </nav>
             </div>
         </header>
@@ -470,9 +456,21 @@
                     <p>Organise your family's expenses and income with custom categories</p>
                 </div>
                 
+                <% if (successMessage != null) { %>
+                    <div class="success-message">
+                        <%= successMessage %>
+                    </div>
+                <% } %>
+                
+                <% if (errorMessage != null) { %>
+                    <div class="error-message">
+                        <%= errorMessage %>
+                    </div>
+                <% } %>
+                
                 <div class="category-stats">
                     <div class="stat-card">
-                        <div class="stat-number"><%= categories.size() %></div>
+                        <div class="stat-number"><%= totalCount %></div>
                         <div class="stat-label">Total Categories</div>
                     </div>
                     <div class="stat-card">
@@ -489,7 +487,7 @@
                     </div>
                 </div>
                 
-                <% if ("Family Head".equals(user.getRole())) { %>
+                <% if ("Family Head".equals(user.getRole()) || "Adult".equals(user.getRole())) { %>
                     <div style="text-align: center; margin-bottom: 2rem;">
                         <a href="category_form.jsp" class="btn-add">&#10133; Add New Category</a>
                     </div>
@@ -506,10 +504,23 @@
                 
                 <% if (filteredCategories.isEmpty()) { %>
                     <div class="empty-state">
-                        <h3>No categories found</h3>
-                        <p>Start by creating your first custom category to organise your family finances.</p>
-                        <% if ("Family Head".equals(user.getRole())) { %>
-                            <a href="category_form.jsp" class="btn-add" style="margin-top: 1rem;">Create First Category</a>
+                        <% if (categoryManager == null) { %>
+                            <h3>&#9888 System Error</h3>
+                            <p style="color: #dc3545; font-weight: 600;">Database connection error. Please refresh the page or contact support.</p>
+                        <% } else { %>
+                            <h3>No categories found</h3>
+                            <p>This is unusual - every family should have default categories.</p>
+                            <% if ("Family Head".equals(user.getRole())) { %>
+                                <p style="margin-top: 1rem;">
+                                    <a href="CategoryServlet?action=reinitialise" class="btn-add">Initialise Default Categories</a>
+                                </p>
+                            <% } %>
+                            <p style="font-size: 0.9rem; color: #6c757d; margin-top: 1rem;">
+                                Or create your first custom category:
+                            </p>
+                            <% if ("Family Head".equals(user.getRole()) || "Adult".equals(user.getRole())) { %>
+                                <a href="category_form.jsp" class="btn-add" style="margin-top: 0.5rem;">Create Custom Category</a>
+                            <% } %>
                         <% } %>
                     </div>
                 <% } else { %>
@@ -542,22 +553,28 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <%= category.getDescription() != null ? category.getDescription() : "No description" %>
+                                        <%= category.getDescription() != null && !category.getDescription().isEmpty() ? category.getDescription() : "No description" %>
                                     </td>
                                     <td>
-                                        Active
+                                        <%= category.isActive() ? "Active" : "Inactive" %>
                                     </td>
                                     <% if ("Family Head".equals(user.getRole()) || "Adult".equals(user.getRole())) { %>
                                         <td>
                                             <div class="action-buttons">
-                                                <a href="category_form.jsp?action=edit&id=<%= category.getCategoryId() %>" class="btn-small btn-edit">
-                                                    Edit
-                                                </a>
+                                                <% if (!category.isDefault()) { %>
+                                                    <a href="category_form.jsp?action=edit&id=<%= category.getCategoryId() %>" class="btn-small btn-edit">
+                                                        Edit
+                                                    </a>
+                                                <% } %>
+                                                
                                                 <% if ("Family Head".equals(user.getRole())) { %>
                                                     <% if (!category.isDefault()) { %>
-                                                        <button class="btn-small btn-delete" onclick="confirmDelete('<%= category.getCategoryName() %>')">
-                                                            Delete
-                                                        </button>
+                                                        <form action="CategoryServlet" method="post" style="display: inline;" 
+                                                              onsubmit="return confirm('Are you sure you want to delete <%= category.getCategoryName() %>?')">
+                                                            <input type="hidden" name="action" value="delete">
+                                                            <input type="hidden" name="categoryId" value="<%= category.getCategoryId() %>">
+                                                            <button type="submit" class="btn-small btn-delete">Delete</button>
+                                                        </form>
                                                     <% } else { %>
                                                         <button class="btn-small btn-delete" disabled title="Cannot delete default categories">
                                                             Delete
@@ -584,13 +601,5 @@
                 <p>&copy; 2025 Famney - Family Financial Management System</p>
             </div>
         </footer>
-        
-        <script>
-            function confirmDelete(categoryName) {
-                if (confirm('Are you sure you want to delete "' + categoryName + '"?')) {
-                    alert('Category "' + categoryName + '" would be deleted in R1 implementation.');
-                }
-            }
-        </script>
     </body>
 </html>

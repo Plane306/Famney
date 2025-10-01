@@ -9,7 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 // Handles user logout by clearing session data
-// Redirects to login page after successful logout
+// Redirects to logout.jsp to display success message
 @WebServlet("/LogoutServlet")
 public class LogoutServlet extends HttpServlet {
     
@@ -18,17 +18,25 @@ public class LogoutServlet extends HttpServlet {
             throws ServletException, IOException {
         
         HttpSession session = request.getSession(false);
+        String userName = "User";
         
-        // Clear all session attributes
+        // Get user name before invalidating session
         if (session != null) {
+            model.User user = (model.User) session.getAttribute("user");
+            if (user != null) {
+                userName = user.getFullName();
+            }
+            
+            // Clear all session attributes
             session.invalidate();
         }
         
-        // Redirect to login page with success message
+        // Create new session and store userName for logout page display
         HttpSession newSession = request.getSession(true);
-        newSession.setAttribute("successMessage", "You have been logged out successfully");
+        newSession.setAttribute("logoutUserName", userName);
         
-        response.sendRedirect("login.jsp");
+        // Redirect to logout page with success message
+        response.sendRedirect("logout.jsp");
     }
     
     @Override

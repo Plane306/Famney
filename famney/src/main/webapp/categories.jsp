@@ -11,6 +11,7 @@
     <head>
         <title>Manage Categories - Famney</title>
         <style>
+            /* Same CSS as before - tidak berubah */
             * {
                 margin: 0;
                 padding: 0;
@@ -503,10 +504,23 @@
                 
                 <% if (filteredCategories.isEmpty()) { %>
                     <div class="empty-state">
-                        <h3>No categories found</h3>
-                        <p>Start by creating your first custom category to organise your family finances.</p>
-                        <% if ("Family Head".equals(user.getRole()) || "Adult".equals(user.getRole())) { %>
-                            <a href="category_form.jsp" class="btn-add" style="margin-top: 1rem;">Create First Category</a>
+                        <% if (categoryManager == null) { %>
+                            <h3>&#9888 System Error</h3>
+                            <p style="color: #dc3545; font-weight: 600;">Database connection error. Please refresh the page or contact support.</p>
+                        <% } else { %>
+                            <h3>No categories found</h3>
+                            <p>This is unusual - every family should have default categories.</p>
+                            <% if ("Family Head".equals(user.getRole())) { %>
+                                <p style="margin-top: 1rem;">
+                                    <a href="CategoryServlet?action=reinitialise" class="btn-add">Initialise Default Categories</a>
+                                </p>
+                            <% } %>
+                            <p style="font-size: 0.9rem; color: #6c757d; margin-top: 1rem;">
+                                Or create your first custom category:
+                            </p>
+                            <% if ("Family Head".equals(user.getRole()) || "Adult".equals(user.getRole())) { %>
+                                <a href="category_form.jsp" class="btn-add" style="margin-top: 0.5rem;">Create Custom Category</a>
+                            <% } %>
                         <% } %>
                     </div>
                 <% } else { %>
