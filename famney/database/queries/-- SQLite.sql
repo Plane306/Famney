@@ -1,3 +1,4 @@
+-- SQLite
 -- Famney Family Financial Management System SQL Tables
 -- Drop tables if they exist (in reverse order due to foreign key dependencies)
 DROP TABLE IF EXISTS Categories;
@@ -128,3 +129,24 @@ CREATE TABLE SavingsGoals (
     CONSTRAINT fk_savingsgoals_user FOREIGN KEY (createdBy) REFERENCES Users(userId) ON DELETE
     SET NULL
 );
+-- Insert one savings goal
+INSERT INTO SavingsGoals (
+        goalId,
+        familyId,
+        goalName,
+        description,
+        targetAmount,
+        currentAmount,
+        targetDate,
+        createdBy
+    )
+VALUES (
+        'G001',
+        'F001',
+        'Buy a Car',
+        'Family car savings goal',
+        10000,
+        2000,
+        '2025-12-31',
+        'U001'
+    );

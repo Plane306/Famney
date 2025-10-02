@@ -1,13 +1,12 @@
-<%@ page import="model.User"%>
-<%@ page import="model.Family"%>
-<%@ page import="model.SavingsGoal"%>
-<%@ page import="java.util.*"%>
-<%@ page import="java.text.*"%>
-<%@ page contentType="text/html;charset=UTF-8" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page import="model.*" %>
+<%@ page import="java.util.*" %>
+<%@ page import="java.text.*" %>
+
 
 <html>
     <head>
-        <title>Your Feature Title - Famney</title>
+        <title>Savings Goals - Famney</title>
         <style>
             * {
                 margin: 0;
@@ -224,112 +223,92 @@
     </head>
     
     <body>
-        <%
-            // Check if user is logged in
-            User user = (User) session.getAttribute("user");
-            Family family = (Family) session.getAttribute("family");
-            
-            if (user == null || family == null) {
-                response.sendRedirect("login.jsp");
-                return;
-            }
-        %>
+    <%
+        // --- Check authentication ---
+        User user = (User) session.getAttribute("user");
+        Family family = (Family) session.getAttribute("family");
 
-        <!-- Goals init + inline action -->
-        <%
-            @SuppressWarnings("unchecked")
-            List<SavingsGoal> goals = (List<SavingsGoal>) application.getAttribute("goals");
-            if (goals == null) {
-                goals = new ArrayList<SavingsGoal>();
-                application.setAttribute("goals", goals);
-            }
+        if (user == null || family == null) {
+            response.sendRedirect("login.jsp");
+            return;
+        }
 
-            String addId = request.getParameter("addId");
-            String addAmtStr = request.getParameter("addAmt");
-            String flash = null, err = null;
+        // --- Load messages ---
+        String successMessage = (String) session.getAttribute("successMessage");
+        String errorMessage = (String) session.getAttribute("errorMessage");
+        if (successMessage != null) session.removeAttribute("successMessage");
+        if (errorMessage != null) session.removeAttribute("errorMessage");
 
-            if (addId != null && addAmtStr != null) {
-                try {
-                    double addAmt = Double.parseDouble(addAmtStr);
-                    boolean found = false;
-                    for (SavingsGoal g : goals) {
-                        if (addId.equals(g.getGoalId())) {
-                            g.addToSavings(addAmt);
-                            found = true;
-                            break;
-                        }
-                    }
-                    if (found) {
-                        flash = "Added $" + new java.text.DecimalFormat("#,##0.00").format(addAmt) + " to goal.";
-                    } else {
-                        err = "Goal not found.";
-                    }
-                } catch (NumberFormatException nfe) {
-                    err = "Please enter a valid number.";
-                }
-            }
+        // --- Load goals ---
+        @SuppressWarnings("unchecked")
+        List<SavingsGoal> goals = (List<SavingsGoal>) session.getAttribute("allGoals");
+        if (goals == null) { goals = new ArrayList<>(); }
 
-            SimpleDateFormat dateFmt = new SimpleDateFormat("yyyy-MM-dd");
-        %>
-        
-        <header class="header">
-            <div class="nav-container">
-                <a href="index.jsp" class="logo">Famney</a>
-                <nav class="nav-menu">
-                    <span>Welcome, <%= user.getFullName() %></span>
-                    <a href="main.jsp">Dashboard</a>
-                    <a href="logout.jsp">Logout</a>
-                </nav>
-            </div>
-        </header>
-        
-        <div class="main-container">
-            <div class="content-box">
-                <!-- Header content -->
-                <div class="content-header" style="text-align:left">
-                    <h1>🎯 Savings Goals</h1>
-                    <p>Track and update your family's savings targets.</p>
-                    <a href="goal_form.jsp" class="btn-primary" style="margin-top:10px;width:auto;">+ New Goal</a>
-                </div>
+        SimpleDateFormat dateFmt = new SimpleDateFormat("yyyy-MM-dd");
+    %>
 
-                <!-- Flash messages -->
-                <% if (flash != null) { %><div class="success-message"><%= flash %></div><% } %>
-                <% if (err != null)   { %><div class="error-message"><%= err %></div><% } %>
-
-                <!-- Goals list -->
-                <% if (goals.isEmpty()) { %>
-                    <div class="goal-card">
-                        <p class="muted">No goals yet. Click <strong>+ New Goal</strong> to create one.</p>
-                    </div>
-                <% } %>
-
-                <% for (SavingsGoal g : goals) { 
-                       double pct = g.getProgressPercentage();
-                       String due = (g.getTargetDate() == null) ? "—" : dateFmt.format(g.getTargetDate());
-                %>
-                    <div class="goal-card">
-                        <h3><%= g.getGoalIcon() %> <%= g.getGoalName() %></h3>
-                        <div class="bar"><div class="fill" style="width:<%= pct %>%"></div></div>
-                        <p><strong><%= g.getFormattedCurrentAmount() %></strong> / <%= g.getFormattedTargetAmount() %>
-                           &nbsp;•&nbsp; <%= g.getStatusDisplay() %></p>
-                        <p class="muted">Due: <%= due %> &nbsp;|&nbsp; Remaining: <%= g.getFormattedRemainingAmount() %></p>
-
-                        <form class="row" method="get" action="savings_goals.jsp">
-                            <input type="hidden" name="addId" value="<%= g.getGoalId() %>" />
-                            <input type="number" step="0.01" min="0" name="addAmt" placeholder="Add amount" />
-                            <button type="submit">Add</button>
-                        </form>
-                    </div>
-                <% } %>
-
-                <a class="btn-secondary" href="main.jsp" style="margin-top:14px;">🏠 Back to Dashboard</a>
-            </div>
+    <header class="header">
+        <div class="nav-container">
+            <a href="index.jsp" class="logo">Famney</a>
+            <nav class="nav-menu">
+                <span>Welcome, <%= user.getFullName() %></span>
+                <a href="main.jsp">Dashboard</a>
+                <a href="logout.jsp">Logout</a>
+            </nav>
         </div>
-        
-        <footer class="footer">
-            <div class="container">
-                <p>&copy; 2025 Famney - Family Financial Management System</p>
+    </header>
+
+    <div class="main-container">
+        <div class="content-box">
+            <div class="content-header" style="text-align:left">
+                <h1>🎯 Savings Goals</h1>
+                <p>Track and update your family's savings targets.</p>
+                <a href="goal_form.jsp" class="btn-primary">+ New Goal</a>
             </div>
-        </footer>
+
+            <!-- Flash messages -->
+            <% if (successMessage != null) { %>
+                <div class="success-message"><%= successMessage %></div>
+            <% } %>
+            <% if (errorMessage != null) { %>
+                <div class="error-message"><%= errorMessage %></div>
+            <% } %>
+
+            <!-- Goals list -->
+            <% if (goals.isEmpty()) { %>
+                <div class="goal-card">
+                    <p class="muted">No goals yet. Click <strong>+ New Goal</strong> to create one.</p>
+                </div>
+            <% } %>
+
+            <% for (SavingsGoal g : goals) {
+                double pct = g.getProgressPercentage();
+                String due = (g.getTargetDate() == null) ? "—" : dateFmt.format(g.getTargetDate());
+            %>
+                <div class="goal-card">
+                    <h3>🎯 <%= g.getGoalName() %></h3>
+                    <div class="bar"><div class="fill" style="width:<%= pct %>%"></div></div>
+                    <p><strong><%= g.getFormattedCurrentAmount() %></strong> / <%= g.getFormattedTargetAmount() %>
+                    &nbsp;•&nbsp; <%= g.getStatusDisplay() %></p>
+                    <p class="muted">Due: <%= due %> &nbsp;|&nbsp; Remaining: <%= g.getFormattedRemainingAmount() %></p>
+
+                    <form class="row" method="post" action="SavingsGoalServlet">
+                        <input type="hidden" name="action" value="add" />
+                        <input type="hidden" name="goalId" value="<%= g.getGoalId() %>" />
+                        <input type="number" step="0.01" min="0" name="amount" placeholder="Add amount" />
+                        <button type="submit">Add</button>
+                    </form>
+                </div>
+            <% } %>
+
+            <a class="btn-secondary" href="main.jsp">🏠 Back to Dashboard</a>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 Famney - Family Financial Management System</p>
+        </div>
+    </footer>
     </body>
 </html>
