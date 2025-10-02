@@ -1,8 +1,10 @@
 <%@ page import="model.User"%>
 <%@ page import="model.Family"%>
+<<%@ page import="model.Category"%>
 <%@ page import="model.dao.UserManager"%>
 <%@ page import="model.dao.FamilyManager"%>
 <%@ page import="java.util.List"%>
+<%@ page import="java.util.ArrayList"%>
 
 <%
     // Check if user is logged in
@@ -263,7 +265,41 @@
                 response.sendRedirect("login.jsp");
                 return;
             }
-            
+               List<Category> categories = (List<Category>) session.getAttribute("categories");
+                if (categories == null && family != null) {
+                    categories = new ArrayList<>();
+                    Category cat1 = new Category(family.getFamilyId(), "Food & Dining", "Expense", true, "Groceries, restaurants, takeaways");
+                    cat1.setCategoryId("C0001");
+                    categories.add(cat1);
+                    Category cat2 = new Category(family.getFamilyId(), "Transportation", "Expense", true, "Petrol, public transport, car maintenance");
+                    cat2.setCategoryId("C0002");
+                    categories.add(cat2);
+                    Category cat3 = new Category(family.getFamilyId(), "Utilities", "Expense", true, "Electricity, water, gas, internet");
+                    cat3.setCategoryId("C0003");
+                    categories.add(cat3);
+                    Category cat4 = new Category(family.getFamilyId(), "Entertainment", "Expense", true, "Movies, games, hobbies");
+                    cat4.setCategoryId("C0004");
+                    categories.add(cat4);
+                    Category cat5 = new Category(family.getFamilyId(), "Healthcare", "Expense", true, "Medical expenses, insurance");
+                    cat5.setCategoryId("C0005");
+                    categories.add(cat5);
+                    Category cat6 = new Category(family.getFamilyId(), "Shopping", "Expense", true, "Clothes, electronics, household items");
+                    cat6.setCategoryId("C0006");
+                    categories.add(cat6);
+                    Category cat7 = new Category(family.getFamilyId(), "Salary", "Income", true, "Monthly salary from employment");
+                    cat7.setCategoryId("C0007");
+                    categories.add(cat7);
+                    Category cat8 = new Category(family.getFamilyId(), "Freelance", "Income", true, "Freelance work and contracts");
+                    cat8.setCategoryId("C0008");
+                    categories.add(cat8);
+                    Category cat9 = new Category(family.getFamilyId(), "Allowance", "Income", true, "Pocket money and allowances");
+                    cat9.setCategoryId("C0009");
+                    categories.add(cat9);
+                    Category cat10 = new Category(family.getFamilyId(), "Investment", "Income", true, "Dividends, interest, capital gains");
+                    cat10.setCategoryId("C0010");
+                    categories.add(cat10);
+                    session.setAttribute("categories", categories);
+                }
             // Get flash message
             String successMessage = (String) session.getAttribute("successMessage");
             if (successMessage != null) {

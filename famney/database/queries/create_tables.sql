@@ -25,10 +25,10 @@ CREATE TABLE Families (
 -- Family members with role-based access control
 CREATE TABLE Users (
     userId VARCHAR(8) PRIMARY KEY,
-    email VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     fullName VARCHAR(100) NOT NULL,
-    role VARCHAR(20) CHECK (role IN ('Family Head', 'Adult', 'Teen', 'Kid') OR role IS NULL),
+    role VARCHAR(20) NOT NULL CHECK (role IN ('Family Head', 'Adult', 'Teen', 'Kid')),
     familyId VARCHAR(8) NOT NULL,
     joinDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     createdDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -40,7 +40,7 @@ CREATE TABLE Users (
 );
 
 -- F102: CATEGORIES TABLE
--- Expense and income categories for budget organisation
+-- Expense and income categories for budget organization
 CREATE TABLE Categories (
     categoryId VARCHAR(8) PRIMARY KEY,
     familyId VARCHAR(8) NOT NULL,
@@ -62,7 +62,7 @@ CREATE TABLE Categories (
 -- F101 & F102: CONSTRAINTS & BUSINESS RULES:
 -- 1. Family Head role: Only one per family
 -- 2. Family Code: Must be unique across all families
--- 3. Email: Must be unique per active user (allows email reuse after account deactivation)
+-- 3. Email: Must be unique across all users
 -- 4. Category Name: Must be unique within each family
 -- 5. Member Count: Must be >= 1 (family must have at least one member)
 -- 6. Roles: Restricted to 'Family Head', 'Adult', 'Teen', 'Kid'
@@ -100,6 +100,7 @@ CREATE TABLE Budgets (
     month INT NOT NULL CHECK (month >= 1 AND month <= 12),
     year INT NOT NULL CHECK (year >= 2000),
     totalAmount DECIMAL(12,2) NOT NULL CHECK (totalAmount >= 0),
+    createdBy VARCHAR(8) NOT NULL,
     createdDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     lastModifiedDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     isActive BOOLEAN NOT NULL DEFAULT TRUE,
@@ -124,6 +125,24 @@ CREATE TABLE BudgetCategories (
 
     -- Unique constraint: Each category can only be allocated once per budget
     CONSTRAINT uk_budget_category UNIQUE (budgetId, categoryId)
+);
+
+
+-- F104: EXPENSES TABLE (Missing in create_tables.sql - needs to be added)
+CREATE TABLE Expenses (
+    expenseId VARCHAR(8) PRIMARY KEY,
+    familyId VARCHAR(8) NOT NULL,
+    userId VARCHAR(8) NOT NULL,
+    categoryId VARCHAR(8) NOT NULL,
+    amount DECIMAL(10,2) NOT NULL CHECK (amount > 0),
+    description VARCHAR(200),
+    expenseDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    createdDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    lastModifiedDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    isActive BOOLEAN NOT NULL DEFAULT TRUE,
+    CONSTRAINT fk_expenses_family FOREIGN KEY (familyId) REFERENCES Families(familyId) ON DELETE CASCADE,
+    CONSTRAINT fk_expenses_user FOREIGN KEY (userId) REFERENCES Users(userId) ON DELETE CASCADE,
+    CONSTRAINT fk_expenses_category FOREIGN KEY (categoryId) REFERENCES Categories(categoryId) ON DELETE CASCADE
 );
 
 -- F107: Savings Goals Table
