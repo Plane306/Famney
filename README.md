@@ -120,7 +120,7 @@ The project uses these main dependencies (defined in pom.xml):
 
 - SQLite JDBC (3.49.1.0) - for database connectivity
 - Jakarta Servlet API (6.1.0) - for servlet development
-- JUnit Jupiter (5.9.3) - for unit testing
+- JUnit Jupiter (5.11.3) - for unit testing
 - Commons Codec (1.15) - for password hashing
 
 All dependencies are automatically downloaded when you run Maven commands.
