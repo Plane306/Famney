@@ -1,11 +1,13 @@
 package model;
 
-import org.junit.Test;
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Date;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ExpenseTest {
+
     @Test
     public void testExpenseCreation() {
         Date expenseDate = new Date();
@@ -52,9 +54,9 @@ public class ExpenseTest {
 
     @Test
     public void testNegativeExpense() {
-    Expense expense = new Expense(null, "", null, -10.0, "", null);
-    assertFalse(expense.isValid());
-    expense.setAmount(Double.MAX_VALUE);
-    assertTrue(expense.getAmount() > 0);
+        Expense expense = new Expense(null, "", null, -10.0, "", null);
+        assertFalse(expense.isValid());
+        expense.setAmount(Double.MAX_VALUE);
+        assertTrue(expense.getAmount() > 0);
     }
 }

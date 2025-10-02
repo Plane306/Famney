@@ -9,3 +9,7 @@ SELECT * FROM Expenses
 WHERE isActive = 1;
 
 SELECT * from categories;   
+
+SELECT * from Families;
+
+SELECT * from Users;

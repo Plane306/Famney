@@ -1,6 +1,9 @@
 <%@ page import="model.User"%>
 <%@ page import="model.Family"%>
 
+<!-- Initialise database connection -->
+<jsp:include page="/ConnServlet" flush="true"/>
+
 <html>
     <head>
         <title>Edit Profile - Famney</title>
@@ -19,7 +22,6 @@
                 flex-direction: column;
             }
             
-            /* Header */
             .header {
                 background: #2c3e50;
                 padding: 1rem 0;
@@ -66,7 +68,6 @@
                 opacity: 0.9;
             }
             
-            /* Main Container */
             .main-container {
                 flex: 1;
                 display: flex;
@@ -129,6 +130,11 @@
                 box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
             }
             
+            .form-group input:disabled {
+                background: #e9ecef;
+                cursor: not-allowed;
+            }
+            
             .btn-primary {
                 width: 100%;
                 background: linear-gradient(135deg, #667eea, #764ba2);
@@ -189,7 +195,15 @@
                 text-align: center;
             }
             
-            /* Footer */
+            .info-note {
+                background: #d1ecf1;
+                color: #0c5460;
+                padding: 0.75rem;
+                border-radius: 8px;
+                font-size: 0.85rem;
+                margin-top: 0.5rem;
+            }
+            
             .footer {
                 background: #2c3e50;
                 color: white;
@@ -197,7 +211,6 @@
                 text-align: center;
             }
             
-            /* Responsive */
             @media (max-width: 768px) {
                 .profile-form {
                     margin: 1rem;
@@ -222,35 +235,15 @@
                 return;
             }
             
-            // Handle form submission (same page processing)
-            String submitted = request.getParameter("submitted");
-            String successMessage = "";
-            String errorMessage = "";
+            // Get flash messages
+            String successMessage = (String) session.getAttribute("successMessage");
+            String errorMessage = (String) session.getAttribute("errorMessage");
             
-            if (submitted != null && submitted.equals("true")) {
-                String fullName = request.getParameter("fullName");
-                String email = request.getParameter("email");
-                String password = request.getParameter("password");
-                
-                // Basic validation
-                if (fullName != null && !fullName.trim().isEmpty() && 
-                    email != null && !email.trim().isEmpty()) {
-                    
-                    // Update user object (R0 - no database connection)
-                    user.setFullName(fullName.trim());
-                    user.setEmail(email.trim());
-                    
-                    // Update password only if provided
-                    if (password != null && !password.trim().isEmpty()) {
-                        user.setPassword(password.trim());
-                    }
-                    
-                    // Update session
-                    session.setAttribute("user", user);
-                    successMessage = "Profile updated successfully!";
-                } else {
-                    errorMessage = "Please fill in all required fields.";
-                }
+            if (successMessage != null) {
+                session.removeAttribute("successMessage");
+            }
+            if (errorMessage != null) {
+                session.removeAttribute("errorMessage");
             }
         %>
         
@@ -260,7 +253,7 @@
                 <nav class="nav-menu">
                     <span>Welcome, <%= user.getFullName() %></span>
                     <a href="main.jsp">Dashboard</a>
-                    <a href="logout.jsp">Logout</a>
+                    <a href="LogoutServlet">Logout</a>
                 </nav>
             </div>
         </header>
@@ -272,39 +265,46 @@
                     <p>Update your personal information</p>
                 </div>
                 
-                <% if (!successMessage.isEmpty()) { %>
+                <% if (successMessage != null) { %>
                     <div class="success-message">
                         <%= successMessage %>
                     </div>
                 <% } %>
                 
-                <% if (!errorMessage.isEmpty()) { %>
+                <% if (errorMessage != null) { %>
                     <div class="error-message">
                         <%= errorMessage %>
                     </div>
                 <% } %>
                 
-                <form action="edit_profile.jsp" method="post">
-                    <input type="hidden" name="submitted" value="true">
-                    
+                <form action="UpdateProfileServlet" method="post">
                     <div class="form-group">
                         <label for="fullName">Full Name</label>
-                        <input type="text" id="fullName" name="fullName" value="<%= user.getFullName() %>" required>
+                        <input type="text" id="fullName" name="fullName" 
+                               value="<%= user.getFullName() %>" required>
                     </div>
                     
                     <div class="form-group">
                         <label for="email">Email Address</label>
-                        <input type="email" id="email" name="email" value="<%= user.getEmail() %>" required>
+                        <input type="email" id="email" name="email" 
+                               value="<%= user.getEmail() %>" required>
                     </div>
                     
                     <div class="form-group">
                         <label for="password">New Password (Optional)</label>
-                        <input type="password" id="password" name="password" placeholder="Leave blank to keep current password">
+                        <input type="password" id="password" name="password" 
+                               placeholder="Leave blank to keep current password">
+                        <div class="info-note">
+                            Only fill this if you want to change your password. Minimum 6 characters.
+                        </div>
                     </div>
                     
                     <div class="form-group">
                         <label>Current Role</label>
-                        <input type="text" value="<%= user.getRole() %>" style="background: #f8f9fa; cursor: not-allowed;" readonly>
+                        <input type="text" value="<%= user.getRole() %>" disabled>
+                        <div class="info-note">
+                            Role can only be changed by Family Head
+                        </div>
                     </div>
                     
                     <button type="submit" class="btn-primary">Update Profile</button>

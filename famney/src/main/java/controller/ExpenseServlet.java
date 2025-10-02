@@ -14,7 +14,6 @@ import java.util.Date;
 import java.util.List;
 
 @WebServlet("/ExpenseServlet")
-@SuppressWarnings("unchecked")
 
 public class ExpenseServlet extends HttpServlet {
     @Override

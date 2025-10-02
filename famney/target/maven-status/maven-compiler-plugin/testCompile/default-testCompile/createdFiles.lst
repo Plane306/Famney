@@ -1,2 +1,5 @@
+model\dao\CategoryManagerTest.class
+model\dao\FamilyManagerTest.class
 model\BudgetTest.class
+model\dao\UserManagerTest.class
 model\ExpenseTest.class

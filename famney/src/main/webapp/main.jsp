@@ -1,9 +1,24 @@
 <%@ page import="model.User"%>
 <%@ page import="model.Family"%>
-<%@ page import="model.Category"%>
+<<%@ page import="model.Category"%>
+<%@ page import="model.dao.UserManager"%>
+<%@ page import="model.dao.FamilyManager"%>
 <%@ page import="java.util.List"%>
 <%@ page import="java.util.ArrayList"%>
 
+<%
+    // Check if user is logged in
+    User user = (User) session.getAttribute("user");
+    Family family = (Family) session.getAttribute("family");
+    
+    if (user == null || family == null) {
+        response.sendRedirect("login.jsp");
+        return;
+    }
+%>
+
+<!-- Initialise database connection -->
+<jsp:include page="/ConnServlet" flush="true"/>
 
 <html>
     <head>
@@ -23,7 +38,6 @@
                 flex-direction: column;
             }
             
-            /* Header */
             .header {
                 background: #2c3e50;
                 padding: 1rem 0;
@@ -70,7 +84,6 @@
                 opacity: 0.9;
             }
             
-            /* Main Container */
             .main-container {
                 flex: 1;
                 max-width: 1200px;
@@ -104,58 +117,30 @@
                 font-size: 1.1rem;
             }
             
-            .quick-actions {
-                display: flex;
-                gap: 1rem;
-                justify-content: center;
-                flex-wrap: wrap;
-                margin-top: 1rem;
-            }
-            
-            .btn {
-                padding: 0.8rem 1.5rem;
-                border: none;
+            .success-message {
+                background: #d4edda;
+                color: #155724;
+                padding: 1rem;
                 border-radius: 10px;
-                font-size: 0.95rem;
-                font-weight: 600;
-                text-decoration: none;
-                display: inline-block;
+                margin-bottom: 1rem;
+                border: 1px solid #c3e6cb;
                 text-align: center;
-                transition: all 0.3s ease;
-                cursor: pointer;
             }
             
-            .btn-primary {
-                background: linear-gradient(135deg, #667eea, #764ba2);
-                color: white;
+            .warning-message {
+                background: #fff3cd;
+                color: #856404;
+                padding: 1.5rem;
+                border-radius: 10px;
+                margin-bottom: 1rem;
+                border: 2px solid #ffc107;
+                text-align: center;
             }
             
-            .btn-primary:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+            .warning-message h3 {
+                margin-bottom: 0.5rem;
             }
             
-            .btn-secondary {
-                background: #6c757d;
-                color: white;
-            }
-            
-            .btn-secondary:hover {
-                background: #5a6268;
-                transform: translateY(-2px);
-            }
-            
-            .btn-admin {
-                background: #ffc107;
-                color: #212529;
-            }
-            
-            .btn-admin:hover {
-                background: #ffb300;
-                transform: translateY(-2px);
-            }
-            
-            /* Dashboard Stats */
             .dashboard-stats {
                 display: grid;
                 grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -185,7 +170,6 @@
                 font-weight: bold;
             }
             
-            /* Feature Navigation */
             .feature-navigation {
                 background: white;
                 padding: 2rem;
@@ -237,19 +221,6 @@
                 font-size: 0.9rem;
             }
             
-            .section-header {
-                background: linear-gradient(135deg, #667eea, #764ba2);
-                color: white;
-                padding: 1rem;
-                border-radius: 10px;
-                margin: 1.5rem 0;
-                text-align: center;
-                font-weight: 600;
-                text-transform: uppercase;
-                font-size: 0.9rem;
-                letter-spacing: 1px;
-            }
-            
             .admin-only {
                 border-left-color: #ffc107;
             }
@@ -258,7 +229,6 @@
                 border-color: #ffc107;
             }
             
-            /* Footer */
             .footer {
                 background: #2c3e50;
                 color: white;
@@ -266,7 +236,6 @@
                 text-align: center;
             }
             
-            /* Responsive */
             @media (max-width: 768px) {
                 .dashboard-content {
                     padding: 0;
@@ -280,10 +249,6 @@
                     grid-template-columns: 1fr;
                 }
                 
-                .quick-actions {
-                    flex-direction: column;
-                }
-                
                 .nav-menu {
                     gap: 1rem;
                 }
@@ -292,58 +257,76 @@
     </head>
     
     <body>
-        <%
-            // Check if user is logged in
-            User user = (User) session.getAttribute("user");
-            Family family = (Family) session.getAttribute("family");
-            
-            if (user == null || family == null) {
+        <%  
+            // Check if user role is still pending (NULL)
+            if (user.getRole() == null) {
+                session.setAttribute("errorMessage", 
+                    "Your account is pending role assignment. Please ask your Family Head to assign your role.");
                 response.sendRedirect("login.jsp");
                 return;
             }
-
-                // Initialize categories list once and store in session
-                List<Category> categories = (List<Category>) session.getAttribute("categories");
+               List<Category> categories = (List<Category>) session.getAttribute("categories");
                 if (categories == null && family != null) {
                     categories = new ArrayList<>();
                     Category cat1 = new Category(family.getFamilyId(), "Food & Dining", "Expense", true, "Groceries, restaurants, takeaways");
-                    cat1.setCategoryId("CAT001");
+                    cat1.setCategoryId("C0001");
                     categories.add(cat1);
                     Category cat2 = new Category(family.getFamilyId(), "Transportation", "Expense", true, "Petrol, public transport, car maintenance");
-                    cat2.setCategoryId("CAT002");
+                    cat2.setCategoryId("C0002");
                     categories.add(cat2);
                     Category cat3 = new Category(family.getFamilyId(), "Utilities", "Expense", true, "Electricity, water, gas, internet");
-                    cat3.setCategoryId("CAT003");
+                    cat3.setCategoryId("C0003");
                     categories.add(cat3);
                     Category cat4 = new Category(family.getFamilyId(), "Entertainment", "Expense", true, "Movies, games, hobbies");
-                    cat4.setCategoryId("CAT004");
+                    cat4.setCategoryId("C0004");
                     categories.add(cat4);
                     Category cat5 = new Category(family.getFamilyId(), "Healthcare", "Expense", true, "Medical expenses, insurance");
-                    cat5.setCategoryId("CAT005");
+                    cat5.setCategoryId("C0005");
                     categories.add(cat5);
                     Category cat6 = new Category(family.getFamilyId(), "Shopping", "Expense", true, "Clothes, electronics, household items");
-                    cat6.setCategoryId("CAT006");
+                    cat6.setCategoryId("C0006");
                     categories.add(cat6);
                     Category cat7 = new Category(family.getFamilyId(), "Salary", "Income", true, "Monthly salary from employment");
-                    cat7.setCategoryId("CAT007");
+                    cat7.setCategoryId("C0007");
                     categories.add(cat7);
                     Category cat8 = new Category(family.getFamilyId(), "Freelance", "Income", true, "Freelance work and contracts");
-                    cat8.setCategoryId("CAT008");
+                    cat8.setCategoryId("C0008");
                     categories.add(cat8);
                     Category cat9 = new Category(family.getFamilyId(), "Allowance", "Income", true, "Pocket money and allowances");
-                    cat9.setCategoryId("CAT009");
+                    cat9.setCategoryId("C0009");
                     categories.add(cat9);
                     Category cat10 = new Category(family.getFamilyId(), "Investment", "Income", true, "Dividends, interest, capital gains");
-                    cat10.setCategoryId("CAT010");
+                    cat10.setCategoryId("C0010");
                     categories.add(cat10);
-                    Category cat11 = new Category(family.getFamilyId(), "Education", "Expense", true, "School fees, books, courses");
-                    cat11.setCategoryId("CAT011");
-                    categories.add(cat11);
-                    Category cat12 = new Category(family.getFamilyId(), "Pet Care", "Expense", true, "Pet food, vet bills, grooming");
-                    cat12.setCategoryId("CAT012");
-                    categories.add(cat12);
                     session.setAttribute("categories", categories);
                 }
+            // Get flash message
+            String successMessage = (String) session.getAttribute("successMessage");
+            if (successMessage != null) {
+                session.removeAttribute("successMessage");
+            }
+            
+            // Get DAO managers from session
+            UserManager userManager = (UserManager) session.getAttribute("userManager");
+            FamilyManager familyManager = (FamilyManager) session.getAttribute("familyManager");
+            
+            // Get real member count from database
+            int memberCount = 0;
+            int pendingCount = 0;
+            
+            try {
+                if (userManager != null && familyManager != null) {
+                    memberCount = familyManager.getMemberCount(family.getFamilyId());
+                    
+                    // Get pending users count (only for Family Head)
+                    if ("Family Head".equals(user.getRole())) {
+                        List<User> pendingUsers = userManager.getPendingUsers(family.getFamilyId());
+                        pendingCount = pendingUsers != null ? pendingUsers.size() : 0;
+                    }
+                }
+            } catch (Exception e) {
+                memberCount = family.getMemberCount();
+            }
         %>
         
         <header class="header">
@@ -351,7 +334,7 @@
                 <a href="index.jsp" class="logo">Famney</a>
                 <nav class="nav-menu">
                     <span>Welcome, <%= user.getFullName() %></span>
-                    <a href="logout.jsp">Logout</a>
+                    <a href="LogoutServlet">Logout</a>
                 </nav>
             </div>
         </header>
@@ -359,32 +342,45 @@
         <div class="main-container">
             <div class="dashboard-content">
                 <div class="user-welcome">
+                    <% if (successMessage != null) { %>
+                        <div class="success-message">
+                            <%= successMessage %>
+                        </div>
+                    <% } %>
+                    
+                    <% if ("Family Head".equals(user.getRole()) && pendingCount > 0) { %>
+                        <div class="warning-message">
+                            <h3>Pending Approvals</h3>
+                            <p><strong><%= pendingCount %></strong> family member(s) are waiting for role assignment. 
+                            <a href="family_management.jsp" style="color: #667eea; font-weight: bold;">Manage now</a></p>
+                        </div>
+                    <% } %>
+                    
                     <h2>Welcome <%= user.getFullName() %>!</h2>
                     <p>You are logged in as <strong><%= user.getRole() %></strong> of <%= family.getFamilyName() %> Family.</p>
                     <% if ("Family Head".equals(user.getRole())) { %>
                         <p><strong>Family Code:</strong> <%= family.getFamilyCode() %> (Share this with family members)</p>
                     <% } %>
-                    
-
                 </div>
                 
                 <!-- Quick Stats -->
                 <div class="dashboard-stats">
                     <div class="stat-card">
                         <h3>Family Members</h3>
-                        <p>4</p>
+                        <p><%= memberCount %></p>
                     </div>
                     <div class="stat-card">
-                        <h3>This Month</h3>
-                        <p>$1,250</p>
+                        <h3>Your Role</h3>
+                        <p><%= user.getRole() %></p>
                     </div>
                     <div class="stat-card">
-                        <h3>Budget Used</h3>
-                        <p>68%</p>
+                        <h3>Family Since</h3>
+                        <p><%= family.getCreatedDate() != null ? 
+                            new java.text.SimpleDateFormat("MMM yyyy").format(family.getCreatedDate()) : "Recently" %></p>
                     </div>
                     <div class="stat-card">
-                        <h3>Savings Goal</h3>
-                        <p>$2,500</p>
+                        <h3>Account Active</h3>
+                        <p><%= user.isActive() ? "Yes" : "No" %></p>
                     </div>
                 </div>
                 
@@ -395,13 +391,13 @@
                     <div class="feature-grid">
                         <!-- F101 User & Family Management -->
                         <a href="edit_profile.jsp" class="feature-link">
-                            <h4>&#128100; Edit My Profile</h4>
+                            <h4>Edit My Profile</h4>
                             <span>Update your personal information and password</span>
                         </a>
                         
                         <% if ("Family Head".equals(user.getRole())) { %>
                             <a href="family_management.jsp" class="feature-link admin-only">
-                                <h4>&#128106; Manage Family</h4>
+                                <h4>Manage Family</h4>
                                 <span>Manage family members, roles, and permissions</span>
                             </a>
                         <% } %>
@@ -409,12 +405,12 @@
                         <!-- F102 Category Management -->
                         <% if ("Family Head".equals(user.getRole())) { %>
                             <a href="categories.jsp" class="feature-link admin-only">
-                                <h4>&#128221; Manage Categories</h4>
+                                <h4>Manage Categories</h4>
                                 <span>Create and edit expense & income categories</span>
                             </a>
                         <% } else if ("Adult".equals(user.getRole())) { %>
                             <a href="categories.jsp" class="feature-link">
-                                <h4>&#128214; View Categories</h4>
+                                <h4>View Categories</h4>
                                 <span>Browse available expense & income categories</span>
                             </a>
                         <% } %>
@@ -422,7 +418,7 @@
                         <!-- F103 Budget Features -->
                         <% if ("Family Head".equals(user.getRole()) || "Adult".equals(user.getRole())) { %>
                             <a href="budget_form.jsp" class="feature-link">
-                                <h4>&#128179; Budget Planning</h4>
+                                <h4>Budget Planning</h4>
                                 <span>Create and manage monthly family budgets</span>
                             </a>
                         <% } %>
@@ -430,34 +426,35 @@
                         <!-- F104 Expense Features -->
                         <% if (!"Kid".equals(user.getRole())) { %>
                             <a href="expense_form.jsp" class="feature-link">
-                                <h4>&#128184; Add Expense</h4>
+                                <h4>Add Expense</h4>
                                 <span>Record family expenses</span>
                             </a>
                         <% } %>
-
+                        
                         <!-- F105 Income Features -->
                         <% if ("Family Head".equals(user.getRole()) || "Adult".equals(user.getRole())) { %>
                             <a href="income_form.jsp" class="feature-link">
-                                <h4>&#128176; Add Income</h4>
+                                <h4>Add Income</h4>
                                 <span>Record family income sources</span>
                             </a>
+                            
                             <!-- F106 Financial Dashboard Features -->
                             <a href="dashboard_summary.jsp" class="feature-link">
-                                <h4>&#128202; Financial Reports</h4>
+                                <h4>Financial Reports</h4>
                                 <span>View charts, summaries & analytics</span>
                             </a>
                         <% } %>
-
+                        
                         <!-- F107 Savings Goals Features -->
                         <a href="savings_goals.jsp" class="feature-link">
-                            <h4>&#127919; Savings Goals</h4>
+                            <h4>Savings Goals</h4>
                             <span>Track family savings targets and progress</span>
                         </a>
-
+                        
                         <!-- F108 Transaction History Features -->
                         <% if (!"Kid".equals(user.getRole())) { %>
                             <a href="transaction_history.jsp" class="feature-link">
-                                <h4>&#128203; Transaction History</h4>
+                                <h4>Transaction History</h4>
                                 <span>View all financial activities and history</span>
                             </a>
                         <% } %>

@@ -1,6 +1,9 @@
 <%@ page import="model.User"%>
 <%@ page import="model.Family"%>
 
+<!-- Initialise database connection -->
+<jsp:include page="/ConnServlet" flush="true"/>
+
 <html>
     <head>
         <title>Create Family Account - Famney</title>
@@ -19,7 +22,6 @@
                 flex-direction: column;
             }
             
-            /* Header */
             .header {
                 background: #2c3e50;
                 padding: 1rem 0;
@@ -61,7 +63,6 @@
                 border-color: rgba(255, 255, 255, 0.3);
             }
             
-            /* Main Content */
             .main-container {
                 flex: 1;
                 display: flex;
@@ -176,26 +177,6 @@
                 text-align: center;
             }
             
-            .info-box {
-                background: #e3f2fd;
-                color: #1976d2;
-                padding: 1rem;
-                border-radius: 10px;
-                margin-bottom: 2rem;
-                border-left: 4px solid #2196f3;
-            }
-            
-            .info-box h3 {
-                margin-bottom: 0.5rem;
-                font-size: 1.1rem;
-            }
-            
-            .info-box p {
-                font-size: 0.9rem;
-                line-height: 1.4;
-            }
-            
-            /* Footer */
             .footer {
                 background: #2c3e50;
                 color: white;
@@ -203,7 +184,6 @@
                 text-align: center;
             }
             
-            /* Responsive */
             @media (max-width: 768px) {
                 .register-form {
                     margin: 1rem;
@@ -223,6 +203,21 @@
     </head>
     
     <body>
+        <%
+            // Check if already logged in
+            User user = (User) session.getAttribute("user");
+            if (user != null) {
+                response.sendRedirect("main.jsp");
+                return;
+            }
+            
+            // Get flash message from session
+            String errorMessage = (String) session.getAttribute("errorMessage");
+            if (errorMessage != null) {
+                session.removeAttribute("errorMessage");
+            }
+        %>
+        
         <header class="header">
             <div class="nav-container">
                 <a href="index.jsp" class="logo">Famney</a>
@@ -240,50 +235,44 @@
                     <p>Start your family's financial journey by creating a new family fund</p>
                 </div>
                 
-                <%
-                    String errorMessage = request.getParameter("error");
-                    if (errorMessage != null) {
-                %>
+                <% if (errorMessage != null) { %>
                     <div class="error-message">
-                        <% if ("validation".equals(errorMessage)) { %>
-                            Please check all fields and try again.
-                        <% } else if ("exists".equals(errorMessage)) { %>
-                            An account with this email already exists.
-                        <% } else { %>
-                            An error occurred while creating your account.
-                        <% } %>
+                        <%= errorMessage %>
                     </div>
                 <% } %>
                 
-                <form action="family_created.jsp" method="post">
+                <form action="CreateFamilyServlet" method="post">
                     <div class="form-group">
                         <label for="familyName">Family Name *</label>
-                        <input type="text" id="familyName" name="familyName" placeholder="Enter your family name (e.g., The Smiths)" required>
+                        <input type="text" id="familyName" name="familyName" 
+                               placeholder="Enter your family name (e.g., The Smiths)" required>
                     </div>
                     
                     <div class="form-row">
                         <div class="form-group">
                             <label for="fullName">Your Full Name *</label>
-                            <input type="text" id="fullName" name="fullName" placeholder="Enter your full name" required>
+                            <input type="text" id="fullName" name="fullName" 
+                                   placeholder="Enter your full name" required>
                         </div>
                         
                         <div class="form-group">
                             <label for="email">Email Address *</label>
-                            <input type="email" id="email" name="email" placeholder="Enter your email" required>
+                            <input type="email" id="email" name="email" 
+                                   placeholder="Enter your email" required>
                         </div>
                     </div>
                     
                     <div class="form-group">
                         <label for="password">Password *</label>
-                        <input type="text" id="password" name="password" placeholder="Create a secure password" required>
+                        <input type="password" id="password" name="password" 
+                               placeholder="Create a secure password (min 6 characters)" required>
                     </div>
                     
                     <div class="form-group">
                         <label for="confirmPassword">Confirm Password *</label>
-                        <input type="text" id="confirmPassword" name="confirmPassword" placeholder="Confirm your password" required>
+                        <input type="password" id="confirmPassword" name="confirmPassword" 
+                               placeholder="Confirm your password" required>
                     </div>
-                    
-                    <input type="hidden" name="action" value="create_family">
                     
                     <button type="submit" class="btn-primary">Create Family Account</button>
                 </form>
