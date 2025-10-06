@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.Date;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class ExpenseTest {
+public class IncomeTest {
 
     @Test
     public void testExpenseCreation() {
