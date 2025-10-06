@@ -1,10 +1,5 @@
 package model.dao;
 
-<<<<<<< HEAD
-public class UserManager {
-
-}
-=======
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -306,4 +301,3 @@ public class UserManager {
         return false;
     }
 }
->>>>>>> development

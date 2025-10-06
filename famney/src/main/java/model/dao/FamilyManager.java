@@ -1,10 +1,5 @@
 package model.dao;
 
-<<<<<<< HEAD
-public class FamilyManager {
-
-}
-=======
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -240,4 +235,3 @@ public class FamilyManager {
         return 0;
     }
 }
->>>>>>> development

@@ -15,18 +15,6 @@ import jakarta.servlet.http.HttpSession;
 
 import model.dao.*;
 
-<<<<<<< HEAD
-/**
- * Central servlet for database connectivity and DAO manager initialisation.
- * All JSP pages should include this servlet to access database functionality.
- */
-@WebServlet("/ConnServlet")
-public class ConnServlet extends HttpServlet {
-    private DBConnector db;
-    private Connection conn;
-    
-    // Famney DAO Managers
-=======
 // Central servlet for database connectivity and DAO manager initialisation
 // All JSP pages should include this servlet at the top to access database
 // Usage in JSP: <jsp:include page="/ConnServlet" flush="true"/>
@@ -37,20 +25,14 @@ public class ConnServlet extends HttpServlet {
     private Connection conn;
     
     // DAO Managers for F101 & F102
->>>>>>> development
     private UserManager userManager;
     private FamilyManager familyManager;
     private CategoryManager categoryManager;
     private BudgetManager budgetManager;
     private ExpenseManager expenseManager;
-<<<<<<< HEAD
-
-    
-=======
     
     // Initialise database connector when servlet starts
     // This runs once when the application starts
->>>>>>> development
     @Override
     public void init() {
         try {
@@ -60,20 +42,6 @@ public class ConnServlet extends HttpServlet {
         }
     }
     
-<<<<<<< HEAD
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
-        HttpSession session = request.getSession();
-        conn = db.openConnection();
-        
-        try {
-            // Initialise all DAO managers
-
-            budgetManager = new BudgetManager(conn);
-
-=======
     // Initialise all DAO managers and store them in session
     // This runs every time a JSP includes this servlet
     @Override
@@ -93,24 +61,11 @@ public class ConnServlet extends HttpServlet {
             categoryManager = new CategoryManager(conn);
             budgetManager = new BudgetManager(conn);
             expenseManager = new ExpenseManager(conn);
->>>>>>> development
             
         } catch (SQLException ex) {
             Logger.getLogger(ConnServlet.class.getName()).log(Level.SEVERE, null, ex);
         }
         
-<<<<<<< HEAD
-        // Export all DAO managers to session for JSP access
-        session.setAttribute("budgetManager", budgetManager);
-
-        // Redirect to original target if present
-        String redirect = request.getParameter("redirect");
-        if (redirect != null && !redirect.isEmpty()) {
-            response.sendRedirect(redirect);
-        }
-    }
-    
-=======
         // Store DAO managers in session so JSP pages can access them
         session.setAttribute("userManager", userManager);
         session.setAttribute("familyManager", familyManager);
@@ -121,7 +76,6 @@ public class ConnServlet extends HttpServlet {
     
     // Close database connection when servlet is destroyed
     // This runs when the application shuts down
->>>>>>> development
     @Override
     public void destroy() {
         try {
@@ -130,8 +84,4 @@ public class ConnServlet extends HttpServlet {
             Logger.getLogger(ConnServlet.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> development

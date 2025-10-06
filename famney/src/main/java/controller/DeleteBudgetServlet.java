@@ -10,10 +10,7 @@ import model.Budget;
 import model.dao.BudgetManager;
 
 @WebServlet("/DeleteBudgetServlet")
-<<<<<<< HEAD
-=======
 @SuppressWarnings("unchecked")
->>>>>>> development
 public class DeleteBudgetServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)

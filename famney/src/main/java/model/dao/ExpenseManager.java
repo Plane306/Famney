@@ -1,9 +1,5 @@
 package model.dao;
 
-<<<<<<< HEAD
-public class ExpenseManager {
-
-=======
 import model.Expense;
 import java.sql.*;
 import java.util.*;
@@ -118,5 +114,4 @@ public class ExpenseManager {
 			null // receiptUrl (future)
 		);
 	}
->>>>>>> development
 }

@@ -1,10 +1,5 @@
 package model.dao;
 
-<<<<<<< HEAD
-public class CategoryManager {
-
-}
-=======
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -342,4 +337,3 @@ public class CategoryManager {
         return 0;
     }
 }
->>>>>>> development
