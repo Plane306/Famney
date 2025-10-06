@@ -1,11 +1,50 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="model.*"%>
+<%@ page import="model.dao.*"%>
 <%@ page import="java.util.*"%>
+<%@ page import="java.text.SimpleDateFormat"%>
+
+<!-- Include database connection -->
+<jsp:include page="/ConnServlet" flush="true"/>
+
+<%
+    User user = (User) session.getAttribute("user");
+    Family family = (Family) session.getAttribute("family");
+
+    if (user == null || family == null) {
+        response.sendRedirect("login.jsp");
+        return;
+    }
+
+    // Check if editing existing goal
+    String goalIdParam = request.getParameter("goalId");
+    SavingsGoal editGoal = null;
+    boolean isEdit = false;
+    
+    if (goalIdParam != null && !goalIdParam.trim().isEmpty()) {
+        SavingsGoalManager manager = (SavingsGoalManager) session.getAttribute("savingsGoalManager");
+        try {
+            editGoal = manager.getSavingsGoalById(goalIdParam);
+            if (editGoal != null) {
+                isEdit = true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    String successMessage = (String) session.getAttribute("successMessage");
+    String errorMessage = (String) session.getAttribute("errorMessage");
+    if (successMessage != null) session.removeAttribute("successMessage");
+    if (errorMessage != null) session.removeAttribute("errorMessage");
+    
+    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+%>
 
 <html>
     <head>
         <meta charset="UTF-8">
-        <title>Create Savings Goal - Famney</title>
+        <title><%= isEdit ? "Edit" : "Create" %> Savings Goal - Famney</title>
         <style>
             * {
                 margin: 0;
@@ -54,6 +93,10 @@
                 background: rgba(255, 255, 255, 0.2);
                 border-color: rgba(255, 255, 255, 0.3);
             }
+            .nav-menu span {
+                font-weight: 600;
+                opacity: 0.9;
+            }
             .main-container {
                 flex: 1;
                 display: flex;
@@ -100,6 +143,11 @@
                 font-size: 1rem;
                 transition: all 0.3s ease;
                 background: #fafafa;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            }
+            .form-group textarea {
+                resize: vertical;
+                min-height: 80px;
             }
             .form-group input:focus, .form-group textarea:focus {
                 outline: none;
@@ -142,50 +190,56 @@
                 background: #667eea;
                 color: white;
             }
+            .success-message {
+                background: #d4edda;
+                color: #155724;
+                padding: 1rem;
+                border-radius: 10px;
+                margin-bottom: 1rem;
+                border: 1px solid #c3e6cb;
+                text-align: center;
+                font-weight: 600;
+            }
+            .error-message {
+                background: #f8d7da;
+                color: #721c24;
+                padding: 1rem;
+                border-radius: 10px;
+                margin-bottom: 1rem;
+                border: 1px solid #f5c6cb;
+                text-align: center;
+            }
             .footer {
                 background: #2c3e50;
                 color: white;
                 padding: 2rem;
                 text-align: center;
             }
+            .helper-text {
+                font-size: 0.85rem;
+                color: #7f8c8d;
+                margin-top: 0.3rem;
+            }
         </style>
     </head>
     <body>
-        <%
-            // --- Check authentication ---
-            User user = (User) session.getAttribute("user");
-            Family family = (Family) session.getAttribute("family");
-
-            if (user == null || family == null) {
-                response.sendRedirect("login.jsp");
-                return;
-            }
-
-            // --- Flash messages ---
-            String successMessage = (String) session.getAttribute("successMessage");
-            String errorMessage = (String) session.getAttribute("errorMessage");
-            if (successMessage != null) session.removeAttribute("successMessage");
-            if (errorMessage != null) session.removeAttribute("errorMessage");
-        %>
-
         <header class="header">
             <div class="nav-container">
-                <a href="main.jsp" class="logo">Famney</a>
+                <a href="index.jsp" class="logo">Famney</a>
                 <nav class="nav-menu">
-                    <span>Family: <%= family.getFamilyName() %></span>
-                    <span><%= user.getFullName() %> (<%= user.getRole() %>)</span>
+                    <span>Welcome, <%= user.getFullName() %></span>
                     <a href="savings_goals.jsp">Goals</a>
                     <a href="main.jsp">Dashboard</a>
-                    <a href="LogoutServlet">Logout</a>
+                    <a href="logout.jsp">Logout</a>
                 </nav>
             </div>
         </header>
 
         <div class="main-container">
-            <div class="form-box">
-                <div class="form-header">
-                    <h1>🎯 Create Savings Goal</h1>
-                    <p>Set a new target for your family's savings</p>
+            <div class="content-box">
+                <div class="content-header">
+                    <h1><%= isEdit ? "Edit Savings Goal" : "Create Savings Goal" %></h1>
+                    <p><%= isEdit ? "Update your goal details" : "Set a new target for your family's savings" %></p>
                 </div>
 
                 <% if (successMessage != null) { %>
@@ -196,33 +250,46 @@
                 <% } %>
 
                 <form action="SavingsGoalServlet" method="post">
-                    <input type="hidden" name="action" value="create">
+                    <input type="hidden" name="action" value="<%= isEdit ? "edit" : "create" %>">
+                    <% if (isEdit && editGoal != null) { %>
+                        <input type="hidden" name="goalId" value="<%= editGoal.getGoalId() %>">
+                    <% } %>
 
                     <div class="form-group">
                         <label for="goalName">Goal Name *</label>
                         <input type="text" id="goalName" name="goalName" required maxlength="100"
-                            placeholder="e.g. Vacation Fund, Emergency Fund">
+                            placeholder="e.g. Vacation Fund, Emergency Fund"
+                            value="<%= isEdit && editGoal != null ? editGoal.getGoalName() : "" %>">
+                        <div class="helper-text">Choose a descriptive name (1-100 characters)</div>
                     </div>
 
                     <div class="form-group">
                         <label for="description">Description (Optional)</label>
-                        <textarea id="description" name="description" maxlength="200"
-                                placeholder="Brief description of this goal..."></textarea>
+                        <textarea id="description" name="description" maxlength="500"
+                                placeholder="Brief description of this goal..."><%= isEdit && editGoal != null && editGoal.getDescription() != null ? editGoal.getDescription() : "" %></textarea>
+                        <div class="helper-text">Add details about what you're saving for</div>
                     </div>
 
                     <div class="form-group">
                         <label for="targetAmount">Target Amount *</label>
-                        <input type="number" id="targetAmount" name="targetAmount" step="0.01" min="1" required
-                            placeholder="e.g. 5000.00">
+                        <input type="number" id="targetAmount" name="targetAmount" step="0.01" min="0.01" max="9999999.99" required
+                            placeholder="e.g. 5000.00"
+                            value="<%= isEdit && editGoal != null ? editGoal.getTargetAmount() : "" %>">
+                        <div class="helper-text">Enter the amount you want to save</div>
                     </div>
 
                     <div class="form-group">
-                        <label for="targetDate">Target Date (Optional)</label>
-                        <input type="date" id="targetDate" name="targetDate">
+                        <label for="targetDate">Target Date *</label>
+                        <input type="date" id="targetDate" name="targetDate" required
+                            value="<%= isEdit && editGoal != null && editGoal.getTargetDate() != null ? dateFormat.format(editGoal.getTargetDate()) : "" %>"
+                            min="<%= dateFormat.format(new Date()) %>">
+                        <div class="helper-text">When do you want to reach this goal?</div>
                     </div>
 
-                    <button type="submit" class="btn-primary">✔ Create Goal</button>
-                    <a href="savings_goals.jsp" class="btn-secondary">↩ Cancel</a>
+                    <button type="submit" class="btn-primary">
+                        <%= isEdit ? "Update Goal" : "Create Goal" %>
+                    </button>
+                    <a href="savings_goals.jsp" class="btn-secondary">Cancel</a>
                 </form>
             </div>
         </div>

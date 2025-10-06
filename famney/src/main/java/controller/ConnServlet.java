@@ -1,42 +1,64 @@
 package controller;
 
-import jakarta.servlet.*;
-import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.*;
-import model.dao.*;
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+
+import model.dao.*;
+
+/**
+ * Central servlet for database connectivity and DAO manager initialisation.
+ * All JSP pages should include this servlet to access database functionality.
+ */
 @WebServlet("/ConnServlet")
 public class ConnServlet extends HttpServlet {
-    private DBConnector connector;
+
+    private DBConnector db;
     private Connection conn;
 
+    private SavingsGoalManager savingsGoalManager;
+
     @Override
-    public void init() throws ServletException {
+    public void init() {
         try {
-            connector = new DBConnector();
-            conn = connector.openConnection();
-        } catch (Exception e) {
-            throw new ServletException("DB connection failed", e);
+            db = new DBConnector();
+        } catch (ClassNotFoundException | SQLException ex) {
+            Logger.getLogger(ConnServlet.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        HttpSession session = req.getSession();
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
 
-        // Create and attach DAOs
-        session.setAttribute("savingsGoalManager", new SavingsGoalManager(conn));
+        response.setContentType("text/html;charset=UTF-8");
+        HttpSession session = request.getSession();
+        conn = db.openConnection();
 
-        resp.getWriter().println("DAOs initialized in session.");
+        try {
+            savingsGoalManager = new SavingsGoalManager(conn);
+        } catch (SQLException ex) {
+            Logger.getLogger(ConnServlet.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        session.setAttribute("savingsGoalManager", savingsGoalManager);
     }
 
     @Override
     public void destroy() {
         try {
-            connector.closeConnection();
-        } catch (Exception ignore) {
+            db.closeConnection();
+        } catch (SQLException ex) {
+            Logger.getLogger(ConnServlet.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 }

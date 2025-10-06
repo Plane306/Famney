@@ -6,7 +6,7 @@ import java.util.Date;
 // SavingsGoal class (Represents family savings objectives and progress tracking)
 // Core entity for F107 Savings Goals feature
 public class SavingsGoal implements Serializable {
-    
+
     private String goalId;
     private String familyId;
     private String goalName;
@@ -19,7 +19,7 @@ public class SavingsGoal implements Serializable {
     private boolean isActive;
     private boolean isCompleted;
     private String createdBy; // userId who created this goal
-    
+
     // Constructor for creating new savings goal
     public SavingsGoal(String familyId, String goalName, double targetAmount, Date targetDate, String createdBy) {
         this.familyId = familyId;
@@ -33,10 +33,10 @@ public class SavingsGoal implements Serializable {
         this.isActive = true;
         this.isCompleted = false;
     }
-    
+
     // Constructor with description
-    public SavingsGoal(String familyId, String goalName, String description, double targetAmount, 
-                       Date targetDate, String createdBy) {
+    public SavingsGoal(String familyId, String goalName, String description, double targetAmount,
+            Date targetDate, String createdBy) {
         this.familyId = familyId;
         this.goalName = goalName;
         this.description = description;
@@ -51,9 +51,9 @@ public class SavingsGoal implements Serializable {
     }
 
     // Full constructor (for database retrieval)
-    public SavingsGoal(String goalId, String familyId, String goalName, String description, 
-                       double targetAmount, double currentAmount, Date targetDate, Date createdDate, 
-                       Date lastModifiedDate, boolean isActive, boolean isCompleted, String createdBy) {
+    public SavingsGoal(String goalId, String familyId, String goalName, String description,
+            double targetAmount, double currentAmount, Date targetDate, Date createdDate,
+            Date lastModifiedDate, boolean isActive, boolean isCompleted, String createdBy) {
         this.goalId = goalId;
         this.familyId = familyId;
         this.goalName = goalName;
@@ -67,7 +67,7 @@ public class SavingsGoal implements Serializable {
         this.isCompleted = isCompleted;
         this.createdBy = createdBy;
     }
-    
+
     // Default constructor
     public SavingsGoal() {
         this.createdDate = new Date();
@@ -77,7 +77,7 @@ public class SavingsGoal implements Serializable {
         this.currentAmount = 0.0;
         this.targetAmount = 0.0;
     }
-    
+
     // Getters and Setters
     public String getGoalId() {
         return goalId;
@@ -131,7 +131,7 @@ public class SavingsGoal implements Serializable {
     public void setCurrentAmount(double currentAmount) {
         this.currentAmount = currentAmount;
         this.lastModifiedDate = new Date();
-        
+
         // Auto-complete if target is reached
         if (this.currentAmount >= this.targetAmount && !this.isCompleted) {
             this.isCompleted = true;
@@ -189,67 +189,71 @@ public class SavingsGoal implements Serializable {
         this.createdBy = createdBy;
         this.lastModifiedDate = new Date();
     }
-    
+
     // Business logic methods
-    
+
     // Add amount to current savings
     public void addToSavings(double amount) {
         if (amount > 0) {
             this.currentAmount += amount;
             this.lastModifiedDate = new Date();
-            
+
             // Auto-complete if target is reached
             if (this.currentAmount >= this.targetAmount && !this.isCompleted) {
                 this.isCompleted = true;
             }
         }
     }
-    
+
     // Get progress percentage (0-100)
     public double getProgressPercentage() {
-        if (targetAmount <= 0) return 0.0;
+        if (targetAmount <= 0)
+            return 0.0;
         double percentage = (currentAmount / targetAmount) * 100.0;
         return Math.min(percentage, 100.0); // Cap at 100%
     }
-    
+
     // Get remaining amount to reach goal
     public double getRemainingAmount() {
         double remaining = targetAmount - currentAmount;
         return Math.max(remaining, 0.0); // Don't return negative
     }
-    
+
     // Get formatted target amount
     public String getFormattedTargetAmount() {
         return String.format("$%.2f", targetAmount);
     }
-    
+
     // Get formatted current amount
     public String getFormattedCurrentAmount() {
         return String.format("$%.2f", currentAmount);
     }
-    
+
     // Get formatted remaining amount
     public String getFormattedRemainingAmount() {
         return String.format("$%.2f", getRemainingAmount());
     }
-    
+
     // Check if goal is overdue
     public boolean isOverdue() {
-        if (targetDate == null || isCompleted) return false;
+        if (targetDate == null || isCompleted)
+            return false;
         return new Date().after(targetDate);
     }
-    
+
     // Get days remaining until target date
     public long getDaysRemaining() {
-        if (targetDate == null || isCompleted) return 0;
-        
+        if (targetDate == null || isCompleted)
+            return 0;
+
         Date now = new Date();
-        if (now.after(targetDate)) return 0; // Overdue
-        
+        if (now.after(targetDate))
+            return 0; // Overdue
+
         long diffInMillies = targetDate.getTime() - now.getTime();
         return diffInMillies / (24 * 60 * 60 * 1000);
     }
-    
+
     // Get goal status display
     public String getStatusDisplay() {
         if (isCompleted) {
@@ -262,51 +266,58 @@ public class SavingsGoal implements Serializable {
             return "📈 In Progress";
         }
     }
-    
+
     // Get goal priority based on time remaining
     public String getPriority() {
-        if (isCompleted) return "Completed";
-        if (isOverdue()) return "Overdue";
-        
+        if (isCompleted)
+            return "Completed";
+        if (isOverdue())
+            return "Overdue";
+
         long days = getDaysRemaining();
-        if (days <= 7) return "High";
-        if (days <= 30) return "Medium";
+        if (days <= 7)
+            return "High";
+        if (days <= 30)
+            return "Medium";
         return "Low";
     }
-    
+
     // Calculate recommended monthly savings
     public double getRecommendedMonthlySavings() {
-        if (targetDate == null || isCompleted) return 0.0;
-        
+        if (targetDate == null || isCompleted)
+            return 0.0;
+
         long daysRemaining = getDaysRemaining();
-        if (daysRemaining <= 0) return getRemainingAmount();
-        
+        if (daysRemaining <= 0)
+            return getRemainingAmount();
+
         double monthsRemaining = daysRemaining / 30.0;
-        if (monthsRemaining < 1) monthsRemaining = 1; // At least 1 month
-        
+        if (monthsRemaining < 1)
+            monthsRemaining = 1; // At least 1 month
+
         return getRemainingAmount() / monthsRemaining;
     }
-    
+
     // Get formatted recommended monthly savings
     public String getFormattedRecommendedMonthlySavings() {
         return String.format("$%.2f", getRecommendedMonthlySavings());
     }
-    
+
     // Validate savings goal data
     public boolean isValid() {
         return goalName != null && !goalName.trim().isEmpty() &&
-               familyId != null && !familyId.trim().isEmpty() &&
-               targetAmount > 0 &&
-               currentAmount >= 0 &&
-               targetDate != null &&
-               createdBy != null && !createdBy.trim().isEmpty();
+                familyId != null && !familyId.trim().isEmpty() &&
+                targetAmount > 0 &&
+                currentAmount >= 0 &&
+                targetDate != null &&
+                createdBy != null && !createdBy.trim().isEmpty();
     }
-    
+
     // Check if goal has required fields
     public boolean hasRequiredFields() {
         return isValid();
     }
-    
+
     // Get short description for display
     public String getShortDescription() {
         if (description == null || description.trim().isEmpty()) {
@@ -315,24 +326,33 @@ public class SavingsGoal implements Serializable {
         String trimmed = description.trim();
         return trimmed.length() <= 50 ? trimmed : trimmed.substring(0, 47) + "...";
     }
-    
+
     // Get goal icon based on name/description
     public String getGoalIcon() {
-        if (goalName == null) return "💰";
-        
+        if (goalName == null)
+            return "💰";
+
         String name = goalName.toLowerCase();
-        if (name.contains("vacation") || name.contains("travel") || name.contains("trip")) return "✈️";
-        if (name.contains("car") || name.contains("vehicle")) return "🚗";
-        if (name.contains("house") || name.contains("home")) return "🏠";
-        if (name.contains("education") || name.contains("school") || name.contains("college")) return "🎓";
-        if (name.contains("emergency")) return "🆘";
-        if (name.contains("wedding")) return "💒";
-        if (name.contains("baby") || name.contains("child")) return "👶";
-        if (name.contains("retirement")) return "👴";
-        
+        if (name.contains("vacation") || name.contains("travel") || name.contains("trip"))
+            return "✈️";
+        if (name.contains("car") || name.contains("vehicle"))
+            return "🚗";
+        if (name.contains("house") || name.contains("home"))
+            return "🏠";
+        if (name.contains("education") || name.contains("school") || name.contains("college"))
+            return "🎓";
+        if (name.contains("emergency"))
+            return "🆘";
+        if (name.contains("wedding"))
+            return "💒";
+        if (name.contains("baby") || name.contains("child"))
+            return "👶";
+        if (name.contains("retirement"))
+            return "👴";
+
         return "💰"; // Default savings icon
     }
-    
+
     @Override
     public String toString() {
         return "SavingsGoal{" +

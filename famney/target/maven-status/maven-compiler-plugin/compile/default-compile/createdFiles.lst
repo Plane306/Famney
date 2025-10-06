@@ -1,11 +1,8 @@
 controller\ConnServlet.class
 model\dao\DB.class
 model\dao\DBConnector.class
-controller\DeleteGoalServlet.class
-controller\EditGoalServlet.class
 model\BudgetCategory.class
 model\Expense.class
-controller\IdGenerator.class
 model\Budget.class
 model\dao\SavingsGoalManager.class
 model\Category.class
