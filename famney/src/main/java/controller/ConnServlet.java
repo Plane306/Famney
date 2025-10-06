@@ -15,10 +15,6 @@ import jakarta.servlet.http.HttpSession;
 
 import model.dao.*;
 
-/**
- * Central servlet for database connectivity and DAO manager initialisation.
- * All JSP pages should include this servlet to access database functionality.
- */
 @WebServlet("/ConnServlet")
 public class ConnServlet extends HttpServlet {
 
@@ -26,6 +22,7 @@ public class ConnServlet extends HttpServlet {
     private Connection conn;
 
     private SavingsGoalManager savingsGoalManager;
+    private TransactionManager transactionManager;
 
     @Override
     public void init() {
@@ -46,11 +43,13 @@ public class ConnServlet extends HttpServlet {
 
         try {
             savingsGoalManager = new SavingsGoalManager(conn);
+            transactionManager = new TransactionManager(conn);
         } catch (SQLException ex) {
             Logger.getLogger(ConnServlet.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         session.setAttribute("savingsGoalManager", savingsGoalManager);
+        session.setAttribute("transactionManager", transactionManager);
     }
 
     @Override

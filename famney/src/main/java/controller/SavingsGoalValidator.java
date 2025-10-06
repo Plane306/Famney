@@ -11,7 +11,6 @@ import java.util.regex.Matcher;
  */
 public class SavingsGoalValidator implements Serializable {
 
-    private String namePattern = "^.{1,100}$";
     private String amountPattern = "^\\d+(\\.\\d{1,2})?$";
     private String descriptionPattern = "^.{0,500}$";
 
