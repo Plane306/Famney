@@ -4,6 +4,10 @@ import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.*;
 import model.dao.BudgetManager;
+<<<<<<< HEAD
+=======
+import model.dao.ExpenseManager;
+>>>>>>> development
 import model.dao.DBConnector;
 
 import java.io.IOException;
@@ -30,14 +34,25 @@ public class DAOInitFilter implements Filter {
         HttpSession session = request.getSession();
 
         // Only initialize if not already present
+<<<<<<< HEAD
         if (session.getAttribute("budgetManager") == null) {
             Connection conn = db.openConnection();
+=======
+        Connection conn = db.openConnection();
+        if (session.getAttribute("budgetManager") == null) {
+>>>>>>> development
             try {
                 session.setAttribute("budgetManager", new BudgetManager(conn));
             } catch (SQLException e) {
                 throw new ServletException("Failed to init BudgetManager", e);
             }
         }
+<<<<<<< HEAD
+=======
+        if (session.getAttribute("expenseManager") == null) {
+            session.setAttribute("expenseManager", new ExpenseManager(conn));
+        }
+>>>>>>> development
         chain.doFilter(req, res);
     }
 

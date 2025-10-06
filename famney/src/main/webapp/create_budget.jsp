@@ -19,6 +19,7 @@
     String error = (String) request.getAttribute("error");
 
     // --- Begin: Copy categories logic from categories.jsp ---
+<<<<<<< HEAD
     List<Category> categories = new ArrayList<>();
     Category cat1 = new Category(family.getFamilyId(), "Food & Dining", "Expense", true, "Groceries, restaurants, takeaways");
     cat1.setCategoryId("CAT001");
@@ -57,6 +58,10 @@
     cat12.setCategoryId("CAT012");
     categories.add(cat12);
     // --- End: Copy categories logic from categories.jsp ---
+=======
+    List<Category> categories = (List<Category>) session.getAttribute("categories");
+
+>>>>>>> development
 
 %>
 <html>

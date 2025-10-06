@@ -6,7 +6,7 @@
 
 <html>
     <head>
-        <title>Edit Profile - Famney</title>
+        <title>Close Family Account - Famney</title>
         <style>
             * {
                 margin: 0;
@@ -76,12 +76,12 @@
                 padding: 2rem;
             }
             
-            .profile-form {
+            .close-family-form {
                 background: white;
                 padding: 3rem;
                 border-radius: 20px;
                 box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-                max-width: 500px;
+                max-width: 600px;
                 width: 100%;
             }
             
@@ -91,14 +91,67 @@
             }
             
             .form-header h1 {
-                color: #2c3e50;
+                color: #dc3545;
                 font-size: 2rem;
                 margin-bottom: 0.5rem;
             }
             
             .form-header p {
-                color: #7f8c8d;
+                color: #6c757d;
                 font-size: 1rem;
+            }
+            
+            .warning-box {
+                background: #fff3f3;
+                border: 2px solid #dc3545;
+                padding: 2rem;
+                border-radius: 15px;
+                margin-bottom: 2rem;
+            }
+            
+            .warning-box h3 {
+                color: #dc3545;
+                margin-bottom: 1rem;
+                font-size: 1.3rem;
+            }
+            
+            .warning-box ul {
+                margin-left: 1.5rem;
+                margin-bottom: 1rem;
+            }
+            
+            .warning-box li {
+                color: #721c24;
+                margin-bottom: 0.5rem;
+                line-height: 1.6;
+            }
+            
+            .warning-box .emphasis {
+                color: #dc3545;
+                font-weight: 700;
+                font-size: 1.1rem;
+                text-align: center;
+                margin-top: 1rem;
+                padding: 1rem;
+                background: white;
+                border-radius: 10px;
+            }
+            
+            .family-info {
+                background: #f8f9fa;
+                padding: 1.5rem;
+                border-radius: 10px;
+                margin-bottom: 2rem;
+                border-left: 5px solid #dc3545;
+            }
+            
+            .family-info p {
+                color: #495057;
+                margin-bottom: 0.5rem;
+            }
+            
+            .family-info strong {
+                color: #2c3e50;
             }
             
             .form-group {
@@ -116,28 +169,29 @@
             .form-group input {
                 width: 100%;
                 padding: 1rem;
-                border: 2px solid #ecf0f1;
+                border: 2px solid #e1e8ed;
                 border-radius: 10px;
                 font-size: 1rem;
                 transition: all 0.3s ease;
-                background: #fafafa;
+                background: #f8f9fa;
             }
             
             .form-group input:focus {
                 outline: none;
-                border-color: #667eea;
+                border-color: #dc3545;
                 background: white;
-                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+                box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
             }
             
-            .form-group input:disabled {
-                background: #e9ecef;
-                cursor: not-allowed;
+            .form-actions {
+                display: flex;
+                gap: 1rem;
+                margin-top: 2rem;
             }
             
-            .btn-primary {
-                width: 100%;
-                background: linear-gradient(135deg, #667eea, #764ba2);
+            .btn-danger {
+                flex: 1;
+                background: #dc3545;
                 color: white;
                 padding: 1rem;
                 border: none;
@@ -146,18 +200,16 @@
                 font-weight: 600;
                 cursor: pointer;
                 transition: all 0.3s ease;
-                margin-bottom: 1rem;
             }
             
-            .btn-primary:hover {
+            .btn-danger:hover {
+                background: #c82333;
                 transform: translateY(-2px);
-                box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+                box-shadow: 0 10px 25px rgba(220, 53, 69, 0.3);
             }
             
             .btn-secondary {
-                display: inline-block;
-                text-align: center;
-                width: 100%;
+                flex: 1;
                 background: transparent;
                 color: #667eea;
                 padding: 1rem;
@@ -166,23 +218,15 @@
                 font-size: 1rem;
                 font-weight: 600;
                 text-decoration: none;
+                text-align: center;
+                cursor: pointer;
                 transition: all 0.3s ease;
+                display: inline-block;
             }
             
             .btn-secondary:hover {
                 background: #667eea;
                 color: white;
-            }
-            
-            .success-message {
-                background: #d4edda;
-                color: #155724;
-                padding: 1rem;
-                border-radius: 10px;
-                margin-bottom: 1rem;
-                border: 1px solid #c3e6cb;
-                text-align: center;
-                font-weight: 600;
             }
             
             .error-message {
@@ -195,15 +239,6 @@
                 text-align: center;
             }
             
-            .info-note {
-                background: #d1ecf1;
-                color: #0c5460;
-                padding: 0.75rem;
-                border-radius: 8px;
-                font-size: 0.85rem;
-                margin-top: 0.5rem;
-            }
-            
             .footer {
                 background: #2c3e50;
                 color: white;
@@ -212,9 +247,13 @@
             }
             
             @media (max-width: 768px) {
-                .profile-form {
+                .close-family-form {
                     margin: 1rem;
                     padding: 2rem;
+                }
+                
+                .form-actions {
+                    flex-direction: column;
                 }
                 
                 .nav-menu {
@@ -226,7 +265,7 @@
     
     <body>
         <%
-            // Check if user is logged in
+            // Check if user is logged in and is Family Head
             User user = (User) session.getAttribute("user");
             Family family = (Family) session.getAttribute("family");
             
@@ -235,13 +274,14 @@
                 return;
             }
             
-            // Get flash messages
-            String successMessage = (String) session.getAttribute("successMessage");
-            String errorMessage = (String) session.getAttribute("errorMessage");
-            
-            if (successMessage != null) {
-                session.removeAttribute("successMessage");
+            // Only Family Head can access this page
+            if (!"Family Head".equals(user.getRole())) {
+                response.sendRedirect("main.jsp");
+                return;
             }
+            
+            // Get error message if any
+            String errorMessage = (String) session.getAttribute("errorMessage");
             if (errorMessage != null) {
                 session.removeAttribute("errorMessage");
             }
@@ -251,25 +291,19 @@
             <div class="nav-container">
                 <a href="index.jsp" class="logo">Famney</a>
                 <nav class="nav-menu">
-                    <span>Welcome, <%= user.getFullName() %></span>
+                    <span>Family Head: <%= user.getFullName() %></span>
+                    <a href="family_management.jsp">Family Management</a>
                     <a href="main.jsp">Dashboard</a>
-                    <a href="LogoutServlet">Logout</a>
                 </nav>
             </div>
         </header>
         
         <div class="main-container">
-            <div class="profile-form">
+            <div class="close-family-form">
                 <div class="form-header">
-                    <h1>Edit Profile</h1>
-                    <p>Update your personal information</p>
+                    <h1>Close Family Account</h1>
+                    <p>Permanently close your family financial management account</p>
                 </div>
-                
-                <% if (successMessage != null) { %>
-                    <div class="success-message">
-                        <%= successMessage %>
-                    </div>
-                <% } %>
                 
                 <% if (errorMessage != null) { %>
                     <div class="error-message">
@@ -277,40 +311,43 @@
                     </div>
                 <% } %>
                 
-                <form action="UpdateProfileServlet" method="post">
-                    <div class="form-group">
-                        <label for="fullName">Full Name</label>
-                        <input type="text" id="fullName" name="fullName" 
-                               value="<%= user.getFullName() %>" required>
+                <div class="warning-box">
+                    <h3>WARNING: This Action Cannot Be Undone</h3>
+                    <p>Closing your family account will have the following consequences:</p>
+                    <ul>
+                        <li>All family members will be <strong>immediately logged out</strong></li>
+                        <li>All user accounts will be <strong>deactivated</strong> (no one can login)</li>
+                        <li>The family account will be marked as <strong>inactive</strong></li>
+                        <li>All financial data will become <strong>inaccessible</strong></li>
+                        <li>This action is <strong>permanent and irreversible</strong></li>
+                    </ul>
+                    <div class="emphasis">
+                        ⚠️ THIS ACTION CANNOT BE UNDONE ⚠️
                     </div>
-                    
-                    <div class="form-group">
-                        <label for="email">Email Address</label>
-                        <input type="email" id="email" name="email" 
-                               value="<%= user.getEmail() %>" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="password">New Password (Optional)</label>
-                        <input type="password" id="password" name="password" 
-                               placeholder="Leave blank to keep current password">
-                        <div class="info-note">
-                            Only fill this if you want to change your password. Minimum 6 characters.
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Current Role</label>
-                        <input type="text" value="<%= user.getRole() %>" disabled>
-                        <div class="info-note">
-                            Role can only be changed by Family Head
-                        </div>
-                    </div>
-                    
-                    <button type="submit" class="btn-primary">Update Profile</button>
-                </form>
+                </div>
                 
-                <a href="main.jsp" class="btn-secondary">Back to Dashboard</a>
+                <div class="family-info">
+                    <p><strong>Family Name:</strong> <%= family.getFamilyName() %></p>
+                    <p><strong>Family Code:</strong> <%= family.getFamilyCode() %></p>
+                    <p><strong>Total Members:</strong> <%= family.getMemberCount() %></p>
+                    <p><strong>Your Email:</strong> <%= user.getEmail() %></p>
+                </div>
+                
+                <form action="CloseFamilyServlet" method="post" onsubmit="return confirm('Are you absolutely sure? This will permanently close the family account and deactivate all members.')">
+                    <div class="form-group">
+                        <label for="password">Enter Your Password to Confirm *</label>
+                        <input type="password" id="password" name="password" 
+                               placeholder="Enter your current password" required>
+                        <small style="color: #6c757d; display: block; margin-top: 0.5rem;">
+                            You must enter your password to confirm this critical action
+                        </small>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn-danger">Close Family Account</button>
+                        <a href="family_management.jsp" class="btn-secondary">Cancel</a>
+                    </div>
+                </form>
             </div>
         </div>
         

@@ -141,6 +141,7 @@
         return;
     }
     // --- Begin: Copy categories logic from categories.jsp ---
+<<<<<<< HEAD
     List<Category> categories = new ArrayList<>();
     Category cat1 = new Category(family.getFamilyId(), "Food & Dining", "Expense", true, "Groceries, restaurants, takeaways");
     cat1.setCategoryId("CAT001");
@@ -178,6 +179,10 @@
     Category cat12 = new Category(family.getFamilyId(), "Pet Care", "Expense", false, "Pet food, vet bills, grooming");
     cat12.setCategoryId("CAT012");
     categories.add(cat12);
+=======
+    List<Category> categories = (List<Category>) session.getAttribute("categories");
+
+>>>>>>> development
     // --- End: Copy categories logic from categories.jsp ---
 %>
     <header class="header">
@@ -212,16 +217,28 @@
                     }
                 %>
                 <p><strong>Category:</strong> <%= catName %></p>
+<<<<<<< HEAD
                 <p><strong>Amount:</strong> $<%= exp.getAmount() %></p>
+=======
+                <p><strong>Amount:</strong> $<%= String.format("%.2f", exp.getAmount()) %></p>
+>>>>>>> development
                 <p><strong>Date:</strong> <%= new java.text.SimpleDateFormat("yyyy-MM-dd").format(exp.getExpenseDate()) %></p>
                 <p><strong>Description:</strong> <%= exp.getDescription() %></p>
                 <form action="ExpenseServlet" method="post" style="display:inline;">
                     <input type="hidden" name="action" value="delete" />
+<<<<<<< HEAD
                     <input type="hidden" name="index" value="<%= allExpenses.indexOf(exp) %>" />
                     <button type="submit" class="btn-primary" style="width:auto;display:inline-block;background:#e74c3c;">Delete</button>
                 </form>
                 <form action="edit_expense.jsp" method="get" style="display:inline;">
                     <input type="hidden" name="index" value="<%= allExpenses.indexOf(exp) %>" />
+=======
+                    <input type="hidden" name="expenseId" value="<%= exp.getExpenseId() %>" />
+                    <button type="submit" class="btn-primary" style="width:auto;display:inline-block;background:#e74c3c;">Delete</button>
+                </form>
+                <form action="edit_expense.jsp" method="get" style="display:inline;">
+                    <input type="hidden" name="expenseId" value="<%= exp.getExpenseId() %>" />
+>>>>>>> development
                     <button type="submit" class="btn-primary" style="width:auto;display:inline-block;background:#f1c40f;color:#2c3e50;">Edit</button>
                 </form>
             </div>

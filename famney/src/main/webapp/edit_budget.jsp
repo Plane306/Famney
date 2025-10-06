@@ -6,6 +6,7 @@
     String categoryId = (String) request.getAttribute("editCategoryId");
     int index = (request.getAttribute("editIndex") != null) ? (Integer) request.getAttribute("editIndex") : -1;
     // Prepopulated categories (same as view_budget.jsp)
+<<<<<<< HEAD
     List<Category> categories = new ArrayList<>();
     Category cat1 = new Category(budget.getFamilyId(), "Food & Dining", "Expense", true, "Groceries, restaurants, takeaways");
     cat1.setCategoryId("CAT001");
@@ -43,6 +44,10 @@
     Category cat12 = new Category(budget.getFamilyId(), "Pet Care", "Expense", false, "Pet food, vet bills, grooming");
     cat12.setCategoryId("CAT012");
     categories.add(cat12);
+=======
+        List<Category> categories = (List<Category>) session.getAttribute("categories");
+
+>>>>>>> development
 %>
 <html>
 <head>

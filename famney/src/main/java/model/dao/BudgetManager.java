@@ -3,7 +3,10 @@ package model.dao;
 import java.sql.*;
 import java.util.*;
 import model.Budget;
+<<<<<<< HEAD
 import model.BudgetCategory;
+=======
+>>>>>>> development
 
 /**
  * DAO for Budget operations.

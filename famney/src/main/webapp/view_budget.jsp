@@ -11,6 +11,7 @@
         response.sendRedirect("login.jsp");
         return;
     }
+<<<<<<< HEAD
     List<Category> categories = new ArrayList<>();
     Category cat1 = new Category(family.getFamilyId(), "Food & Dining", "Expense", true, "Groceries, restaurants, takeaways");
     cat1.setCategoryId("CAT001");
@@ -49,6 +50,10 @@
     cat12.setCategoryId("CAT012");
     categories.add(cat12);
     // --- End: Copy categories logic from categories.jsp ---
+=======
+    // Use categories from session (initialized in main.jsp)
+    List<Category> categories = (List<Category>) session.getAttribute("categories");
+>>>>>>> development
 %>
 <html>
     <head>
@@ -315,6 +320,20 @@
                                     <p>No categories</p>
                                 <% } %>
                             </div>
+                               <div class="detail-item">
+                                   <h4>Created By</h4>
+                                   <p><%= b.getCreatedBy() %></p>
+                               </div>
+                        </div>
+                        <div style="text-align:right; margin-top:10px;">
+                            <form action="EditBudgetServlet" method="get" style="display:inline;">
+                                <input type="hidden" name="index" value="<%= idx %>" />
+                                <button type="submit" class="btn-primary" style="background:#f1c40f; color:#2c3e50;">Edit</button>
+                            </form>
+                            <form action="DeleteBudgetServlet" method="post" style="display:inline;">
+                                <input type="hidden" name="index" value="<%= idx %>" />
+                                <button type="submit" class="btn-primary" style="background:#e74c3c; color:white;">Delete</button>
+                            </form>
                         </div>
                         <div style="text-align:right; margin-top:10px;">
                             <form action="EditBudgetServlet" method="get" style="display:inline;">
