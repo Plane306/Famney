@@ -1,4 +1,4 @@
-package controller;
+package controller.Category;
 
 import java.io.Serializable;
 
