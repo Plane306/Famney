@@ -3,6 +3,7 @@ model\dao\DB.class
 model\dao\DBConnector.class
 model\BudgetCategory.class
 model\Expense.class
+model\dao\TransactionManager.class
 model\Budget.class
 model\dao\SavingsGoalManager.class
 model\Category.class

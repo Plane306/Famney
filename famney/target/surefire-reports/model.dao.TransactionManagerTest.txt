@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
-Test set: model.dao.SavingsGoalManagerTest
+Test set: model.dao.TransactionManagerTest
 -------------------------------------------------------------------------------
-Tests run: 20, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.676 s -- in model.dao.SavingsGoalManagerTest
+Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.074 s -- in model.dao.TransactionManagerTest
