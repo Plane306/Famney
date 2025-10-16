@@ -13,3 +13,5 @@ SELECT * from categories;
 SELECT * from Families;
 
 SELECT * from Users;
+
+SELECT * FROM SavingsGoals;

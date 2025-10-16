@@ -7,6 +7,8 @@ DROP TABLE IF EXISTS Families;
 DROP TABLE IF EXISTS Budgets;
 DROP TABLE IF EXISTS BudgetCategories;
 DROP TABLE IF EXISTS Income;
+DROP TABLE IF EXISTS Expenses;
+DROP TABLE IF EXISTS SavingsGoals;
 
 -- F101: FAMILIES TABLE
 -- Core entity for family groups with unique family codes
