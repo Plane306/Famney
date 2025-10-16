@@ -146,19 +146,19 @@ CREATE TABLE Expenses (
 );
 
 -- F107: Savings Goals Table
-
 CREATE TABLE SavingsGoals (
-    goalId          VARCHAR(8)  PRIMARY KEY,
-    familyId        VARCHAR(8)  NOT NULL,
-    goalName        VARCHAR(100) NOT NULL,
-    targetAmount    DECIMAL(12,2) NOT NULL CHECK (targetAmount > 0),
-    currentAmount   DECIMAL(12,2) NOT NULL DEFAULT 0 CHECK (currentAmount >= 0),
-    targetDate      DATE,
-    createdDate     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    goalId VARCHAR(8) PRIMARY KEY,
+    familyId VARCHAR(8) NOT NULL,
+    goalName VARCHAR(100) NOT NULL,
+    description TEXT,
+    targetAmount DECIMAL(12,2) NOT NULL CHECK (targetAmount > 0),
+    currentAmount DECIMAL(12,2) NOT NULL DEFAULT 0 CHECK (currentAmount >= 0),
+    targetDate DATE,
+    createdDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     lastModifiedDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    isActive        BOOLEAN NOT NULL DEFAULT TRUE,
-    isCompleted     BOOLEAN NOT NULL DEFAULT FALSE,
-
-    -- Foreign key constraint to Families table
-    CONSTRAINT fk_savingsgoals_family FOREIGN KEY (familyId) REFERENCES Families(familyId) ON DELETE CASCADE
+    isActive BOOLEAN NOT NULL DEFAULT TRUE,
+    isCompleted BOOLEAN NOT NULL DEFAULT FALSE,
+    createdBy VARCHAR(8),
+    CONSTRAINT fk_savingsgoals_family FOREIGN KEY (familyId) REFERENCES Families(familyId) ON DELETE CASCADE,
+    CONSTRAINT fk_savingsgoals_user FOREIGN KEY (createdBy) REFERENCES Users(userId) ON DELETE SET NULL
 );

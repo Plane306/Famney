@@ -104,3 +104,47 @@ VALUES
     ('C0008', 'F0001', 'Freelance', 'Income', 1, 'Freelance work and contracts', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1),
     ('C0009', 'F0001', 'Allowance', 'Income', 1, 'Pocket money and allowances', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1),
     ('C0010', 'F0001', 'Investment', 'Income', 1, 'Dividends, interest, capital gains', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1);
+
+-- F107: Default Saving Goals
+INSERT INTO SavingsGoals (
+        goalId,
+        familyId,
+        goalName,
+        description,
+        targetAmount,
+        currentAmount,
+        targetDate,
+        createdDate,
+        lastModifiedDate,
+        isActive,
+        isCompleted,
+        createdBy
+    )
+VALUES (
+        'G1',
+        'F1',
+        'Vacation Fund',
+        'Save for family trip',
+        5000,
+        1000,
+        '2025-12-31',
+        DATE('now'),
+        DATE('now'),
+        1,
+        0,
+        'admin'
+    ),
+    (
+        'G2',
+        'F1',
+        'Emergency Fund',
+        'Backup savings',
+        10000,
+        2500,
+        '2026-06-30',
+        DATE('now'),
+        DATE('now'),
+        1,
+        0,
+        'admin'
+    );
