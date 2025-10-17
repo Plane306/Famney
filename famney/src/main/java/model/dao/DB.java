@@ -7,7 +7,7 @@ import java.sql.Connection;
 public abstract class DB {
     
     // Database file path - update this to match your project location
-    protected String URL = "jdbc:sqlite:C:/Users/flyin/Famney/famney/database/famney.db";
+    protected String URL = "jdbc:sqlite:C:/Users/jishu/OneDrive/Desktop/Famney/famney/database/famney.db";
     
     // SQLite JDBC driver
     protected String driver = "org.sqlite.JDBC";

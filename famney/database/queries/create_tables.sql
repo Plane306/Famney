@@ -7,6 +7,8 @@ DROP TABLE IF EXISTS Families;
 DROP TABLE IF EXISTS Budgets;
 DROP TABLE IF EXISTS BudgetCategories;
 DROP TABLE IF EXISTS Income;
+DROP TABLE IF EXISTS Expenses;
+DROP TABLE IF EXISTS SavingsGoals;
 
 -- F101: FAMILIES TABLE
 -- Core entity for family groups with unique family codes
@@ -151,6 +153,7 @@ CREATE TABLE SavingsGoals (
     goalId          VARCHAR(8)  PRIMARY KEY,
     familyId        VARCHAR(8)  NOT NULL,
     goalName        VARCHAR(100) NOT NULL,
+    description     VARCHAR(100) NOT NULL,
     targetAmount    DECIMAL(12,2) NOT NULL CHECK (targetAmount > 0),
     currentAmount   DECIMAL(12,2) NOT NULL DEFAULT 0 CHECK (currentAmount >= 0),
     targetDate      DATE,
