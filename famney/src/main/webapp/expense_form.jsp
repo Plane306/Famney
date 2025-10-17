@@ -3,16 +3,34 @@
 <%@ page import="model.*"%>
 <%@ page import="model.dao.*"%>
 <%@ page import="java.util.*"%>
+<%@ page import="java.sql.SQLException"%>
+<jsp:include page="/ConnServlet" flush="true" />
 <%
-    // --- Begin: Copy categories logic from categories.jsp ---
+    // Load user/family and categories from DB via CategoryManager (ConnServlet)
     User user = (User) session.getAttribute("user");
     Family family = (Family) session.getAttribute("family");
     if (user == null || family == null) {
         response.sendRedirect("login.jsp");
         return;
     }
-    List<Category> categories = (List<Category>) session.getAttribute("categories");
+    if (user.isKid()) {
+        response.sendRedirect("ExpenseServlet");
+        return;
+    }
 
+    List<Category> categories = null;
+    model.dao.CategoryManager cm = (model.dao.CategoryManager) session.getAttribute("categoryManager");
+    if (cm != null) {
+        try {
+            categories = cm.getCategoriesByType(family.getFamilyId(), "Expense");
+        } catch (SQLException e) {
+            categories = (List<Category>) session.getAttribute("categories");
+            if (categories == null) categories = new ArrayList<>();
+        }
+    } else {
+        categories = (List<Category>) session.getAttribute("categories");
+        if (categories == null) categories = new ArrayList<>();
+    }
 %>
 <html>
     <head>

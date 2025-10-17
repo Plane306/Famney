@@ -159,6 +159,14 @@ public class User implements Serializable {
     public boolean isAdult() {
         return "Family Head".equals(role) || "Adult".equals(role);
     }
+
+    public boolean isTeen() {
+        return "Teen".equals(role);
+    }
+
+    public boolean isKid() {
+        return "Kid".equals(role);
+    }
     
     // Check if user can manage finances (Family Head or Adult)
     public boolean canManageFinances() {

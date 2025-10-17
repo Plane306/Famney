@@ -133,17 +133,30 @@
 </head>
 <body>
 <%
-    // Check if user is logged in
+    // Ensure DAOs are initialised via ConnServlet and load categories
     User user = (User) session.getAttribute("user");
     Family family = (Family) session.getAttribute("family");
     if (user == null || family == null) {
         response.sendRedirect("login.jsp");
         return;
     }
-    // --- Begin: Copy categories logic from categories.jsp ---
+%>
+<jsp:include page="/ConnServlet" flush="true" />
+<%
     List<Category> categories = (List<Category>) session.getAttribute("categories");
-
-    // --- End: Copy categories logic from categories.jsp ---
+    if (categories == null) {
+        model.dao.CategoryManager cm = (model.dao.CategoryManager) session.getAttribute("categoryManager");
+        if (cm != null) {
+            try {
+                categories = cm.getFamilyCategories(family.getFamilyId());
+            } catch (java.sql.SQLException e) {
+                categories = new ArrayList<>();
+            }
+        } else {
+            categories = new ArrayList<>();
+        }
+        session.setAttribute("categories", categories);
+    }
 %>
     <header class="header">
         <div class="nav-container">
@@ -180,15 +193,21 @@
                 <p><strong>Amount:</strong> $<%= String.format("%.2f", exp.getAmount()) %></p>
                 <p><strong>Date:</strong> <%= new java.text.SimpleDateFormat("yyyy-MM-dd").format(exp.getExpenseDate()) %></p>
                 <p><strong>Description:</strong> <%= exp.getDescription() %></p>
-                <form action="ExpenseServlet" method="post" style="display:inline;">
-                    <input type="hidden" name="action" value="delete" />
-                    <input type="hidden" name="expenseId" value="<%= exp.getExpenseId() %>" />
-                    <button type="submit" class="btn-primary" style="width:auto;display:inline-block;background:#e74c3c;">Delete</button>
-                </form>
-                <form action="edit_expense.jsp" method="get" style="display:inline;">
-                    <input type="hidden" name="expenseId" value="<%= exp.getExpenseId() %>" />
-                    <button type="submit" class="btn-primary" style="width:auto;display:inline-block;background:#f1c40f;color:#2c3e50;">Edit</button>
-                </form>
+                <% if (user.isAdult() || user.isFamilyHead() || (user.isTeen() && user.getUserId().equals(exp.getUserId()))) { %>
+                    <% if (user.isTeen() && !user.getUserId().equals(exp.getUserId())) { %>
+                        <!-- Teens cannot edit/delete expenses created by other users -->
+                    <% } else { %>
+                        <form action="ExpenseServlet" method="post" style="display:inline;">
+                            <input type="hidden" name="action" value="delete" />
+                            <input type="hidden" name="expenseId" value="<%= exp.getExpenseId() %>" />
+                            <button type="submit" class="btn-primary" style="width:auto;display:inline-block;background:#e74c3c;">Delete</button>
+                        </form>
+                        <form action="edit_expense.jsp" method="get" style="display:inline;">
+                            <input type="hidden" name="expenseId" value="<%= exp.getExpenseId() %>" />
+                            <button type="submit" class="btn-primary" style="width:auto;display:inline-block;background:#f1c40f;color:#2c3e50;">Edit</button>
+                        </form>
+                    <% } %>
+                <% } %>
             </div>
             <hr/>
             <%

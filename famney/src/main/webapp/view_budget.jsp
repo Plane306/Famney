@@ -284,6 +284,7 @@
                                    <p><%= b.getCreatedBy() %></p>
                                </div>
                         </div>
+                        <% if (user.isAdult() || user.isFamilyHead()) { %>
                         <div style="text-align:right; margin-top:10px;">
                             <form action="EditBudgetServlet" method="get" style="display:inline;">
                                 <input type="hidden" name="index" value="<%= idx %>" />
@@ -294,6 +295,7 @@
                                 <button type="submit" class="btn-primary" style="background:#e74c3c; color:white;">Delete</button>
                             </form>
                         </div>
+                        <% } %>
                     </div>
                         <% idx++;
                         } // end for

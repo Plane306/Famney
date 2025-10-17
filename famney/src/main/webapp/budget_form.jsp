@@ -239,6 +239,10 @@
                 response.sendRedirect("login.jsp");
                 return;
             }
+            if (user.isTeen() || user.isKid()) {
+                response.sendRedirect("BudgetServlet");
+                return;
+            }
         %>
         
         <header class="header">
