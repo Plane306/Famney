@@ -222,6 +222,8 @@
                 response.sendRedirect("login.jsp");
                 return;
             }
+            List<Category> categories = (List<Category>) session.getAttribute("categories");
+
         %>
         
         <header class="header">
@@ -238,12 +240,62 @@
         <div class="main-container">
             <div class="content-box">
                 <div class="content-header">
-                    <h1>Page Title</h1>
-                    <p>Page description</p>
+                    <h1>Record Income</h1>
+                    <p>Log a new income</p>
                 </div>
-                
+                <form action="IncomeServlet" method="post" class="income-form">
+                    <div class="form-group">
+                        <label>User</label>
+                        <span><%= user.getFullName() %></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="amount">Amount</label>
+                        <input type="number" id="amount" name="amount" step="0.01" required placeholder="e.g. 25.00" />
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <input type="text" id="description" name="description" placeholder="e.g. Grocery shopping" />
+                    </div>
+                    <div class="form-group">
+                        <label for="incomeDate">Date</label>
+                        <input type="date" id="incomeDate" name="incomeDate" required />
+                    </div>
+                    <div class="form-group" id="categorySelect">
+                        <label for="category">Category</label>
+                        <select id="category" name="category" required>
+                            <option value="">--Select Category--</option>
+                            <% for (model.Category cat : categories) { %>
+                                <option value="<%= cat.getCategoryId() %>"><%= cat.getCategoryName() %> </option>
+                            <% } %>
+                        </select>
+                    </div>
+                        <label>Is this income recurring?</label>
+                        <label><input type="radio" name="isRecurring" value="yes" onclick="toggleRecurringOptions()"> Yes</label>
+                        <label><input type="radio" name="isRecurring" value="no" onclick="toggleRecurringOptions()" checked> No</label>
+
+                        <div id="recurringOptions" class="recurring-section">
+                            <label for="frequency">Frequency:</label>
+                            <select id="frequency" name="frequency">
+                                <option value="">-- Select Frequency --</option>
+                                <option value="Daily">Daily</option>
+                                <option value="Weekly">Weekly</option>
+                                <option value="Fortnightly">Fortnightly</option>
+                                <option value="Monthly">Monthly</option>
+                                <option value="Quarterly">Quarterly</option>
+                                <option value="Yearly">Yearly</option>
+                            </select>
+
+                            <label for="endDate">End Date (optional):</label>
+                            <input type="date" id="endDate" name="endDate">
+                        </div>
+                    <button type="submit" class="btn-primary">Add Income</button>
+                </form>
+                <div style="text-align:center; margin-top:2rem;">
+                    <form action="IncomeServlet" method="get" style="display:inline;">
+                        <button type="submit" class="btn-secondary">View All Incomes</button>
+                    </form>
+                </div>
                 <!-- Fill your content feature here guys -->
-                
             </div>
         </div>
         

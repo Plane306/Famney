@@ -19,7 +19,7 @@ public class Income implements Serializable {
     private Date lastModifiedDate;
     private boolean isRecurring; // For salary, allowance, etc.
     private boolean isActive;
-    private String source; // Company name, client name, etc.
+    private String receiptUrl; // Company name, client name, etc.
     
     // Constructor for creating new income
     public Income(String familyId, String userId, String categoryId, double amount, String description, Date incomeDate) {
@@ -67,7 +67,7 @@ public class Income implements Serializable {
     // Full constructor (for database retrieval)
     public Income(String incomeId, String familyId, String userId, String categoryId, double amount, 
                   String description, Date incomeDate, Date createdDate, Date lastModifiedDate, 
-                  boolean isRecurring, boolean isActive, String source) {
+                  boolean isRecurring, boolean isActive, String receiptUrl) {
         this.incomeId = incomeId;
         this.familyId = familyId;
         this.userId = userId;
@@ -79,7 +79,7 @@ public class Income implements Serializable {
         this.lastModifiedDate = lastModifiedDate;
         this.isRecurring = isRecurring;
         this.isActive = isActive;
-        this.source = source;
+        this.receiptUrl = receiptUrl;
     }
     
     // Default constructor
@@ -190,12 +190,12 @@ public class Income implements Serializable {
         this.lastModifiedDate = new Date();
     }
 
-    public String getSource() {
-        return source;
+    public String getReceiptUrl() {
+        return receiptUrl;
     }
 
-    public void setSource(String source) {
-        this.source = source;
+    public void setReceiptUrl(String receiptUrl) {
+        this.receiptUrl = receiptUrl;
         this.lastModifiedDate = new Date();
     }
     
@@ -287,10 +287,10 @@ public class Income implements Serializable {
         return isRecurring ? "Recurring Income" : "One-time Income";
     }
     
-    // Get source display (fallback to description if no source)
+    // Get receiptUrl display (fallback to description if no receiptUrl)
     public String getSourceDisplay() {
-        if (source != null && !source.trim().isEmpty()) {
-            return source;
+        if (receiptUrl != null && !receiptUrl.trim().isEmpty()) {
+            return receiptUrl;
         }
         return getShortDescription();
     }
@@ -304,7 +304,7 @@ public class Income implements Serializable {
     public boolean isValid() {
         return hasRequiredFields() && 
                (description == null || description.length() <= 255) &&
-               (source == null || source.length() <= 100);
+               (receiptUrl == null || receiptUrl.length() <= 100);
     }
     
     // Get income type icon
