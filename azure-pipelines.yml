@@ -41,3 +41,9 @@ steps:
     ArtifactName: 'drop'
     publishLocation: 'Container'
 
+- task: AzureWebApp@1
+  inputs:
+    azureSubscription: 'famney-connection'
+    appType: 'webApp'
+    appName: 'famney'
+    package: '*.war'
