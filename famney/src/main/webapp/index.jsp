@@ -307,7 +307,7 @@
         
         <section class="hero">
             <% if (user == null) { %>
-                <h1>Family Financial Management</h1>
+                <h1>Family Financi]gement</h1>
                 <p class="hero-subtitle">Track expenses, manage budgets, and achieve savings goals together. Simple financial planning that brings families closer.</p>
                 
                 <div class="cta-buttons">
