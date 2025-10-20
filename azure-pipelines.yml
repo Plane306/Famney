@@ -46,4 +46,4 @@ steps:
     azureSubscription: 'famney-connection'
     appType: 'webApp'
     appName: 'famney'
-    package: 'famney/target/famney.war'
+    package: 'famney/target/*.war'
