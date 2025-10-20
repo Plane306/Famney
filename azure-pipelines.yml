@@ -32,12 +32,19 @@ steps:
     publishJUnitResults: true
     testResultsFiles: '**/surefire-reports/TEST-*.xml'
 
-# Publish the target folder as artifact
+# Publish the entire target folder as artifact
 - task: PublishBuildArtifacts@1
   inputs:
     PathtoPublish: 'famney/target'
     ArtifactName: 'drop'
     publishLocation: 'Container'
+
+# Download artifact before deployment
+- task: DownloadBuildArtifacts@0
+  inputs:
+    buildType: 'current'
+    artifactName: 'drop'
+    downloadPath: '$(Build.ArtifactStagingDirectory)'
 
 # Deploy the WAR
 - task: AzureWebApp@1
