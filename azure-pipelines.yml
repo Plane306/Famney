@@ -38,4 +38,3 @@ steps:
     PathtoPublish: 'famney/target/famney.war'
     ArtifactName: 'drop'
     publishLocation: 'Container'
-
