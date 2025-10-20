@@ -4,7 +4,9 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/java
 
 trigger:
-- main
+  branches:
+    include:
+      - '*'
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -35,7 +37,6 @@ steps:
 
 - task: PublishBuildArtifacts@1
   inputs:
-    PathtoPublish: 'famney/target'
+    PathtoPublish: 'famney/target/famney.war'
     ArtifactName: 'drop'
     publishLocation: 'Container'
-
