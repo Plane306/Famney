@@ -16,7 +16,7 @@
             }
             
             body {
-                background: linear-gradient(135deg, #5d90e3 0%, #4ba286ff 100%);
+                background: linear-gradient(135deg, #aab6ebff 0%, #6fa383ff 100%);
                 min-height: 100vh;
             }
             
@@ -307,7 +307,7 @@
         
         <section class="hero">
             <% if (user == null) { %>
-                <h1>Smart Family Financial Management</h1>
+                <h1>Family Financial Management</h1>
                 <p class="hero-subtitle">Track expenses, manage budgets, and achieve savings goals together. Simple financial planning that brings families closer.</p>
                 
                 <div class="cta-buttons">
