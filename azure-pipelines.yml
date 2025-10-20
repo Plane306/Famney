@@ -43,7 +43,7 @@ steps:
 
 - task: AzureWebApp@1
   inputs:
-    azureSubscription: 'Azure subscription 1'
+    azureSubscription: 'famney-connection'
     appType: 'webApp'
     appName: 'famney'
     package: 'famney/target/famney.war'
