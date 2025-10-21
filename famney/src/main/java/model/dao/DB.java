@@ -3,7 +3,6 @@ package model.dao;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.net.URL;
 import java.nio.file.Paths;
 
 public abstract class DB {
@@ -17,18 +16,14 @@ public abstract class DB {
             // Load the SQLite JDBC driver
             Class.forName(driver);
 
-            // Step 3: get the database path from resources
-            // Assumes the database is at src/main/resources/database/famney.db
-            URL dbResource = getClass().getClassLoader().getResource("database/famney.db");
-            if (dbResource == null) {
-                throw new RuntimeException("Database file not found in resources!");
-            }
-
-            // Convert URL to absolute file path
-            URL = "jdbc:sqlite:" + Paths.get(dbResource.toURI()).toString();
+            // Use an external database path (not inside resources)
+            // This folder should persist across deployments, e.g., /home/site/wwwroot/database/
+            String dbPath = Paths.get("database", "famney.db").toAbsolutePath().toString();
+            URL = "jdbc:sqlite:" + dbPath;
 
         } catch (Exception e) {
             e.printStackTrace();
+            throw new RuntimeException("Failed to initialize database connection!", e);
         }
     }
 
