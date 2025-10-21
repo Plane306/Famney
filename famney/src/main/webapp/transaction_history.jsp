@@ -27,20 +27,20 @@
     String searchTerm = request.getParameter("searchTerm");
     
     // Pagination
-    int page = 1;
+    int currentPage = 1;
     int pageSize = 20;
     try {
         if (request.getParameter("page") != null) {
-            page = Integer.parseInt(request.getParameter("page"));
+            currentPage = Integer.parseInt(request.getParameter("page"));
         }
     } catch (NumberFormatException e) {
-        page = 1;
+        currentPage = 1;
     }
     
     // Fetch transactions
     List<Map<String, Object>> transactions = transactionManager.getFilteredTransactions(
         family.getFamilyId(), categoryFilter, typeFilter, memberFilter, 
-        startDate, endDate, searchTerm, page, pageSize
+        startDate, endDate, searchTerm, currentPage, pageSize
     );
     
     int totalCount = transactionManager.getTotalTransactionCount(family.getFamilyId());
@@ -381,20 +381,20 @@
 
                 <% if (totalPages > 1) { %>
                 <div class="pagination">
-                    <% if (page > 1) { %>
-                        <a href="?page=<%= page - 1 %><%= categoryFilter != null ? "&categoryFilter=" + categoryFilter : "" %><%= typeFilter != null ? "&typeFilter=" + typeFilter : "" %>">Previous</a>
+                    <% if (currentPage > 1) { %>
+                        <a href="?page=<%= currentPage - 1 %><%= categoryFilter != null ? "&categoryFilter=" + categoryFilter : "" %><%= typeFilter != null ? "&typeFilter=" + typeFilter : "" %>">Previous</a>
                     <% } %>
                     
                     <% for (int i = 1; i <= totalPages; i++) { %>
-                        <% if (i == page) { %>
+                        <% if (i == currentPage) { %>
                             <span class="active"><%= i %></span>
                         <% } else { %>
                             <a href="?page=<%= i %><%= categoryFilter != null ? "&categoryFilter=" + categoryFilter : "" %><%= typeFilter != null ? "&typeFilter=" + typeFilter : "" %>"><%= i %></a>
                         <% } %>
                     <% } %>
                     
-                    <% if (page < totalPages) { %>
-                        <a href="?page=<%= page + 1 %><%= categoryFilter != null ? "&categoryFilter=" + categoryFilter : "" %><%= typeFilter != null ? "&typeFilter=" + typeFilter : "" %>">Next</a>
+                    <% if (currentPage < totalPages) { %>
+                        <a href="?page=<%= currentPage + 1 %><%= categoryFilter != null ? "&categoryFilter=" + categoryFilter : "" %><%= typeFilter != null ? "&typeFilter=" + typeFilter : "" %>">Next</a>
                     <% } %>
                 </div>
                 <% } %>

@@ -1,6 +1,9 @@
 package model.dao;
 
 import java.sql.*;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 
 /**
@@ -32,17 +35,25 @@ public class TransactionManager {
 
         List<Map<String, Object>> transactions = new ArrayList<>();
 
+        Long startDateMillis = parseDateFilter(startDate, false);
+        Long endDateExclusiveMillis = parseDateFilter(endDate, true);
+
+        String incomeDateExpr = "CASE WHEN typeof(i.incomeDate) = 'integer' THEN i.incomeDate "
+                + "ELSE CAST(strftime('%s', i.incomeDate) AS INTEGER) * 1000 END";
+        String expenseDateExpr = "CASE WHEN typeof(e.expenseDate) = 'integer' THEN e.expenseDate "
+                + "ELSE CAST(strftime('%s', e.expenseDate) AS INTEGER) * 1000 END";
+
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT * FROM (");
 
         // Income transactions
         sql.append(" SELECT 'Income' as type, i.incomeId as transactionId, i.amount, ");
-        sql.append(" i.description, i.incomeDate as date, i.userId, ");
+        sql.append(" i.description, ").append(incomeDateExpr).append(" as date, i.userId, ");
         sql.append(" c.categoryId, c.categoryName, u.fullName ");
         sql.append(" FROM Income i ");
         sql.append(" JOIN Categories c ON i.categoryId = c.categoryId ");
         sql.append(" JOIN Users u ON i.userId = u.userId ");
-        sql.append(" WHERE i.familyId = ? AND i.isActive = 1 ");
+        sql.append(" WHERE i.familyId = ? ");
 
         // Apply filters for income
         if (categoryFilter != null && !categoryFilter.isEmpty()) {
@@ -51,11 +62,11 @@ public class TransactionManager {
         if (memberFilter != null && !memberFilter.isEmpty()) {
             sql.append(" AND i.userId = ? ");
         }
-        if (startDate != null && !startDate.isEmpty()) {
-            sql.append(" AND date(i.incomeDate) >= ? ");
+        if (startDateMillis != null) {
+            sql.append(" AND ").append(incomeDateExpr).append(" >= ? ");
         }
-        if (endDate != null && !endDate.isEmpty()) {
-            sql.append(" AND date(i.incomeDate) <= ? ");
+        if (endDateExclusiveMillis != null) {
+            sql.append(" AND ").append(incomeDateExpr).append(" < ? ");
         }
         if (searchTerm != null && !searchTerm.isEmpty()) {
             sql.append(" AND (i.description LIKE ? OR c.categoryName LIKE ?) ");
@@ -68,7 +79,7 @@ public class TransactionManager {
 
         // Expense transactions
         sql.append(" SELECT 'Expense' as type, e.expenseId as transactionId, e.amount, ");
-        sql.append(" e.description, e.expenseDate as date, e.userId, ");
+        sql.append(" e.description, ").append(expenseDateExpr).append(" as date, e.userId, ");
         sql.append(" c.categoryId, c.categoryName, u.fullName ");
         sql.append(" FROM Expenses e ");
         sql.append(" JOIN Categories c ON e.categoryId = c.categoryId ");
@@ -82,11 +93,11 @@ public class TransactionManager {
         if (memberFilter != null && !memberFilter.isEmpty()) {
             sql.append(" AND e.userId = ? ");
         }
-        if (startDate != null && !startDate.isEmpty()) {
-            sql.append(" AND date(e.expenseDate) >= ? ");
+        if (startDateMillis != null) {
+            sql.append(" AND ").append(expenseDateExpr).append(" >= ? ");
         }
-        if (endDate != null && !endDate.isEmpty()) {
-            sql.append(" AND date(e.expenseDate) <= ? ");
+        if (endDateExclusiveMillis != null) {
+            sql.append(" AND ").append(expenseDateExpr).append(" < ? ");
         }
         if (searchTerm != null && !searchTerm.isEmpty()) {
             sql.append(" AND (e.description LIKE ? OR c.categoryName LIKE ?) ");
@@ -110,11 +121,11 @@ public class TransactionManager {
             if (memberFilter != null && !memberFilter.isEmpty()) {
                 pstmt.setString(paramIndex++, memberFilter);
             }
-            if (startDate != null && !startDate.isEmpty()) {
-                pstmt.setString(paramIndex++, startDate);
+            if (startDateMillis != null) {
+                pstmt.setLong(paramIndex++, startDateMillis);
             }
-            if (endDate != null && !endDate.isEmpty()) {
-                pstmt.setString(paramIndex++, endDate);
+            if (endDateExclusiveMillis != null) {
+                pstmt.setLong(paramIndex++, endDateExclusiveMillis);
             }
             if (searchTerm != null && !searchTerm.isEmpty()) {
                 String searchPattern = "%" + searchTerm + "%";
@@ -130,11 +141,11 @@ public class TransactionManager {
             if (memberFilter != null && !memberFilter.isEmpty()) {
                 pstmt.setString(paramIndex++, memberFilter);
             }
-            if (startDate != null && !startDate.isEmpty()) {
-                pstmt.setString(paramIndex++, startDate);
+            if (startDateMillis != null) {
+                pstmt.setLong(paramIndex++, startDateMillis);
             }
-            if (endDate != null && !endDate.isEmpty()) {
-                pstmt.setString(paramIndex++, endDate);
+            if (endDateExclusiveMillis != null) {
+                pstmt.setLong(paramIndex++, endDateExclusiveMillis);
             }
             if (searchTerm != null && !searchTerm.isEmpty()) {
                 String searchPattern = "%" + searchTerm + "%";
@@ -169,12 +180,37 @@ public class TransactionManager {
         return transactions;
     }
 
+    private Long parseDateFilter(String rawDate, boolean endExclusive) {
+        if (rawDate == null) {
+            return null;
+        }
+        String normalised = rawDate.trim();
+        if (normalised.isEmpty()) {
+            return null;
+        }
+        normalised = normalised.replace('/', '-').replaceAll("[^0-9\\-]", "");
+        if (!normalised.contains("-") && normalised.matches("\\d{8}")) {
+            normalised = normalised.substring(0, 4) + "-" +
+                    normalised.substring(4, 6) + "-" +
+                    normalised.substring(6);
+        }
+        try {
+            LocalDate localDate = LocalDate.parse(normalised);
+            if (endExclusive) {
+                localDate = localDate.plusDays(1);
+            }
+            return localDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli();
+        } catch (DateTimeParseException e) {
+            return null;
+        }
+    }
+
     /**
      * Gets total transaction count for pagination.
      */
     public int getTotalTransactionCount(String familyId) {
         String sql = "SELECT COUNT(*) as total FROM (" +
-                " SELECT incomeId FROM Income WHERE familyId = ? AND isActive = 1" +
+                " SELECT incomeId FROM Income WHERE familyId = ?" +
                 " UNION ALL " +
                 " SELECT expenseId FROM Expenses WHERE familyId = ? AND isActive = 1" +
                 ") transactions";

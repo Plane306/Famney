@@ -193,6 +193,20 @@ class TransactionManagerTest {
     }
 
     @Test
+    void testDateRangeFiltering() throws SQLException {
+        Statement stmt = connection.createStatement();
+        stmt.execute("INSERT INTO Expenses VALUES ('E100', '" + testFamilyId + "', '" + testUserId + "', '" + testCategoryId
+                + "', 250.00, 'Range Test', '2025-10-20 00:00:00', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1)");
+        stmt.close();
+
+        List<Map<String, Object>> transactions = transactionManager.getFilteredTransactions(
+                testFamilyId, null, null, null, "2025-10-16", "2025-10-27", null, 1, 10);
+
+        assertEquals(1, transactions.size());
+        assertEquals("Range Test", transactions.get(0).get("description"));
+    }
+
+    @Test
     void testGetTotalCount() throws SQLException {
         Statement stmt = connection.createStatement();
         stmt.execute(
