@@ -244,12 +244,53 @@
 
                 </div>
 
+                <!-- Month Filter Form -->
+                <div style="margin: 1.5rem 0; text-align:center;">
+                    <form method="get" action="BudgetServlet" style="display:inline-flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:center;">
+                        <label style="color:#2c3e50; font-weight:600;">Month:</label>
+                        <select name="filterMonth">
+                            <option value="all">All</option>
+                            <% for (int m = 1; m <= 12; m++) { %>
+                                <option value="<%=m%>" <%= (request.getParameter("filterMonth")!=null && request.getParameter("filterMonth").equals(String.valueOf(m)))?"selected":"" %>><%= new java.text.DateFormatSymbols().getMonths()[m-1] %></option>
+                            <% } %>
+                        </select>
+                        <button type="submit" class="btn-primary" style="padding:0.6rem 1rem;">Apply</button>
+                    </form>
+                </div>
+
                 <% 
                     List<Budget> allBudgets = (List<Budget>) request.getAttribute("allBudgets");
                     BudgetManager budgetManager = (BudgetManager) session.getAttribute("budgetManager");
-                    if (allBudgets != null && allBudgets.size() > 0) {
-                        int idx = 0;
+                    // Filtering logic
+                    String filterMonthParam = request.getParameter("filterMonth");
+                    Integer filterMonth = null;
+                    try {
+                        if (filterMonthParam != null && !"all".equalsIgnoreCase(filterMonthParam) && !filterMonthParam.isEmpty()) {
+                            filterMonth = Integer.parseInt(filterMonthParam);
+                        }
+                    } catch (NumberFormatException e) {
+                        filterMonth = null;
+                    }
+                    // Filter budgets by month
+                    List<Budget> viewBudgets = new ArrayList<Budget>();
+                    if (allBudgets != null) {
                         for (Budget b : allBudgets) {
+                            if (filterMonth == null || b.getMonth() == filterMonth.intValue()) {
+                                viewBudgets.add(b);
+                            }
+                        }
+                    }
+                    // Sort by year then month ascending
+                    java.util.Collections.sort(viewBudgets, new java.util.Comparator<Budget>() {
+                        public int compare(Budget a, Budget b) {
+                            int yearCmp = Integer.compare(a.getYear(), b.getYear());
+                            if (yearCmp != 0) return yearCmp;
+                            return Integer.compare(a.getMonth(), b.getMonth());
+                        }
+                    });
+                    if (viewBudgets != null && viewBudgets.size() > 0) {
+                        int idx = 0;
+                        for (Budget b : viewBudgets) {
                             String monthName = b.getMonthName();
                             // Fetch category allocations for this budget
                             Map<String, Object> perf = budgetManager.getBudgetPerformance(b.getBudgetId());

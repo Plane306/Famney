@@ -5,6 +5,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.nio.file.Paths;
 import java.io.File;
+import java.net.URL;
 
 public abstract class DB {
 
@@ -19,13 +20,13 @@ public abstract class DB {
 
             // Determine database path
             String azureDbPath = "/home/site/wwwroot/database/famney.db";
-            String localDbPath = Paths.get("database", "famney.db").toAbsolutePath().toString();
+            URL dbResource = getClass().getClassLoader().getResource("database/famney.db");
 
             File dbFile = new File(azureDbPath);
             if (dbFile.exists()) {
                 URL = "jdbc:sqlite:" + azureDbPath;
             } else {
-                URL = "jdbc:sqlite:" + localDbPath;
+                URL = "jdbc:sqlite:" + Paths.get(dbResource.toURI()).toString();
             }
 
             System.out.println("DB URL set to: " + URL);
