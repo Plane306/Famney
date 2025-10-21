@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.nio.file.Paths;
+import java.io.File;
 
 public abstract class DB {
 
@@ -16,10 +17,18 @@ public abstract class DB {
             // Load the SQLite JDBC driver
             Class.forName(driver);
 
-            // Use an external database path (not inside resources)
-            // This folder should persist across deployments, e.g., /home/site/wwwroot/database/
-            String dbPath = Paths.get("database", "famney.db").toAbsolutePath().toString();
-            URL = "jdbc:sqlite:" + dbPath;
+            // Determine database path
+            String azureDbPath = "/home/site/wwwroot/database/famney.db";
+            String localDbPath = Paths.get("database", "famney.db").toAbsolutePath().toString();
+
+            File dbFile = new File(azureDbPath);
+            if (dbFile.exists()) {
+                URL = "jdbc:sqlite:" + azureDbPath;
+            } else {
+                URL = "jdbc:sqlite:" + localDbPath;
+            }
+
+            System.out.println("DB URL set to: " + URL);
 
         } catch (Exception e) {
             e.printStackTrace();
