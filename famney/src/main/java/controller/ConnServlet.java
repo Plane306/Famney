@@ -31,6 +31,7 @@ public class ConnServlet extends HttpServlet {
     private BudgetManager budgetManager;
     private IncomeManager incomeManager;
     private ExpenseManager expenseManager;
+    private DashboardManager dashboardManager;
     
     // Initialise database connector when servlet starts
     // This runs once when the application starts
@@ -63,6 +64,7 @@ public class ConnServlet extends HttpServlet {
             budgetManager = new BudgetManager(conn);
             incomeManager = new IncomeManager(conn);
             expenseManager = new ExpenseManager(conn);
+            dashboardManager = new DashboardManager(conn);
             
         } catch (SQLException ex) {
             Logger.getLogger(ConnServlet.class.getName()).log(Level.SEVERE, null, ex);
@@ -75,6 +77,7 @@ public class ConnServlet extends HttpServlet {
         session.setAttribute("budgetManager", budgetManager);
         session.setAttribute("incomeManager", incomeManager);
         session.setAttribute("expenseManager", expenseManager);
+        session.setAttribute("dashboardManager", dashboardManager);
     }
     
     // Close database connection when servlet is destroyed
