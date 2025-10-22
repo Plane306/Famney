@@ -18,11 +18,13 @@ public class Income implements Serializable {
     private Date createdDate; // When the record was created
     private Date lastModifiedDate;
     private boolean isRecurring; // For salary, allowance, etc.
+    private boolean isRecurrenceActive; // Checks if recurring income still needs to generate future entries
+    private String frequency; // Daily, Weekly, Fortnightly, etc.
     private boolean isActive;
-    private String receiptUrl; // Company name, client name, etc.
+    private String source; // Company name, client name, etc.
     
     // Constructor for creating new income
-    public Income(String familyId, String userId, String categoryId, double amount, String description, Date incomeDate) {
+    public Income(String familyId, String userId, String categoryId, double amount, String description, Date incomeDate, boolean isRecurring) {
         this.familyId = familyId;
         this.userId = userId;
         this.categoryId = categoryId;
@@ -31,43 +33,15 @@ public class Income implements Serializable {
         this.incomeDate = incomeDate;
         this.createdDate = new Date();
         this.lastModifiedDate = new Date();
-        this.isActive = true;
-        this.isRecurring = false;
-    }
-    
-    // Constructor with current date as income date
-    public Income(String familyId, String userId, String categoryId, double amount, String description) {
-        this.familyId = familyId;
-        this.userId = userId;
-        this.categoryId = categoryId;
-        this.amount = amount;
-        this.description = description;
-        this.incomeDate = new Date();
-        this.createdDate = new Date();
-        this.lastModifiedDate = new Date();
-        this.isActive = true;
-        this.isRecurring = false;
-    }
-    
-    // Constructor with recurring flag
-    public Income(String familyId, String userId, String categoryId, double amount, String description, 
-                  Date incomeDate, boolean isRecurring) {
-        this.familyId = familyId;
-        this.userId = userId;
-        this.categoryId = categoryId;
-        this.amount = amount;
-        this.description = description;
-        this.incomeDate = incomeDate;
         this.isRecurring = isRecurring;
-        this.createdDate = new Date();
-        this.lastModifiedDate = new Date();
+        this.isRecurrenceActive = isRecurring;
         this.isActive = true;
     }
-
+    
     // Full constructor (for database retrieval)
     public Income(String incomeId, String familyId, String userId, String categoryId, double amount, 
                   String description, Date incomeDate, Date createdDate, Date lastModifiedDate, 
-                  boolean isRecurring, boolean isActive, String receiptUrl) {
+                  boolean isRecurring, boolean isRecurrenceActive, String frequency, boolean isActive, String source) {
         this.incomeId = incomeId;
         this.familyId = familyId;
         this.userId = userId;
@@ -78,8 +52,10 @@ public class Income implements Serializable {
         this.createdDate = createdDate;
         this.lastModifiedDate = lastModifiedDate;
         this.isRecurring = isRecurring;
+        this.isRecurrenceActive = isRecurrenceActive;
+        this.frequency = frequency;
         this.isActive = isActive;
-        this.receiptUrl = receiptUrl;
+        this.source = source;
     }
     
     // Default constructor
@@ -181,6 +157,24 @@ public class Income implements Serializable {
         this.lastModifiedDate = new Date();
     }
 
+    public boolean isRecurrenceActive() {
+        return isRecurrenceActive;
+    }
+
+    public void setRecurrenceActive(boolean recurrenceActive) {
+        isRecurrenceActive = recurrenceActive;
+        this.lastModifiedDate = new Date();
+    }
+
+    public String getFrequency() {
+        return frequency;
+    }
+
+    public void setFrequency(String frequency) {
+        this.frequency = frequency;
+        this.lastModifiedDate = new Date();
+    }
+
     public boolean isActive() {
         return isActive;
     }
@@ -190,12 +184,12 @@ public class Income implements Serializable {
         this.lastModifiedDate = new Date();
     }
 
-    public String getReceiptUrl() {
-        return receiptUrl;
+    public String getSource() {
+        return source;
     }
 
-    public void setReceiptUrl(String receiptUrl) {
-        this.receiptUrl = receiptUrl;
+    public void setSource(String source) {
+        this.source = source;
         this.lastModifiedDate = new Date();
     }
     
@@ -229,7 +223,7 @@ public class Income implements Serializable {
         return trimmed.length() <= 30 ? trimmed : trimmed.substring(0, 27) + "...";
     }
     
-    // Check if income is from this month
+    // Check if income is from this month (Not used)
     public boolean isFromThisMonth() {
         if (incomeDate == null) return false;
         
@@ -242,7 +236,7 @@ public class Income implements Serializable {
             incomeCal.get(Calendar.YEAR) == now.get(Calendar.YEAR);
     }
 
-    // Check if income is from today
+    // Check if income is from today (Not used)
     public boolean isFromToday() {
         if (incomeDate == null) return false;
         
@@ -265,7 +259,7 @@ public class Income implements Serializable {
         return diffInMillies / (24 * 60 * 60 * 1000);
     }
     
-    // Check if income is recent (within last 7 days)
+    // Check if income is recent (within last 7 days) Not used
     public boolean isRecent() {
         return getIncomeAgeInDays() <= 7;
     }
@@ -277,22 +271,21 @@ public class Income implements Serializable {
     
     // Get display title combining amount and description
     public String getDisplayTitle() {
-        String desc = getShortDescription();
-        String recurringIndicator = isRecurring ? " (Recurring)" : "";
-        return getFormattedAmount() + " - " + desc + recurringIndicator;
+        return getShortDescription();
     }
     
     // Get recurring status display
     public String getRecurringStatusDisplay() {
-        return isRecurring ? "Recurring Income" : "One-time Income";
+        String icon = getIncomeTypeIcon();
+        return icon + (isRecurring ? " Recurring" : " One-time");
     }
     
-    // Get receiptUrl display (fallback to description if no receiptUrl)
+    // Get source display
     public String getSourceDisplay() {
-        if (receiptUrl != null && !receiptUrl.trim().isEmpty()) {
-            return receiptUrl;
+        if (source != null && !source.trim().isEmpty()) {
+            return source;
         }
-        return getShortDescription();
+        return "-";
     }
     
     // Calculate monthly income estimate (for recurring income)
@@ -304,7 +297,7 @@ public class Income implements Serializable {
     public boolean isValid() {
         return hasRequiredFields() && 
                (description == null || description.length() <= 255) &&
-               (receiptUrl == null || receiptUrl.length() <= 100);
+               (source == null || source.length() <= 100);
     }
     
     // Get income type icon

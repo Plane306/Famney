@@ -6,7 +6,7 @@ DROP TABLE IF EXISTS Users;
 DROP TABLE IF EXISTS Families;
 DROP TABLE IF EXISTS Budgets;
 DROP TABLE IF EXISTS BudgetCategories;
-DROP TABLE IF EXISTS Income;
+DROP TABLE IF EXISTS Incomes;
 DROP TABLE IF EXISTS Expenses;
 DROP TABLE IF EXISTS SavingsGoals;
 
@@ -75,7 +75,7 @@ CREATE TABLE Categories (
 
 
 -- F105 Income Management Table
-CREATE TABLE Income (
+CREATE TABLE Incomes (
     incomeId VARCHAR(8) PRIMARY KEY,
     familyId VARCHAR(8) NOT NULL,
     userId VARCHAR(8) NOT NULL,
@@ -83,7 +83,13 @@ CREATE TABLE Income (
     amount DECIMAL(10,2) NOT NULL,  
     description VARCHAR(200),
     incomeDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    createdDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    lastModifiedDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     isRecurring BOOLEAN NOT NULL DEFAULT FALSE,
+    isRecurrenceActive BOOLEAN NOT NULL DEFAULT FALSE,
+    frequency VARCHAR(200),
+    isActive BOOLEAN NOT NULL DEFAULT FALSE,
+    source VARCHAR(200),
     
     -- Foreign key constraints
     CONSTRAINT fk_income_family FOREIGN KEY (familyId) REFERENCES Families(familyId) ON DELETE CASCADE,

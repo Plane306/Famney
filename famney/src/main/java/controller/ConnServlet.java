@@ -29,6 +29,7 @@ public class ConnServlet extends HttpServlet {
     private FamilyManager familyManager;
     private CategoryManager categoryManager;
     private BudgetManager budgetManager;
+    private IncomeManager incomeManager;
     private ExpenseManager expenseManager;
     
     // Initialise database connector when servlet starts
@@ -60,6 +61,7 @@ public class ConnServlet extends HttpServlet {
             familyManager = new FamilyManager(conn);
             categoryManager = new CategoryManager(conn);
             budgetManager = new BudgetManager(conn);
+            incomeManager = new IncomeManager(conn);
             expenseManager = new ExpenseManager(conn);
             
         } catch (SQLException ex) {
@@ -71,6 +73,7 @@ public class ConnServlet extends HttpServlet {
         session.setAttribute("familyManager", familyManager);
         session.setAttribute("categoryManager", categoryManager);
         session.setAttribute("budgetManager", budgetManager);
+        session.setAttribute("incomeManager", incomeManager);
         session.setAttribute("expenseManager", expenseManager);
     }
     
