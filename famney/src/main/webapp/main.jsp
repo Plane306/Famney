@@ -423,7 +423,7 @@
                             </a>
                             
                             <!-- F106 Financial Dashboard Features -->
-                            <a href="dashboard_summary.jsp" class="feature-link">
+                            <a href="DashboardServlet" class="feature-link">
                                 <h4>Financial Reports</h4>
                                 <span>View charts, summaries & analytics</span>
                             </a>
