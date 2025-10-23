@@ -1,3 +1,6 @@
+// Made by Jason Dang
+// Fixed by Muhammad Naufal Farhan Mudofi
+
 package model.dao;
 
 import model.Income;
@@ -36,7 +39,15 @@ public class IncomeManager {
     }
 
     // Add income to DB
+    // 
     public boolean addIncome(Income income) {
+        // 
+        try {
+            connection.setAutoCommit(true);
+        } catch (SQLException e) {
+            System.err.println("[ERROR] IncomeManager.addIncome: Failed to set autocommit - " + e.getMessage());
+        }
+
         String sql = "INSERT INTO Income (incomeId, familyId, userId, categoryId, amount, description, incomeDate, createdDate, lastModifiedDate, isRecurring, isRecurrenceActive, frequency, isActive, source) " +
                      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -177,6 +188,13 @@ public class IncomeManager {
 
     // Update income
     public boolean updateIncome(Income income) {
+        // 
+        try {
+            connection.setAutoCommit(true);
+        } catch (SQLException e) {
+            System.err.println("[ERROR] IncomeManager.updateIncome: Failed to set autocommit - " + e.getMessage());
+        }
+
         String sql = "UPDATE Income SET categoryId=?, amount=?, description=?, incomeDate=?, lastModifiedDate=?, source=? WHERE incomeId=? AND isActive=1";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, income.getCategoryId());
@@ -195,6 +213,13 @@ public class IncomeManager {
 
     // Delete income (soft delete)
     public boolean deleteIncome(String incomeId) {
+        // 
+        try {
+            connection.setAutoCommit(true);
+        } catch (SQLException e) {
+            System.err.println("[ERROR] IncomeManager.deleteIncome: Failed to set autocommit - " + e.getMessage());
+        }
+
         String sql = "UPDATE Income SET isActive=0, lastModifiedDate=? WHERE incomeId=?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setTimestamp(1, new java.sql.Timestamp(new java.util.Date().getTime()));
@@ -207,6 +232,13 @@ public class IncomeManager {
     }
 
     public boolean toggleRecurrence(String incomeId, boolean enable) {
+        // 
+        try {
+            connection.setAutoCommit(true);
+        } catch (SQLException e) {
+            System.err.println("[ERROR] IncomeManager.toggleRecurrence: Failed to set autocommit - " + e.getMessage());
+        }
+
         String sql = "UPDATE Income SET isRecurrenceActive=?, lastModifiedDate=? WHERE incomeId=? AND isActive=1 AND isRecurring=1";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setBoolean(1, enable);

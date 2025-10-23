@@ -1,3 +1,5 @@
+// Made by Haoxuan Huang
+
 package model;
 
 import java.io.Serializable;

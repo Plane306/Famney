@@ -1,3 +1,6 @@
+// Made by Muhammad Naufal Farhan Mudofi
+// Fixed by Muhammad Naufal Farhan Mudofi
+
 package model.dao;
 
 import java.sql.Connection;
@@ -28,14 +31,22 @@ public class UserManager {
     // Role can be NULL for pending approval (join family scenario)
     // Returns true if successful, false if failed
     // Uses retry logic if duplicate userId occurs (2-layer prevention)
+    // 
     public boolean createUser(User user) throws SQLException {
         // Hash password before storing
         String hashedPassword = PasswordUtil.hashPassword(user.getPassword());
-        
+
         String sql = "INSERT INTO Users (userId, email, password, fullName, role, familyId, " +
                      "joinDate, createdDate, lastModifiedDate, isActive) " +
                      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        
+
+        // Ensure database autocommit is enabled for this operation
+        try {
+            conn.setAutoCommit(true);
+        } catch (SQLException e) {
+            System.err.println("[ERROR] UserManager.createUser: Failed to set autocommit - " + e.getMessage());
+        }
+
         // Try up to 3 times in case of duplicate userId
         int maxAttempts = 3;
         for (int attempt = 0; attempt < maxAttempts; attempt++) {
@@ -206,9 +217,16 @@ public class UserManager {
     // Update user profile
     // Only updates email, full name, and lastModifiedDate
     public boolean updateUser(User user) throws SQLException {
+        // 
+        try {
+            conn.setAutoCommit(true);
+        } catch (SQLException e) {
+            System.err.println("[ERROR] UserManager.updateUser: Failed to set autocommit - " + e.getMessage());
+        }
+
         String sql = "UPDATE Users SET email = ?, fullName = ?, lastModifiedDate = ? " +
                      "WHERE userId = ?";
-        
+
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, user.getEmail().trim());
             stmt.setString(2, user.getFullName().trim());
@@ -224,9 +242,16 @@ public class UserManager {
     // Separate method for password updates with hashing
     public boolean updatePassword(String userId, String newPassword) throws SQLException {
         String hashedPassword = PasswordUtil.hashPassword(newPassword);
-        
+
+        // 
+        try {
+            conn.setAutoCommit(true);
+        } catch (SQLException e) {
+            System.err.println("[ERROR] UserManager.updatePassword: Failed to set autocommit - " + e.getMessage());
+        }
+
         String sql = "UPDATE Users SET password = ?, lastModifiedDate = ? WHERE userId = ?";
-        
+
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, hashedPassword);
             stmt.setString(2, DateUtil.getCurrentDateTime());
@@ -241,8 +266,15 @@ public class UserManager {
     // Only Family Head can change roles
     // Also used to assign initial role for pending users
     public boolean updateUserRole(String userId, String newRole) throws SQLException {
+        // 
+        try {
+            conn.setAutoCommit(true);
+        } catch (SQLException e) {
+            System.err.println("[ERROR] UserManager.updateUserRole: Failed to set autocommit - " + e.getMessage());
+        }
+
         String sql = "UPDATE Users SET role = ?, lastModifiedDate = ? WHERE userId = ?";
-        
+
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, newRole);
             stmt.setString(2, DateUtil.getCurrentDateTime());
@@ -257,8 +289,15 @@ public class UserManager {
     // Only Family Head can remove members
     // Data is preserved for analytics
     public boolean deleteUser(String userId) throws SQLException {
+        // 
+        try {
+            conn.setAutoCommit(true);
+        } catch (SQLException e) {
+            System.err.println("[ERROR] UserManager.deleteUser: Failed to set autocommit - " + e.getMessage());
+        }
+
         String sql = "UPDATE Users SET isActive = 0, lastModifiedDate = ? WHERE userId = ?";
-        
+
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, DateUtil.getCurrentDateTime());
             stmt.setString(2, userId);
@@ -272,8 +311,15 @@ public class UserManager {
     // Called when Family Head closes the entire family
     // All member data is preserved for analytics
     public boolean deactivateAllFamilyUsers(String familyId) throws SQLException {
+        // 
+        try {
+            conn.setAutoCommit(true);
+        } catch (SQLException e) {
+            System.err.println("[ERROR] UserManager.deactivateAllFamilyUsers: Failed to set autocommit - " + e.getMessage());
+        }
+
         String sql = "UPDATE Users SET isActive = 0, lastModifiedDate = ? WHERE familyId = ?";
-        
+
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, DateUtil.getCurrentDateTime());
             stmt.setString(2, familyId);

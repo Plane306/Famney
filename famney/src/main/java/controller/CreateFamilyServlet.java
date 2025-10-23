@@ -1,3 +1,5 @@
+// Made by Muhammad Naufal Farhan Mudofi
+
 package controller;
 
 import java.io.IOException;
@@ -138,17 +140,17 @@ public class CreateFamilyServlet extends HttpServlet {
             user.setFamilyId(createdFamily.getFamilyId());
             
             boolean userCreated = userManager.createUser(user);
-            
+
             if (!userCreated) {
                 session.setAttribute("errorMessage", "Failed to create user account. Please try again");
                 response.sendRedirect("register_family.jsp");
                 return;
             }
-            
+
             // Update family head ID in family record
             createdFamily.setFamilyHead(user.getUserId());
-            familyManager.updateFamilyName(createdFamily.getFamilyId(), createdFamily.getFamilyName());
-            
+            familyManager.updateFamilyHead(createdFamily.getFamilyId(), user.getUserId());
+
             // Registration successful - create session
             session.setAttribute("user", user);
             session.setAttribute("family", createdFamily);

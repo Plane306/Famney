@@ -1,21 +1,22 @@
 # Famney - Family Financial Management System
 
-## R1 Release - Backend Integration & Database
+## R2 Release - Full Feature Integration & Bug Fixes
 
-This is Release 1 (R1) of the Famney project which adds database integration and backend functionality to the existing front-end prototype from R0.
+This is Release 2 (R2) of the Famney project which integrates all team features (F101-F108) and resolves critical database persistence issues from the initial R1 release.
 
 ---
 
-## What's New in R1
+## What's New in R2
 
-R1 adds the following features to the R0 prototype:
-- SQLite database integration
-- DAO (Data Access Object) pattern implementation
-- Backend servlet controllers for business logic
-- Password hashing with SHA-256
-- JUnit testing for DAO classes
-- Server-side validation
-- Full CRUD operations for all features (F101-F108)
+R2 builds upon R1 with the following improvements:
+- Integration of all 8 features (F101-F108) from all team members
+- Critical database autocommit bug fix across 5 DAO managers
+- Complete Income Management system (F105)
+- Financial Dashboard with analytics (F106)
+- Savings Goals tracking (F107)
+- Transaction History timeline (F108)
+- Cleaned up SQL files and removed debug comments
+- All features now properly persist data to database
 
 ---
 
@@ -57,24 +58,31 @@ https://www.qamadness.com/knowledge-base/how-to-install-maven-and-configure-envi
 ## Project Structure
 
 ```
-famney/
-├── database/
-│   ├── famney.db              # SQLite database file
-│   └── queries/
-│       ├── create_tables.sql  # Database schema
-│       └── table_data.sql     # Sample data (optional)
-├── src/
-│   ├── main/
-│   │   ├── java/
-│   │   │   ├── controller/    # Servlets and utilities
-│   │   │   └── model/         # Entity classes and DAO
-│   │   └── webapp/
-│   │       ├── WEB-INF/       # web.xml configuration
-│   │       └── *.jsp          # All JSP view files
-│   └── test/
-│       └── java/              # JUnit test classes
-├── pom.xml                     # Maven dependencies
-└── README.md
+Famney/                                    # Repository root
+├── README.md                              # Main README for submission
+└── famney/                                # Maven project folder
+    ├── pom.xml                            # Maven dependencies
+    ├── src/
+    │   ├── main/
+    │   │   ├── java/
+    │   │   │   ├── controller/            # Servlets and utilities
+    │   │   │   └── model/                 # Entity classes and DAO
+    │   │   │       └── dao/               # Database access layer
+    │   │   ├── resources/
+    │   │   │   └── database/
+    │   │   │       ├── famney.db          # SQLite database file
+    │   │   │       └── queries/
+    │   │   │           ├── create_tables.sql  # Database schema
+    │   │   │           └── table_data.sql     # Sample data
+    │   │   └── webapp/
+    │   │       ├── WEB-INF/               # web.xml configuration
+    │   │       └── *.jsp                  # All JSP view files
+    │   └── test/
+    │       └── java/                      # JUnit test classes
+    │           └── model/
+    │               └── dao/
+    └── target/                            # Build output (auto-generated)
+        └── famney/                        # Compiled WAR contents
 ```
 
 ---
@@ -83,12 +91,12 @@ famney/
 
 ### Initial Database Creation
 
-The database file `famney.db` should already exist in the `famney/database/` folder. If not, you'll need to create it:
+The database file `famney.db` should already exist in the `famney/src/main/resources/database/` folder. If not, you'll need to create it:
 
 1. Open VS Code and make sure the SQLite extension is installed
 2. Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on Mac) and type "SQLite: Open Database"
-3. Navigate to `famney/database/` and create a new database called `famney.db`
-4. Open `database/queries/create_tables.sql` in VS Code
+3. Navigate to `famney/src/main/resources/database/` and create a new database called `famney.db`
+4. Open `src/main/resources/database/queries/create_tables.sql` in VS Code
 5. Right-click the SQL file and select "Run Query" to create all tables
 
 ### Updating Database Path
@@ -101,7 +109,7 @@ Important: You need to update the database path in `DB.java` to match your local
 
 Example:
 ```java
-protected String URL = "jdbc:sqlite:C:/Users/YourName/Documents/UTS/Famney/famney/database/famney.db";
+protected String URL = "jdbc:sqlite:C:/Users/YourName/Documents/UTS/Famney/famney/src/main/resources/database/famney.db";
 ```
 
 ### Viewing the Database
@@ -167,7 +175,7 @@ After initialising the database with sample data, you can use:
 - Email: john.smith@email.com
 - Password: password123
 
-(These are set up in the sample data - check `database/queries/table_data.sql`)
+(These are set up in the sample data - check `src/main/resources/database/queries/table_data.sql`)
 
 ---
 
@@ -252,7 +260,7 @@ Solution: Make sure you've run `mvn clean compile package` and restarted the Tom
 Solution: Check that your `JAVA_HOME` and `MAVEN_HOME` environment variables are set correctly. Run `mvn --version` to verify.
 
 ### Issue: SQLite extension can't find database
-Solution: The database file must exist before you can open it. If it doesn't exist, create it using the SQLite extension, then run `create_tables.sql` from the `database/queries/` folder to set up the schema.
+Solution: The database file must exist before you can open it. If it doesn't exist, create it using the SQLite extension, then run `create_tables.sql` from the `src/main/resources/database/queries/` folder to set up the schema.
 
 ---
 
@@ -296,8 +304,8 @@ Servlets handle HTTP requests and coordinate between the JSP views and DAO class
 
 ## Project Version
 
-- Version: 1.4
-- Release: R1 (Backend Integration)
-- Last Updated: September 2025
+- Version: 2.0
+- Release: R2 (Full Feature Integration)
+- Last Updated: October 2025
 
 ---

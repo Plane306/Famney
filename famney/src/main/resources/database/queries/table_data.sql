@@ -1,3 +1,5 @@
+-- Made by Muhammad Naufal Farhan Mudofi
+
 -- Famney Sample Data for Testing (R1)
 -- The hash below is SHA-256("password123" + "famney_salt")
 

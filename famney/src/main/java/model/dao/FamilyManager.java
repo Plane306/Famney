@@ -1,3 +1,6 @@
+// Made by Muhammad Naufal Farhan Mudofi
+// Fixed by Muhammad Naufal Farhan Mudofi
+
 package model.dao;
 
 import java.sql.Connection;
@@ -28,7 +31,14 @@ public class FamilyManager {
         String sql = "INSERT INTO Families (familyId, familyCode, familyName, familyHead, " +
                      "memberCount, createdDate, lastModifiedDate, isActive) " +
                      "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-        
+
+        // Ensure database autocommit is enabled for this operation
+        try {
+            conn.setAutoCommit(true);
+        } catch (SQLException e) {
+            // Silently continue if autocommit setting fails
+        }
+
         // Try up to 3 times in case of duplicate familyId or familyCode
         int maxAttempts = 3;
         for (int attempt = 0; attempt < maxAttempts; attempt++) {
@@ -142,9 +152,15 @@ public class FamilyManager {
     // Increment member count when new member joins
     // Called after successfully adding new user to family
     public boolean incrementMemberCount(String familyId) throws SQLException {
+        try {
+            conn.setAutoCommit(true);
+        } catch (SQLException e) {
+            // Silently continue if autocommit setting fails
+        }
+
         String sql = "UPDATE Families SET memberCount = memberCount + 1, " +
                      "lastModifiedDate = ? WHERE familyId = ?";
-        
+
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, DateUtil.getCurrentDateTime());
             stmt.setString(2, familyId);
@@ -157,9 +173,15 @@ public class FamilyManager {
     // Decrement member count when member leaves or is removed
     // Only decrement if count is greater than 1
     public boolean decrementMemberCount(String familyId) throws SQLException {
+        try {
+            conn.setAutoCommit(true);
+        } catch (SQLException e) {
+            // Silently continue if autocommit setting fails
+        }
+
         String sql = "UPDATE Families SET memberCount = memberCount - 1, " +
                      "lastModifiedDate = ? WHERE familyId = ? AND memberCount > 1";
-        
+
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, DateUtil.getCurrentDateTime());
             stmt.setString(2, familyId);
@@ -172,26 +194,60 @@ public class FamilyManager {
     // Update family name
     // Only Family Head can change family name
     public boolean updateFamilyName(String familyId, String newName) throws SQLException {
+        try {
+            conn.setAutoCommit(true);
+        } catch (SQLException e) {
+            // Silently continue if autocommit setting fails
+        }
+
         String sql = "UPDATE Families SET familyName = ?, lastModifiedDate = ? " +
                      "WHERE familyId = ?";
-        
+
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, newName.trim());
             stmt.setString(2, DateUtil.getCurrentDateTime());
             stmt.setString(3, familyId);
-            
+
             int rowsAffected = stmt.executeUpdate();
             return rowsAffected > 0;
         }
     }
-    
+
+    // Update family head
+    // Called after creating Family Head user account during family registration
+    public boolean updateFamilyHead(String familyId, String familyHeadUserId) throws SQLException {
+        try {
+            conn.setAutoCommit(true);
+        } catch (SQLException e) {
+            // Silently continue if autocommit setting fails
+        }
+
+        String sql = "UPDATE Families SET familyHead = ?, lastModifiedDate = ? " +
+                     "WHERE familyId = ?";
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, familyHeadUserId);
+            stmt.setString(2, DateUtil.getCurrentDateTime());
+            stmt.setString(3, familyId);
+
+            int rowsAffected = stmt.executeUpdate();
+            return rowsAffected > 0;
+        }
+    }
+
     // Close/delete family (soft delete - sets isActive to false)
     // Only Family Head can close the family
     // Data is preserved for analytics purposes
     // This will cascade to all family members (handled in servlet)
     public boolean deleteFamily(String familyId) throws SQLException {
+        try {
+            conn.setAutoCommit(true);
+        } catch (SQLException e) {
+            // Silently continue if autocommit setting fails
+        }
+
         String sql = "UPDATE Families SET isActive = 0, lastModifiedDate = ? WHERE familyId = ?";
-        
+
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, DateUtil.getCurrentDateTime());
             stmt.setString(2, familyId);

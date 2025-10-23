@@ -1,3 +1,5 @@
+// Made by Muhammad Naufal Farhan Mudofi
+
 package model;
 
 import java.io.Serializable;

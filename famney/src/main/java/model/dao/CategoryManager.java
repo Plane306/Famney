@@ -1,3 +1,6 @@
+// Made by Muhammad Naufal Farhan Mudofi
+// Fixed by Muhammad Naufal Farhan Mudofi
+
 package model.dao;
 
 import java.sql.Connection;
@@ -26,11 +29,19 @@ public class CategoryManager {
     // Generates category ID automatically
     // Returns true if successful, false if failed (duplicate name)
     // Uses retry logic if duplicate categoryId occurs (2-layer prevention)
+    // 
     public boolean createCategory(Category category) throws SQLException {
         String sql = "INSERT INTO Categories (categoryId, familyId, categoryName, categoryType, " +
                      "isDefault, description, createdDate, lastModifiedDate, isActive) " +
                      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        
+
+        // Ensure database autocommit is enabled for this operation
+        try {
+            conn.setAutoCommit(true);
+        } catch (SQLException e) {
+            System.err.println("[ERROR] CategoryManager.createCategory: Failed to set autocommit - " + e.getMessage());
+        }
+
         // Try up to 3 times in case of duplicate categoryId
         int maxAttempts = 3;
         for (int attempt = 0; attempt < maxAttempts; attempt++) {
@@ -180,9 +191,16 @@ public class CategoryManager {
     // Only allows updating name and description, not type
     // Cannot update default categories (enforced in servlet)
     public boolean updateCategory(Category category) throws SQLException {
+        // 
+        try {
+            conn.setAutoCommit(true);
+        } catch (SQLException e) {
+            System.err.println("[ERROR] CategoryManager.updateCategory: Failed to set autocommit - " + e.getMessage());
+        }
+
         String sql = "UPDATE Categories SET categoryName = ?, description = ?, " +
                      "lastModifiedDate = ? WHERE categoryId = ? AND isDefault = 0";
-        
+
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, category.getCategoryName().trim());
             stmt.setString(2, category.getDescription());
@@ -199,9 +217,16 @@ public class CategoryManager {
     // Cannot delete default categories (enforced in servlet)
     // Data is preserved for analytics purposes
     public boolean deleteCategory(String categoryId) throws SQLException {
+        // 
+        try {
+            conn.setAutoCommit(true);
+        } catch (SQLException e) {
+            System.err.println("[ERROR] CategoryManager.deleteCategory: Failed to set autocommit - " + e.getMessage());
+        }
+
         String sql = "UPDATE Categories SET isActive = 0, lastModifiedDate = ? " +
                      "WHERE categoryId = ? AND isDefault = 0";
-        
+
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, DateUtil.getCurrentDateTime());
             stmt.setString(2, categoryId);
@@ -254,6 +279,13 @@ public class CategoryManager {
     // Called when family is created (from CreateFamilyServlet)
     // Creates 6 expense categories and 4 income categories
     public void initialiseFamilyDefaultCategories(String familyId) throws SQLException {
+        // 
+        try {
+            conn.setAutoCommit(true);
+        } catch (SQLException e) {
+            System.err.println("[ERROR] CategoryManager.initialiseFamilyDefaultCategories: Failed to set autocommit - " + e.getMessage());
+        }
+
         // Default expense categories
         String[][] expenseCategories = {
             {"Food & Dining", "Groceries, restaurants, takeaways"},

@@ -1,3 +1,5 @@
+// Made by Muhammad Naufal Farhan Mudofi
+
 package controller;
 
 import java.io.IOException;
@@ -74,22 +76,22 @@ public class JoinFamilyServlet extends HttpServlet {
             // Get DAO managers from session
             UserManager userManager = (UserManager) session.getAttribute("userManager");
             FamilyManager familyManager = (FamilyManager) session.getAttribute("familyManager");
-            
+
             if (userManager == null || familyManager == null) {
                 session.setAttribute("errorMessage", "System error. Please try again");
                 response.sendRedirect("join_family.jsp");
                 return;
             }
-            
+
             // Check if family code exists
             Family family = familyManager.findByFamilyCode(familyCode.trim().toUpperCase());
-            
+
             if (family == null) {
                 session.setAttribute("errorMessage", "Family code not found. Please check and try again");
                 response.sendRedirect("join_family.jsp");
                 return;
             }
-            
+
             // Check if email already exists for ACTIVE users only
             // This allows email reuse if previous user account is inactive (from closed family)
             if (userManager.emailExists(email)) {
@@ -97,7 +99,7 @@ public class JoinFamilyServlet extends HttpServlet {
                 response.sendRedirect("join_family.jsp");
                 return;
             }
-            
+
             // Create new user account with NULL role (pending Family Head approval)
             User user = new User();
             user.setFullName(fullName.trim());
@@ -105,30 +107,25 @@ public class JoinFamilyServlet extends HttpServlet {
             user.setPassword(password); // Will be hashed by UserManager
             user.setRole(null); // Role is NULL until Family Head assigns it
             user.setFamilyId(family.getFamilyId());
-            
+
             boolean userCreated = userManager.createUser(user);
-            
+
             if (!userCreated) {
                 session.setAttribute("errorMessage", "Failed to create account. Please try again");
                 response.sendRedirect("join_family.jsp");
                 return;
             }
-            
+
             // Increment family member count
-            boolean countUpdated = familyManager.incrementMemberCount(family.getFamilyId());
-            
-            if (!countUpdated) {
-                // Count update failed but user created - not critical error
-                System.out.println("Warning: Member count not updated for family " + family.getFamilyId());
-            }
-            
+            familyManager.incrementMemberCount(family.getFamilyId());
+
             // Registration successful - redirect to pending approval page
-            session.setAttribute("successMessage", 
+            session.setAttribute("successMessage",
                 "Registration successful! Please wait for Family Head to assign your role before logging in.");
-            
+
             // Redirect to login with success message
             response.sendRedirect("login.jsp");
-            
+
         } catch (Exception e) {
             e.printStackTrace();
             session.setAttribute("errorMessage", "An error occurred during registration. Please try again");

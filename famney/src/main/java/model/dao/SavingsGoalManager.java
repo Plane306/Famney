@@ -1,3 +1,5 @@
+// Made by Haoxuan Huang
+
 package model.dao;
 
 import model.SavingsGoal;

@@ -1,3 +1,5 @@
+// Made by Muhammad Naufal Farhan Mudofi
+
 package model.dao;
 
 import java.sql.Connection;
@@ -7,13 +9,13 @@ import java.sql.SQLException;
 // Manages database connections for the application
 // Opens and closes SQLite database connections
 public class DBConnector extends DB {
-    
+
     // Constructor loads SQLite driver and establishes connection
     // Throws exceptions if driver not found or connection fails
     public DBConnector() throws ClassNotFoundException, SQLException {
         // Load SQLite JDBC driver
         Class.forName(driver);
-        
+
         // Establish connection to database
         conn = DriverManager.getConnection(URL);
     }

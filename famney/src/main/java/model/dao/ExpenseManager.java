@@ -1,3 +1,6 @@
+// Made by Sachin Bhat
+// Fixed by Muhammad Naufal Farhan Mudofi
+
 package model.dao;
 
 import model.Expense;
@@ -12,7 +15,15 @@ public class ExpenseManager {
 	}
 
 	// Add expense to DB
+	// 
 	public boolean addExpense(Expense expense) {
+		// 
+		try {
+			connection.setAutoCommit(true);
+		} catch (SQLException e) {
+			System.err.println("[ERROR] ExpenseManager.addExpense: Failed to set autocommit - " + e.getMessage());
+		}
+
 		String sql = "INSERT INTO Expenses (expenseId, familyId, userId, categoryId, amount, description, expenseDate, createdDate, lastModifiedDate, isActive) " +
 				"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 		try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -68,6 +79,13 @@ public class ExpenseManager {
 
 	// Update expense
 	public boolean updateExpense(Expense expense) {
+		// 
+		try {
+			connection.setAutoCommit(true);
+		} catch (SQLException e) {
+			System.err.println("[ERROR] ExpenseManager.updateExpense: Failed to set autocommit - " + e.getMessage());
+		}
+
 		String sql = "UPDATE Expenses SET categoryId=?, amount=?, description=?, expenseDate=?, lastModifiedDate=? WHERE expenseId=? AND isActive=1";
 		try (PreparedStatement ps = connection.prepareStatement(sql)) {
 			ps.setString(1, expense.getCategoryId());
@@ -86,6 +104,13 @@ public class ExpenseManager {
 
 	// Delete expense (soft delete)
 	public boolean deleteExpense(String expenseId) {
+		// 
+		try {
+			connection.setAutoCommit(true);
+		} catch (SQLException e) {
+			System.err.println("[ERROR] ExpenseManager.deleteExpense: Failed to set autocommit - " + e.getMessage());
+		}
+
 		String sql = "UPDATE Expenses SET isActive=0, lastModifiedDate=? WHERE expenseId=?";
 		try (PreparedStatement ps = connection.prepareStatement(sql)) {
 			ps.setTimestamp(1, new java.sql.Timestamp(new java.util.Date().getTime()));

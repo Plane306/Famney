@@ -1,3 +1,5 @@
+-- Made by Muhammad Naufal Farhan Mudofi
+
 -- Famney Family Financial Management System SQL Tables
 
 -- Drop tables if they exist (in reverse order due to foreign key dependencies)
@@ -23,20 +25,21 @@ CREATE TABLE Families (
     isActive BOOLEAN NOT NULL DEFAULT TRUE
 );
 
--- F101: USERS TABLE  
+-- F101: USERS TABLE
 -- Family members with role-based access control
+-- Role can be NULL for pending users waiting for Family Head approval (join family scenario)
 CREATE TABLE Users (
     userId VARCHAR(8) PRIMARY KEY,
     email VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     fullName VARCHAR(100) NOT NULL,
-    role VARCHAR(20) NOT NULL CHECK (role IN ('Family Head', 'Adult', 'Teen', 'Kid')),
+    role VARCHAR(20) CHECK (role IS NULL OR role IN ('Family Head', 'Adult', 'Teen', 'Kid')),
     familyId VARCHAR(8) NOT NULL,
     joinDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     createdDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     lastModifiedDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     isActive BOOLEAN NOT NULL DEFAULT TRUE,
-    
+
     -- Foreign key constraint to Families table
     CONSTRAINT fk_users_family FOREIGN KEY (familyId) REFERENCES Families(familyId) ON DELETE CASCADE
 );
@@ -167,7 +170,9 @@ CREATE TABLE SavingsGoals (
     lastModifiedDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     isActive        BOOLEAN NOT NULL DEFAULT TRUE,
     isCompleted     BOOLEAN NOT NULL DEFAULT FALSE,
+    createdBy       VARCHAR(8) NOT NULL,
 
     -- Foreign key constraint to Families table
-    CONSTRAINT fk_savingsgoals_family FOREIGN KEY (familyId) REFERENCES Families(familyId) ON DELETE CASCADE
+    CONSTRAINT fk_savingsgoals_family FOREIGN KEY (familyId) REFERENCES Families(familyId) ON DELETE CASCADE,
+    CONSTRAINT fk_savingsgoals_user FOREIGN KEY (createdBy) REFERENCES Users(userId) ON DELETE CASCADE
 );
