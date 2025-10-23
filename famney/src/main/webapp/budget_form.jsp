@@ -1,3 +1,4 @@
+<%-- Made by Sachin Bhat --%>
 <%@ page import="model.User"%>
 <%@ page import="model.Family"%>
 <%-- Import your feature model here --%>
@@ -239,6 +240,10 @@
                 response.sendRedirect("login.jsp");
                 return;
             }
+            if (user.isTeen() || user.isKid()) {
+                response.sendRedirect("BudgetServlet");
+                return;
+            }
         %>
         
         <header class="header">
@@ -263,7 +268,7 @@
 
                 <div class="budget-actions">
                     <a href="create_budget.jsp" class="btn btn-primary">Create New Budget</a>
-                    <a href="view_budget.jsp" class="btn btn-secondary">View Existing Budgets</a>
+                    <a href="BudgetServlet" class="btn btn-secondary">View Existing Budgets</a>
                 </div>
                 
             </div>

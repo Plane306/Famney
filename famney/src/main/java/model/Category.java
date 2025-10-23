@@ -1,3 +1,5 @@
+// Made by Muhammad Naufal Farhan Mudofi
+
 package model;
 
 import java.io.Serializable;
@@ -163,8 +165,7 @@ public class Category implements Serializable {
     
     // Get display name with type indicator
     public String getDisplayName() {
-        String typeIndicator = isExpenseCategory() ? "💳" : "💰";
-        return typeIndicator + " " + categoryName;
+        return categoryName + " (" + categoryType + ")";
     }
     
     // Get category type display
@@ -180,32 +181,6 @@ public class Category implements Serializable {
     // Validate category type
     public boolean hasValidType() {
         return "Expense".equalsIgnoreCase(categoryType) || "Income".equalsIgnoreCase(categoryType);
-    }
-    
-    // Get icon based on category name (for UI enhancement)
-    public String getCategoryIcon() {
-        if (categoryName == null) return "📝";
-        
-        String name = categoryName.toLowerCase();
-        
-        // Expense category icons
-        if (name.contains("food") || name.contains("grocery") || name.contains("restaurant")) return "🍕";
-        if (name.contains("transport") || name.contains("car") || name.contains("gas")) return "🚗";
-        if (name.contains("utilities") || name.contains("electricity") || name.contains("water")) return "⚡";
-        if (name.contains("entertainment") || name.contains("movie") || name.contains("game")) return "🎮";
-        if (name.contains("healthcare") || name.contains("medical") || name.contains("doctor")) return "🏥";
-        if (name.contains("shopping") || name.contains("clothes") || name.contains("fashion")) return "🛍️";
-        if (name.contains("education") || name.contains("school") || name.contains("book")) return "📚";
-        
-        // Income category icons
-        if (name.contains("salary") || name.contains("job") || name.contains("work")) return "💼";
-        if (name.contains("freelance") || name.contains("contract") || name.contains("gig")) return "🖥️";
-        if (name.contains("allowance") || name.contains("pocket")) return "💝";
-        if (name.contains("investment") || name.contains("dividend") || name.contains("stock")) return "📈";
-        if (name.contains("gift") || name.contains("bonus")) return "🎁";
-        
-        // Default icons
-        return isExpenseCategory() ? "💳" : "💰";
     }
     
     @Override

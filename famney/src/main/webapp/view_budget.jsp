@@ -1,7 +1,20 @@
-<%@ page import="model.User"%>
-<%@ page import="model.Family"%>
-<%@ page import="model.Budget"%>
+<%-- Made by Sachin Bhat --%>
+<%@ page import="model.*"%>
+<%@ page import="model.dao.*"%>
+<%@ page import="java.util.*"%>
 
+
+<%
+    // --- Begin: Copy categories logic from categories.jsp ---
+    User user = (User) session.getAttribute("user");
+    Family family = (Family) session.getAttribute("family");
+    if (user == null || family == null) {
+        response.sendRedirect("login.jsp");
+        return;
+    }
+    // Use categories from session (initialized in main.jsp)
+    List<Category> categories = (List<Category>) session.getAttribute("categories");
+%>
 <html>
     <head>
         <title>View Budget - Famney</title>
@@ -190,20 +203,26 @@
     </head>
     
     <body>
+
         <%
             String category = (String) session.getAttribute("selectedCategory");
-            // Get current user and family info from session
-            User user = (User) session.getAttribute("user");
-            Family family = (Family) session.getAttribute("family");
             Budget budget = (Budget) session.getAttribute("currentBudget");
             
             if (user == null || family == null) {
                 response.sendRedirect("login.jsp");
                 return;
             }
-            
-            // Debug information
 
+            // Prepopulated categories (copied from categories.jsp)
+
+            // Find category name by ID
+            String categoryName = category;
+            for (Category cat : categories) {
+                if (cat.getCategoryId().equals(category)) {
+                    categoryName = cat.getCategoryName();
+                    break;
+                }
+            }
         %>
         
         <header class="header">
@@ -222,36 +241,112 @@
                 <div class="content-header">
                     <h1>Budget Overview</h1>
                     <p>View and manage your family budget details</p>
+                    <a href="create_budget.jsp" class="btn-primary">Create New Budget</a>
+
                 </div>
 
-                <% if (budget != null) { %>
+                <!-- Month Filter Form -->
+                <div style="margin: 1.5rem 0; text-align:center;">
+                    <form method="get" action="BudgetServlet" style="display:inline-flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:center;">
+                        <label style="color:#2c3e50; font-weight:600;">Month:</label>
+                        <select name="filterMonth">
+                            <option value="all">All</option>
+                            <% for (int m = 1; m <= 12; m++) { %>
+                                <option value="<%=m%>" <%= (request.getParameter("filterMonth")!=null && request.getParameter("filterMonth").equals(String.valueOf(m)))?"selected":"" %>><%= new java.text.DateFormatSymbols().getMonths()[m-1] %></option>
+                            <% } %>
+                        </select>
+                        <button type="submit" class="btn-primary" style="padding:0.6rem 1rem;">Apply</button>
+                    </form>
+                </div>
+
+                <% 
+                    List<Budget> allBudgets = (List<Budget>) request.getAttribute("allBudgets");
+                    BudgetManager budgetManager = (BudgetManager) session.getAttribute("budgetManager");
+                    // Filtering logic
+                    String filterMonthParam = request.getParameter("filterMonth");
+                    Integer filterMonth = null;
+                    try {
+                        if (filterMonthParam != null && !"all".equalsIgnoreCase(filterMonthParam) && !filterMonthParam.isEmpty()) {
+                            filterMonth = Integer.parseInt(filterMonthParam);
+                        }
+                    } catch (NumberFormatException e) {
+                        filterMonth = null;
+                    }
+                    // Filter budgets by month
+                    List<Budget> viewBudgets = new ArrayList<Budget>();
+                    if (allBudgets != null) {
+                        for (Budget b : allBudgets) {
+                            if (filterMonth == null || b.getMonth() == filterMonth.intValue()) {
+                                viewBudgets.add(b);
+                            }
+                        }
+                    }
+                    // Sort by year then month ascending
+                    java.util.Collections.sort(viewBudgets, new java.util.Comparator<Budget>() {
+                        public int compare(Budget a, Budget b) {
+                            int yearCmp = Integer.compare(a.getYear(), b.getYear());
+                            if (yearCmp != 0) return yearCmp;
+                            return Integer.compare(a.getMonth(), b.getMonth());
+                        }
+                    });
+                    if (viewBudgets != null && viewBudgets.size() > 0) {
+                        int idx = 0;
+                        for (Budget b : viewBudgets) {
+                            String monthName = b.getMonthName();
+                            // Fetch category allocations for this budget
+                            Map<String, Object> perf = budgetManager.getBudgetPerformance(b.getBudgetId());
+                            List<Map<String, Object>> cats = (List<Map<String, Object>>) perf.get("categories");
+                %>
                     <div class="budget-info">
                         <div class="budget-detail">
                             <div class="detail-item">
                                 <h4>Budget Name</h4>
-                                <p><%= budget.getBudgetName() %></p>
+                                <p><%= b.getBudgetName() %></p>
                             </div>
                             <div class="detail-item">
                                 <h4>Total Amount</h4>
-                                <p>$<%= String.format("%,.2f", budget.getTotalAmount()) %></p>
+                                <p>$<%= String.format("%,.2f", b.getTotalAmount()) %></p>
                             </div>
                             <div class="detail-item">
                                 <h4>Month</h4>
-                                <p><%= budget.getMonth() %></p>
+                                <p><%= monthName %></p>
                             </div>
                             <div class="detail-item">
                                 <h4>Category</h4>
-                                <p><%= category%></p>
+                                <% if (cats != null && cats.size() > 0) {
+                                    for (Map<String, Object> cat : cats) { %>
+                                        <p><%= cat.get("categoryName") %> </p>
+                                <%  } 
+                                   } else { %>
+                                    <p>No categories</p>
+                                <% } %>
                             </div>
+                               <div class="detail-item">
+                                   <h4>Created By</h4>
+                                   <p><%= b.getCreatedBy() %></p>
+                               </div>
                         </div>
+                        <% if (user.isAdult() || user.isFamilyHead()) { %>
+                        <div style="text-align:right; margin-top:10px;">
+                            <form action="EditBudgetServlet" method="get" style="display:inline;">
+                                <input type="hidden" name="index" value="<%= idx %>" />
+                                <button type="submit" class="btn-primary" style="background:#f1c40f; color:#2c3e50;">Edit</button>
+                            </form>
+                            <form action="DeleteBudgetServlet" method="post" style="display:inline;">
+                                <input type="hidden" name="index" value="<%= idx %>" />
+                                <button type="submit" class="btn-primary" style="background:#e74c3c; color:white;">Delete</button>
+                            </form>
+                        </div>
+                        <% } %>
                     </div>
-                <% } else { %>
-                    <div class="budget-info" style="text-align: center;">
-                        <h3>No Budget Found</h3>
-                        <p>You have not created a budget yet.</p>
-                        <a href="create_budget.jsp" class="btn-primary">Create New Budget</a>
-                    </div>
-                <% } %>
+                        <% idx++;
+                        } // end for
+                    } else { %>
+                        <div class="budget-info" style="text-align: center;">
+                            <h3>No Budget Found</h3>
+                            <p>You have not created a budget yet.</p>
+                        </div>
+                    <% } %>
             </div>
         </div>
         
@@ -262,4 +357,3 @@
         </footer>
     </body>
 </html>
-

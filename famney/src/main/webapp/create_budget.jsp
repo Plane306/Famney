@@ -1,6 +1,7 @@
-<%@ page import="model.User"%>
-<%@ page import="model.Family"%>
-<%@ page import="model.Budget"%>
+<%-- Made by Sachin Bhat --%>
+<%@ page import="model.*"%>
+<%@ page import="model.dao.*"%>
+<%@ page import="java.util.*"%>
 
 
 <%
@@ -14,29 +15,14 @@
         return;
     }
 
-    // Handle form submission
-    if ("POST".equalsIgnoreCase(request.getMethod())) {
-        String budgetName = request.getParameter("name");
-        int month = Integer.parseInt(request.getParameter("month"));
-        double amount = Double.parseDouble(request.getParameter("budget"));
-        String category = request.getParameter("category");
-        
-        // Create new budget object
-        Budget budget = new Budget(
-            family.getFamilyId(),
-            budgetName,
-            month,
-            2025, // Current year
-            amount,
-            user.getUserId()
-        );
-        
-    // Store in session and redirect
-    session.setAttribute("currentBudget", budget);
-    session.setAttribute("selectedCategory", category);
-    response.sendRedirect("view_budget.jsp");
-    return;
-    }
+
+    // Show error if present
+    String error = (String) request.getAttribute("error");
+
+    // --- Begin: Copy categories logic from categories.jsp ---
+    List<Category> categories = (List<Category>) session.getAttribute("categories");
+
+
 %>
 <html>
     <head>
@@ -435,8 +421,10 @@
 
     <div class="budget-container">
         <h2 class="budget-title">Create New Budget</h2>
-        
-        <form action="create_budget.jsp" method="POST" class="budget-form">
+        <% if (error != null) { %>
+            <div class="error-message"><%= error %></div>
+        <% } %>
+    <form action="BudgetServlet" method="POST" class="budget-form">
             <div class="form-group">
                 <label for="name">Budget Name</label>
                 <input type="text" id="name" name="name" placeholder="Enter budget name" required>
@@ -459,21 +447,14 @@
                     <option value="12">December</option>
                 </select>
             </div>
+
             <div class="form-group" id="categorySelect">
                 <label for="category">Category</label>
                 <select id="category" name="category" required>
-                    <option value="Food & Dining">Food & Dining</option>
-                    <option value="Transportation">Transportation</option>
-                    <option value="Utilities">Utilities</option>
-                    <option value="Entertainment">Entertainment</option>
-                    <option value="Healthcare">Healthcare</option>
-                    <option value="Shopping">Shopping</option>
-                    <option value="Salary">Salary</option>
-                    <option value="Freelance">Freelance</option>
-                    <option value="Allowance">Allowance</option>
-                    <option value="Investment">Investment</option>
-                    <option value="Education">Education</option>
-                    <option value="Pet Care">Pet Care</option>
+                    <option value="">--Select Category--</option>
+                    <% for (Category cat : categories) { %>
+                        <option value="<%= cat.getCategoryId() %>"><%= cat.getCategoryName() %> </option>
+                    <% } %>
                 </select>
             </div>
             <div class="form-group">
@@ -483,11 +464,9 @@
 
             <div class="form-submit">
                 <button type="submit" class="btn-submit">Create Budget</button>
-                <a href="main.jsp" class="btn-cancel">Cancel</a>
+                <a href="BudgetServlet" class="btn-cancel">Cancel</a>
             </div>
         </form>
     </div>
 </body>
 </html>
-
-

@@ -1,15 +1,13 @@
-# Maven
-# Build your Java project and run tests with Apache Maven.
-# Add steps that analyze code, save build artifacts, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/java
-
 trigger:
-- main
+  branches:
+    include:
+      - '*'
 
 pool:
   vmImage: 'ubuntu-latest'
 
 steps:
+# Build the project 
 - task: Maven@4
   inputs:
     mavenPomFile: 'famney/pom.xml'
@@ -17,10 +15,11 @@ steps:
     javaHomeOption: 'JDKVersion'
     jdkVersionOption: '1.11'
     jdkArchitectureOption: 'x64'
+    goals: 'clean install'
     publishJUnitResults: true
     testResultsFiles: '**/surefire-reports/TEST-*.xml'
-    goals: 'clean compile package'
 
+# Run unit tests 
 - task: Maven@4
   displayName: 'Run unit tests'
   inputs:
@@ -33,8 +32,24 @@ steps:
     publishJUnitResults: true
     testResultsFiles: '**/surefire-reports/TEST-*.xml'
 
+# Publish the entire target folder as artifact
 - task: PublishBuildArtifacts@1
   inputs:
-    PathtoPublish: 'famney/target/famney.war'
+    PathtoPublish: 'famney/target'
     ArtifactName: 'drop'
     publishLocation: 'Container'
+
+# Download artifact before deployment
+- task: DownloadBuildArtifacts@0
+  inputs:
+    buildType: 'current'
+    artifactName: 'drop'
+    downloadPath: '$(Build.ArtifactStagingDirectory)'
+
+# Deploy the WAR
+- task: AzureWebApp@1
+  inputs:
+    azureSubscription: 'famney-connection'
+    appType: 'webApp'
+    appName: 'famney'
+    package: '$(Build.ArtifactStagingDirectory)/drop/famney.war'
