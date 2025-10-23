@@ -15,8 +15,10 @@ public class DashboardManager {
      * Helper method to generate date expression for SQLite timestamps.
      */
     private String getDateExpr(String columnName) {
-        return "CASE WHEN typeof(" + columnName + ")='integer' THEN " + columnName +
-               " ELSE CAST(strftime('%s'," + columnName + ") AS INTEGER) * 1000 END";
+        return "CASE " +
+               "WHEN typeof(" + columnName + ")='integer' THEN datetime(" + columnName + "/1000,'unixepoch')" +
+               " ELSE " + columnName +
+               " END";
     }
 
     /**
