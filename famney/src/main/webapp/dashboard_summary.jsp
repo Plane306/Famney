@@ -302,41 +302,65 @@
                 </table>
             </div>
 
-            <!-- Recent Transactions Table -->
-            <div class="card mb-4">
-                <h5 class="dashboard-title">Recent Transactions</h5>
-                <table class="table table-hover">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Description</th>
-                            <th>Category</th>
-                            <th>Amount ($)</th>
-                            <th>Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <%
-                            if (recent != null && !recent.isEmpty()) {
-                                for (Map<String, Object> txn : recent) {
-                        %>
-                                    <tr>
-                                        <td><%= txn.get("description") %></td>
-                                        <td><%= txn.get("categoryName") %></td>
-                                        <td><%= txn.get("amount") %></td>
-                                        <td><%= txn.get("date") %></td>
-                                    </tr>
-                        <%
+            <!-- Recent Transactions Section -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>Recent Transactions</h3>
+                </div>
+                <div class="card-body">
+                    <%
+                        List<Map<String, Object>> recentTransactions = null;
+                        if (dashboardData.get("recentTransactions") instanceof List) {
+                            recentTransactions = (List<Map<String, Object>>) dashboardData.get("recentTransactions");
+                        }
+
+                        if (recentTransactions == null || recentTransactions.isEmpty()) {
+                    %>
+                        <p>No recent transactions found.</p>
+                    <%
+                        } else {
+                    %>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Date</th>
+                                <th>Category</th>
+                                <th>Description</th>
+                                <th>Amount ($)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <%
+                                for (Map<String, Object> tx : recentTransactions) {
+                                    String type = (String) tx.get("type");
+                                    String rawDate = (String) tx.get("date");
+                                    String date = (rawDate != null && rawDate.length() >= 10) ? rawDate.substring(0, 10) : rawDate;
+                                    String category = (String) tx.get("categoryName");
+                                    String description = (String) tx.get("description");
+                                    double amount = (Double) tx.get("amount");
+                            %>
+                            <tr>
+                                <td>
+                                    <span class="<%= "Income".equals(type) ? "text-success" : "text-danger" %>">
+                                        <%= type %>
+                                    </span>
+                                </td>
+                                <td><%= date %></td>
+                                <td><%= category %></td>
+                                <td><%= description %></td>
+                                <td><%= String.format("%.2f", amount) %></td>
+                            </tr>
+                            <%
                                 }
-                            } else {
-                        %>
-                                <tr><td colspan="4" class="text-center text-muted">No recent transactions</td></tr>
-                        <%
-                            }
-                        %>
-                    </tbody>
-                </table>
+                            %>
+                        </tbody>
+                    </table>
+                    <%
+                        }
+                    %>
+                </div>
             </div>
-        </div>
 
         <!-- Chart.js Script -->
         <script>
