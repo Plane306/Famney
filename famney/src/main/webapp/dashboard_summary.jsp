@@ -45,10 +45,18 @@
         recent = (List<Map<String, Object>>) dashboardData.get("recentTransactions");
     }
 
-
     // Month/Year for display
+    Calendar cal = Calendar.getInstance();
+    int currentMonth = cal.get(Calendar.MONTH) + 1; 
+    int currentYear = cal.get(Calendar.YEAR);
+
+    String[] monthNames = {"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
     Integer selectedMonth = (Integer) request.getAttribute("selectedMonth");
+    int selectedM = (selectedMonth != null) ? selectedMonth : currentMonth;
     Integer selectedYear = (Integer) request.getAttribute("selectedYear");
+    int selectedY = (selectedYear != null) ? selectedYear : currentYear;
+
+
 
     // Build JS arrays for Chart.js
     StringBuilder labels = new StringBuilder("[");
@@ -164,69 +172,95 @@
 
         <div class="main-container">
             <div class="mb-3">
-                <h4>Dashboard for <%= selectedMonth %>/<%= selectedYear %></h4>
+                <h4>Dashboard for <%= monthNames[selectedM - 1] %> <%= selectedY %></h4>
             </div>
 
-            <!-- Month/Year Selection Form -->
-            <div class="mb-4">
-                <form method="get" action="DashboardServlet" class="row g-2 align-items-center">
+            <!-- Month/Year Selection Form (Auto-submit + Loading Spinner) -->
+            <div class="mb-4 position-relative">
+                <!-- Overlay Spinner -->
+                <div id="loadingOverlay" 
+                    style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; 
+                            background:rgba(255,255,255,0.8); z-index:9999; 
+                            align-items:center; justify-content:center;">
+                    <div class="spinner-border text-primary" role="status" style="width:3rem; height:3rem;">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+
+                <form method="get" action="DashboardServlet" id="monthYearForm" class="row g-3 align-items-end">
                     <div class="col-auto">
-                        <label for="monthSelect" class="form-label">Month</label>
-                        <select name="month" id="monthSelect" class="form-select">
+                        <label for="monthSelect" class="form-label text-black fw-semibold">Month</label>
+                        <select name="month" id="monthSelect" class="form-select" onchange="autoSubmitForm()">
                             <%
-                                for (int m = 1; m <= 12; m++) {
-                                    String selected = (selectedMonth != null && selectedMonth == m) ? "selected" : "";
+                                for (int i = 0; i < 12; i++) {
+                                    int monthValue = i + 1; // 1..12
+                                    String sel = (selectedM == monthValue) ? "selected" : "";
                             %>
-                                    <option value="<%= m %>" <%= selected %>><%= m %></option>
+                                    <option value="<%= monthValue %>" <%= sel %>><%= monthNames[i] %></option>
                             <%
                                 }
                             %>
+
                         </select>
                     </div>
                     <div class="col-auto">
-                        <label for="yearSelect" class="form-label">Year</label>
-                        <select name="year" id="yearSelect" class="form-select">
+                        <label for="yearSelect" class="form-label text-black fw-semibold">Year</label>
+                        <select name="year" id="yearSelect" class="form-select" onchange="autoSubmitForm()">
                             <%
-                                int currentYear = Calendar.getInstance().get(Calendar.YEAR);
                                 for (int y = currentYear - 5; y <= currentYear + 1; y++) {
-                                    String selected = (selectedYear != null && selectedYear == y) ? "selected" : "";
+                                    String sel = (selectedY == y) ? "selected" : "";
                             %>
-                                    <option value="<%= y %>" <%= selected %>><%= y %></option>
+                                <option value="<%= y %>" <%= sel %>><%= y %></option>
                             <%
                                 }
                             %>
                         </select>
-                    </div>
-                    <div class="col-auto mt-4">
-                        <button type="submit" class="btn btn-primary">Go</button>
                     </div>
                 </form>
             </div>
+
+            <script>
+                function autoSubmitForm() {
+                    const overlay = document.getElementById('loadingOverlay');
+                    overlay.style.display = 'flex';
+                    document.getElementById('monthYearForm').submit();
+                }
+            </script>
+
 
             <!-- Summary Cards -->
             <div class="row g-3 mb-4">
                 <div class="col-md-3">
                     <div class="card text-center">
                         <h6>Total Income</h6>
-                        <h4 class="text-success">$<%= summary.get("totalIncome") %></h4>
+                        <h4 class="text-success">$<%= summary.get("totalIncome") != null ? summary.get("totalIncome") : " -" %></h4>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="card text-center">
                         <h6>Total Expenses</h6>
-                        <h4 class="text-danger">$<%= summary.get("totalExpenses") %></h4>
+                        <h4 class="text-danger">$<%= summary.get("totalExpenses") != null ? summary.get("totalExpenses") : " -" %></h4>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="card text-center">
                         <h6>Net Savings</h6>
-                        <h4 class="text-primary">$<%= summary.get("netSavings") %></h4>
+                        <h4 class="text-primary">$<%= summary.get("netSavings") != null ? summary.get("netSavings") : " -" %></h4>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="card text-center">
                         <h6>Savings Rate</h6>
-                        <h4 class="text-info"><%= String.format("%.1f", summary.get("savingsRate")) %>%</h4>
+                        <h4 class="text-info">
+                            <%
+                                Object rateObj = summary.get("savingsRate");
+                                if (rateObj instanceof Number) {
+                                    out.print(String.format("%.1f", ((Number) rateObj).doubleValue()) + "%");
+                                } else {
+                                    out.print("- %");
+                                }
+                            %>
+                        </h4>
                     </div>
                 </div>
             </div>

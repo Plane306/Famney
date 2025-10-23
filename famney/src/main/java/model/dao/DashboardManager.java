@@ -3,15 +3,20 @@ package model.dao;
 import java.sql.*;
 import java.util.*;
 
-/**
- * Aggregates financial data for dashboard display.
- * Fully optimized for SQLite.
- */
 public class DashboardManager {
+
     private final Connection connection;
 
     public DashboardManager(Connection connection) {
         this.connection = connection;
+    }
+
+    /**
+     * Helper method to generate date expression for SQLite timestamps.
+     */
+    private String getDateExpr(String columnName) {
+        return "CASE WHEN typeof(" + columnName + ")='integer' THEN " + columnName +
+               " ELSE CAST(strftime('%s'," + columnName + ") AS INTEGER) * 1000 END";
     }
 
     /**
@@ -36,17 +41,22 @@ public class DashboardManager {
         Map<String, Object> summary = new HashMap<>();
         String monthStr = String.format("%02d", month);
         String yearStr = String.valueOf(year);
+        String incomeDateExpr = getDateExpr("incomeDate");
+        String expenseDateExpr = getDateExpr("expenseDate");
 
-        String sql = "SELECT " +
-                     "  SUM(CASE WHEN type = 'Income' THEN amount ELSE 0 END) AS totalIncome, " +
-                     "  SUM(CASE WHEN type = 'Expense' THEN amount ELSE 0 END) AS totalExpenses " +
-                     "FROM (" +
-                     "  SELECT amount, 'Income' AS type FROM Income " +
-                     "  WHERE familyId = ? AND strftime('%m', incomeDate) = ? AND strftime('%Y', incomeDate) = ? AND isActive = 1 " +
-                     "  UNION ALL " +
-                     "  SELECT amount, 'Expense' AS type FROM Expenses " +
-                     "  WHERE familyId = ? AND strftime('%m', expenseDate) = ? AND strftime('%Y', expenseDate) = ? AND isActive = 1" +
-                     ")";
+        String sql = 
+                    "SELECT " +
+                    "SUM(CASE WHEN type='Income' THEN amount ELSE 0 END) AS totalIncome, " +
+                    "SUM(CASE WHEN type='Expense' THEN amount ELSE 0 END) AS totalExpenses " +
+                    "FROM (" +
+                    " SELECT amount, 'Income' AS type FROM Incomes " +
+                    " WHERE familyId=? AND strftime('%m', " + incomeDateExpr + ")=? " +
+                    " AND strftime('%Y', " + incomeDateExpr + ")=? AND isActive=1 " +
+                    " UNION ALL " +
+                    " SELECT amount, 'Expense' AS type FROM Expenses " +
+                    " WHERE familyId=? AND strftime('%m', " + expenseDateExpr + ")=? " +
+                    " AND strftime('%Y', " + expenseDateExpr + ")=? AND isActive=1" +
+                    ")";
 
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, familyId);
@@ -65,6 +75,10 @@ public class DashboardManager {
                 summary.put("netSavings", income - expenses);
                 summary.put("savingsRate", income > 0 ? ((income - expenses) / income) * 100 : 0);
             }
+
+            System.out.println("Monthly Summary: income=" + summary.get("totalIncome") +
+                               ", expenses=" + summary.get("totalExpenses"));
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -80,12 +94,15 @@ public class DashboardManager {
         List<Map<String, Object>> budgets = new ArrayList<>();
         String monthStr = String.format("%02d", month);
         String yearStr = String.valueOf(year);
+        String expenseDateExpr = getDateExpr("expenseDate");
 
         String sql = "SELECT b.category, b.budgetAmount, " +
-                     "  COALESCE((SELECT SUM(amount) FROM Expenses " +
-                     "            WHERE familyId = ? AND category = b.category " +
-                     "            AND strftime('%m', expenseDate) = ? AND strftime('%Y', expenseDate) = ? AND isActive = 1), 0) AS actualSpent " +
-                     "FROM Budget b WHERE familyId = ?";
+                        "COALESCE((SELECT SUM(amount) FROM Expenses e " +
+                        "          WHERE familyId=? AND category=b.category " +
+                        "          AND strftime('%m', " + expenseDateExpr + ")=? " +
+                        "          AND strftime('%Y', " + expenseDateExpr + ")=? AND isActive=1), 0) AS actualSpent " +
+                        "FROM Budgets b WHERE familyId=?";
+
 
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, familyId);
@@ -94,6 +111,7 @@ public class DashboardManager {
             pstmt.setString(4, familyId);
 
             ResultSet rs = pstmt.executeQuery();
+            int rowCount = 0;
             while (rs.next()) {
                 Map<String, Object> b = new HashMap<>();
                 b.put("category", rs.getString("category"));
@@ -101,7 +119,10 @@ public class DashboardManager {
                 b.put("actualSpent", rs.getDouble("actualSpent"));
                 b.put("variance", rs.getDouble("budgetAmount") - rs.getDouble("actualSpent"));
                 budgets.add(b);
+                rowCount++;
             }
+            System.out.println("Budget Performance rows=" + rowCount);
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -117,11 +138,14 @@ public class DashboardManager {
         List<Map<String, Object>> categories = new ArrayList<>();
         String monthStr = String.format("%02d", month);
         String yearStr = String.valueOf(year);
+        String expenseDateExpr = getDateExpr("expenseDate");
 
-        String sql = "SELECT category, SUM(amount) AS totalSpent " +
-                     "FROM Expenses " +
-                     "WHERE familyId = ? AND strftime('%m', expenseDate) = ? AND strftime('%Y', expenseDate) = ? AND isActive = 1 " +
-                     "GROUP BY category ORDER BY totalSpent DESC LIMIT ?";
+        String sql = "SELECT category AS categoryName, SUM(amount) AS totalSpent " +
+             "FROM Expenses " +
+             "WHERE familyId=? AND strftime('%m', " + expenseDateExpr + ")=? " +
+             "AND strftime('%Y', " + expenseDateExpr + ")=? AND isActive=1 " +
+             "GROUP BY category ORDER BY totalSpent DESC LIMIT ?";
+
 
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, familyId);
@@ -132,10 +156,11 @@ public class DashboardManager {
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {
                 Map<String, Object> c = new HashMap<>();
-                c.put("category", rs.getString("category"));
+                c.put("categoryName", rs.getString("categoryName"));
                 c.put("totalSpent", rs.getDouble("totalSpent"));
                 categories.add(c);
             }
+            System.out.println("Top Categories rows=" + categories.size());
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -148,13 +173,16 @@ public class DashboardManager {
      */
     public List<Map<String, Object>> getRecentTransactions(String familyId, int limit) {
         List<Map<String, Object>> transactions = new ArrayList<>();
+        String incomeDateExpr = getDateExpr("incomeDate");
+        String expenseDateExpr = getDateExpr("expenseDate");
 
-        String sql = "SELECT 'Income' AS type, incomeDate AS date, amount, description, category " +
-                     "FROM Income WHERE familyId = ? AND isActive = 1 " +
-                     "UNION ALL " +
-                     "SELECT 'Expense' AS type, expenseDate AS date, amount, description, category " +
-                     "FROM Expenses WHERE familyId = ? AND isActive = 1 " +
-                     "ORDER BY date DESC LIMIT ?";
+        String sql = "SELECT 'Income' AS type, " + incomeDateExpr + " AS date, amount, description, category AS categoryName " +
+             "FROM Incomes WHERE familyId=? AND isActive=1 " +
+             "UNION ALL " +
+             "SELECT 'Expense' AS type, " + expenseDateExpr + " AS date, amount, description, category AS categoryName " +
+             "FROM Expenses WHERE familyId=? AND isActive=1 " +
+             "ORDER BY date DESC LIMIT ?";
+
 
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, familyId);
@@ -162,15 +190,18 @@ public class DashboardManager {
             pstmt.setInt(3, limit);
 
             ResultSet rs = pstmt.executeQuery();
+            int rowCount = 0;
             while (rs.next()) {
                 Map<String, Object> t = new HashMap<>();
                 t.put("type", rs.getString("type"));
                 t.put("date", rs.getString("date"));
                 t.put("amount", rs.getDouble("amount"));
                 t.put("description", rs.getString("description"));
-                t.put("category", rs.getString("category"));
+                t.put("categoryName", rs.getString("categoryName"));
                 transactions.add(t);
+                rowCount++;
             }
+            System.out.println("Recent Transactions rows=" + rowCount);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -180,7 +211,6 @@ public class DashboardManager {
 
     /**
      * Gets financial trend for the last N months.
-     * Optimized for SQLite by calculating months in Java.
      */
     public List<Map<String, Object>> getFinancialTrend(String familyId, int months) {
         List<Map<String, Object>> trend = new ArrayList<>();
@@ -196,14 +226,17 @@ public class DashboardManager {
         }
 
         String placeholders = String.join(",", Collections.nCopies(months, "?"));
+        String incomeDateExpr = getDateExpr("incomeDate");
+        String expenseDateExpr = getDateExpr("expenseDate");
 
-        String sqlIncome = "SELECT strftime('%Y-%m', incomeDate) AS ym, SUM(amount) AS income " +
-                           "FROM Income WHERE familyId = ? AND isActive = 1 AND strftime('%Y-%m', incomeDate) IN (" + placeholders + ") " +
-                           "GROUP BY ym";
+        String sqlIncome = "SELECT strftime('%Y-%m', " + incomeDateExpr + ") AS ym, SUM(amount) AS income " +
+                   "FROM Incomes WHERE familyId=? AND isActive=1 AND strftime('%Y-%m', " + incomeDateExpr + ") IN (" + placeholders + ") " +
+                   "GROUP BY ym";
 
-        String sqlExpenses = "SELECT strftime('%Y-%m', expenseDate) AS ym, SUM(amount) AS expenses " +
-                             "FROM Expenses WHERE familyId = ? AND isActive = 1 AND strftime('%Y-%m', expenseDate) IN (" + placeholders + ") " +
-                             "GROUP BY ym";
+        String sqlExpenses = "SELECT strftime('%Y-%m', " + expenseDateExpr + ") AS ym, SUM(amount) AS expenses " +
+                            "FROM Expenses WHERE familyId=? AND isActive=1 AND strftime('%Y-%m', " + expenseDateExpr + ") IN (" + placeholders + ") " +
+                            "GROUP BY ym";
+
 
         Map<String, Double> incomeMap = new HashMap<>();
         Map<String, Double> expenseMap = new HashMap<>();
@@ -212,9 +245,7 @@ public class DashboardManager {
             // Income
             try (PreparedStatement pstmt = connection.prepareStatement(sqlIncome)) {
                 pstmt.setString(1, familyId);
-                for (int i = 0; i < monthYearList.size(); i++) {
-                    pstmt.setString(i + 2, monthYearList.get(i));
-                }
+                for (int i = 0; i < monthYearList.size(); i++) pstmt.setString(i + 2, monthYearList.get(i));
                 ResultSet rs = pstmt.executeQuery();
                 while (rs.next()) incomeMap.put(rs.getString("ym"), rs.getDouble("income"));
             }
@@ -222,14 +253,12 @@ public class DashboardManager {
             // Expenses
             try (PreparedStatement pstmt = connection.prepareStatement(sqlExpenses)) {
                 pstmt.setString(1, familyId);
-                for (int i = 0; i < monthYearList.size(); i++) {
-                    pstmt.setString(i + 2, monthYearList.get(i));
-                }
+                for (int i = 0; i < monthYearList.size(); i++) pstmt.setString(i + 2, monthYearList.get(i));
                 ResultSet rs = pstmt.executeQuery();
                 while (rs.next()) expenseMap.put(rs.getString("ym"), rs.getDouble("expenses"));
             }
 
-            // Build result
+            // Build trend list
             for (String ym : monthYearList) {
                 String[] parts = ym.split("-");
                 Map<String, Object> monthData = new HashMap<>();

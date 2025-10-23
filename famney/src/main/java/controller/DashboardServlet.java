@@ -59,6 +59,7 @@ public class DashboardServlet extends HttpServlet {
             // Forward to dashboard JSP
             request.getRequestDispatcher("dashboard_summary.jsp").forward(request, response);
         } catch (Exception e) {
+            e.printStackTrace();
             throw new ServletException(e);
         }
     }  

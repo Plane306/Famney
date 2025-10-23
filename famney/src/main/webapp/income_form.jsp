@@ -313,7 +313,7 @@
                 <input type="text" id="source" name="source" placeholder="e.g. Company Name" value="<%= (income != null ? income.getSource() : "") %>" />
             </div>
 
-            <div class="form-group">
+           <div class="form-group">
                 <label for="incomeDate">Date<span style="color:red;">*</span></label>
                 <input type="date" id="incomeDate" name="incomeDate" required
                        value="<%= (income != null ? new SimpleDateFormat("yyyy-MM-dd").format(income.getIncomeDate()) : todayStr) %>"/>
