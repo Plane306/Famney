@@ -31,6 +31,7 @@ public class ConnServlet extends HttpServlet {
     private BudgetManager budgetManager;
     private ExpenseManager expenseManager;
     private IncomeManager incomeManager;
+    private DashboardManager dashboardManager;
     private SavingsGoalManager savingsGoalManager;
     private TransactionManager transactionManager;
 
@@ -65,6 +66,7 @@ public class ConnServlet extends HttpServlet {
             budgetManager = new BudgetManager(conn);
             expenseManager = new ExpenseManager(conn);
             incomeManager = new IncomeManager(conn);
+            dashboardManager = new DashboardManager(conn);
             savingsGoalManager = new SavingsGoalManager(conn);
             transactionManager = new TransactionManager(conn);
 
@@ -79,6 +81,7 @@ public class ConnServlet extends HttpServlet {
         session.setAttribute("budgetManager", budgetManager);
         session.setAttribute("expenseManager", expenseManager);
         session.setAttribute("incomeManager", incomeManager);
+        session.setAttribute("dashboardManager", dashboardManager);
         session.setAttribute("savingsGoalManager", savingsGoalManager);
         session.setAttribute("transactionManager", transactionManager);
     }

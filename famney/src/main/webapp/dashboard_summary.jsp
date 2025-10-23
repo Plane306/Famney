@@ -1,10 +1,93 @@
-<%@ page import="model.User"%>
-<%@ page import="model.Family"%>
-<%-- Import your feature model here --%>
+<%@ page import="java.util.Map" %>
+<%@ page import="java.util.List" %>
+<%@ page import="java.util.HashMap" %>
+<%@ page import="java.util.Calendar" %>
+<%@ page import="model.User" %>
+<%@ page import="model.Family" %>
 
+<%
+    // Ensure user is logged in
+    User user = (User) session.getAttribute("user");
+    Family family = (Family) session.getAttribute("family");
+
+    if (user == null || family == null) {
+        response.sendRedirect("login.jsp");
+        return;
+    }
+
+    // Dashboard data from servlet
+    Map<String, Object> dashboardData = (Map<String, Object>) request.getAttribute("dashboardData");
+    if (dashboardData == null) {
+        dashboardData = new HashMap<>();
+    }
+
+    // Monthly summary
+    Map<String, Object> summary = new HashMap<>();
+    if (dashboardData.get("monthlySummary") instanceof Map) {
+        summary = (Map<String, Object>) dashboardData.get("monthlySummary");
+    }
+
+    // Top categories
+    List<Map<String, Object>> topCategories = null;
+    if (dashboardData.get("topCategories") instanceof List) {
+        topCategories = (List<Map<String, Object>>) dashboardData.get("topCategories");
+    }
+
+    // Financial trend
+    List<Map<String, Object>> trend = null;
+    if (dashboardData.get("financialTrend") instanceof List) {
+        trend = (List<Map<String, Object>>) dashboardData.get("financialTrend");
+    }
+
+    // Recent transactions
+    List<Map<String, Object>> recent = null;
+    if (dashboardData.get("recentTransactions") instanceof List) {
+        recent = (List<Map<String, Object>>) dashboardData.get("recentTransactions");
+    }
+
+    // Month/Year for display
+    Calendar cal = Calendar.getInstance();
+    int currentMonth = cal.get(Calendar.MONTH) + 1; 
+    int currentYear = cal.get(Calendar.YEAR);
+
+    String[] monthNames = {"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
+    Integer selectedMonth = (Integer) request.getAttribute("selectedMonth");
+    int selectedM = (selectedMonth != null) ? selectedMonth : currentMonth;
+    Integer selectedYear = (Integer) request.getAttribute("selectedYear");
+    int selectedY = (selectedYear != null) ? selectedYear : currentYear;
+
+
+
+    // Build JS arrays for Chart.js
+    StringBuilder labels = new StringBuilder("[");
+    StringBuilder incomeData = new StringBuilder("[");
+    StringBuilder expensesData = new StringBuilder("[");
+    if (trend != null) {
+        for (int i = 0; i < trend.size(); i++) {
+            Map<String, Object> t = trend.get(i);
+            labels.append("'").append(t.get("month")).append("/").append(t.get("year")).append("'");
+            incomeData.append(t.get("income"));
+            expensesData.append(t.get("expenses"));
+            if (i < trend.size() - 1) {
+                labels.append(",");
+                incomeData.append(",");
+                expensesData.append(",");
+            }
+        }
+    }
+    labels.append("]");
+    incomeData.append("]");
+    expensesData.append("]");
+%>
 <html>
     <head>
-        <title>Your Feature Title - Famney</title>
+        <title>Dashboard - Famney</title>
+
+        <!-- Bootstrap CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+        <!-- Chart.js -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
         <style>
             * {
                 margin: 0;
@@ -12,21 +95,19 @@
                 box-sizing: border-box;
                 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             }
-            
+
             body {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                min-height: 100vh;
-                display: flex;
-                flex-direction: column;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background: #f5f7fa;
             }
-            
+
             /* Header */
             .header {
                 background: #2c3e50;
                 padding: 1rem 0;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                color: white;
             }
-            
+
             .nav-container {
                 max-width: 1200px;
                 margin: 0 auto;
@@ -35,195 +116,49 @@
                 align-items: center;
                 padding: 0 2rem;
             }
-            
+
             .logo {
                 font-size: 2rem;
                 font-weight: 700;
-                color: white;
                 text-decoration: none;
-            }
-            
-            .nav-menu {
-                display: flex;
-                gap: 2rem;
-            }
-            
-            .nav-menu a, .nav-menu span {
                 color: white;
-                text-decoration: none;
-                padding: 0.5rem 1rem;
-                border-radius: 25px;
-                transition: all 0.3s ease;
-                border: 2px solid transparent;
             }
-            
-            .nav-menu a:hover {
-                background: rgba(255, 255, 255, 0.2);
-                border-color: rgba(255, 255, 255, 0.3);
-            }
-            
+
+            .nav-menu a,
             .nav-menu span {
-                font-weight: 600;
-                opacity: 0.9;
-            }
-            
-            /* Main Container */
-            .main-container {
-                flex: 1;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                padding: 2rem;
-            }
-            
-            .content-box {
-                background: white;
-                padding: 3rem;
-                border-radius: 20px;
-                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-                max-width: 500px;
-                width: 100%;
-            }
-            
-            .content-header {
-                text-align: center;
-                margin-bottom: 2rem;
-            }
-            
-            .content-header h1 {
-                color: #2c3e50;
-                font-size: 2rem;
-                margin-bottom: 0.5rem;
-            }
-            
-            .content-header p {
-                color: #7f8c8d;
-                font-size: 1rem;
-            }
-            
-            .form-group {
-                margin-bottom: 1.5rem;
-            }
-            
-            .form-group label {
-                display: block;
-                margin-bottom: 0.5rem;
-                color: #2c3e50;
-                font-weight: 600;
-                font-size: 0.9rem;
-            }
-            
-            .form-group input {
-                width: 100%;
-                padding: 1rem;
-                border: 2px solid #ecf0f1;
-                border-radius: 10px;
-                font-size: 1rem;
-                transition: all 0.3s ease;
-                background: #fafafa;
-            }
-            
-            .form-group input:focus {
-                outline: none;
-                border-color: #667eea;
-                background: white;
-                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-            }
-            
-            .btn-primary {
-                width: 100%;
-                background: linear-gradient(135deg, #667eea, #764ba2);
                 color: white;
-                padding: 1rem;
-                border: none;
-                border-radius: 10px;
-                font-size: 1.1rem;
-                font-weight: 600;
-                cursor: pointer;
-                transition: all 0.3s ease;
-                margin-bottom: 1rem;
-            }
-            
-            .btn-primary:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
-            }
-            
-            .btn-secondary {
-                display: inline-block;
-                text-align: center;
-                width: 100%;
-                background: transparent;
-                color: #667eea;
-                padding: 1rem;
-                border: 2px solid #667eea;
-                border-radius: 10px;
-                font-size: 1rem;
-                font-weight: 600;
                 text-decoration: none;
-                transition: all 0.3s ease;
+                margin-left: 1rem;
             }
-            
-            .btn-secondary:hover {
-                background: #667eea;
-                color: white;
+
+            .main-container {
+                padding: 2rem;
+                max-width: 1200px;
+                margin: 0 auto;
             }
-            
-            .success-message {
-                background: #d4edda;
-                color: #155724;
+
+            .card {
+                border-radius: 15px;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
                 padding: 1rem;
-                border-radius: 10px;
-                margin-bottom: 1rem;
-                border: 1px solid #c3e6cb;
-                text-align: center;
+            }
+
+            .dashboard-title {
                 font-weight: 600;
-            }
-            
-            .error-message {
-                background: #f8d7da;
-                color: #721c24;
-                padding: 1rem;
-                border-radius: 10px;
                 margin-bottom: 1rem;
-                border: 1px solid #f5c6cb;
-                text-align: center;
             }
-            
-            /* Footer */
-            .footer {
+
+            footer.footer {
+                margin-top: 2rem;
+                padding: 1rem;
+                text-align: center;
                 background: #2c3e50;
                 color: white;
-                padding: 2rem;
-                text-align: center;
-            }
-            
-            /* Responsive */
-            @media (max-width: 768px) {
-                .content-box {
-                    margin: 1rem;
-                    padding: 2rem;
-                }
-                
-                .nav-menu {
-                    gap: 1rem;
-                }
+                border-radius: 5px;
             }
         </style>
     </head>
-    
     <body>
-        <%
-            // Check if user is logged in
-            User user = (User) session.getAttribute("user");
-            Family family = (Family) session.getAttribute("family");
-            
-            if (user == null || family == null) {
-                response.sendRedirect("login.jsp");
-                return;
-            }
-        %>
-        
         <header class="header">
             <div class="nav-container">
                 <a href="index.jsp" class="logo">Famney</a>
@@ -234,23 +169,225 @@
                 </nav>
             </div>
         </header>
-        
+
         <div class="main-container">
-            <div class="content-box">
-                <div class="content-header">
-                    <h1>Page Title</h1>
-                    <p>Page description</p>
+            <div class="mb-3">
+                <h4>Dashboard for <%= monthNames[selectedM - 1] %> <%= selectedY %></h4>
+            </div>
+
+            <!-- Month/Year Selection Form (Auto-submit + Loading Spinner) -->
+            <div class="mb-4 position-relative">
+                <!-- Overlay Spinner -->
+                <div id="loadingOverlay" 
+                    style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; 
+                            background:rgba(255,255,255,0.8); z-index:9999; 
+                            align-items:center; justify-content:center;">
+                    <div class="spinner-border text-primary" role="status" style="width:3rem; height:3rem;">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
                 </div>
-                
-                <!-- Fill your content feature here guys -->
-                
+
+                <form method="get" action="DashboardServlet" id="monthYearForm" class="row g-3 align-items-end">
+                    <div class="col-auto">
+                        <label for="monthSelect" class="form-label text-black fw-semibold">Month</label>
+                        <select name="month" id="monthSelect" class="form-select" onchange="autoSubmitForm()">
+                            <%
+                                for (int i = 0; i < 12; i++) {
+                                    int monthValue = i + 1; // 1..12
+                                    String sel = (selectedM == monthValue) ? "selected" : "";
+                            %>
+                                    <option value="<%= monthValue %>" <%= sel %>><%= monthNames[i] %></option>
+                            <%
+                                }
+                            %>
+
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <label for="yearSelect" class="form-label text-black fw-semibold">Year</label>
+                        <select name="year" id="yearSelect" class="form-select" onchange="autoSubmitForm()">
+                            <%
+                                for (int y = currentYear - 5; y <= currentYear + 1; y++) {
+                                    String sel = (selectedY == y) ? "selected" : "";
+                            %>
+                                <option value="<%= y %>" <%= sel %>><%= y %></option>
+                            <%
+                                }
+                            %>
+                        </select>
+                    </div>
+                </form>
             </div>
-        </div>
-        
+
+            <script>
+                function autoSubmitForm() {
+                    const overlay = document.getElementById('loadingOverlay');
+                    overlay.style.display = 'flex';
+                    document.getElementById('monthYearForm').submit();
+                }
+            </script>
+
+
+            <!-- Summary Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <h6>Total Income</h6>
+                        <h4 class="text-success">$<%= summary.get("totalIncome") != null ? summary.get("totalIncome") : " -" %></h4>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <h6>Total Expenses</h6>
+                        <h4 class="text-danger">$<%= summary.get("totalExpenses") != null ? summary.get("totalExpenses") : " -" %></h4>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <h6>Net Savings</h6>
+                        <h4 class="text-primary">$<%= summary.get("netSavings") != null ? summary.get("netSavings") : " -" %></h4>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <h6>Savings Rate</h6>
+                        <h4 class="text-info">
+                            <%
+                                Object rateObj = summary.get("savingsRate");
+                                if (rateObj instanceof Number) {
+                                    out.print(String.format("%.1f", ((Number) rateObj).doubleValue()) + "%");
+                                } else {
+                                    out.print("- %");
+                                }
+                            %>
+                        </h4>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trend Chart -->
+            <div class="card mb-4">
+                <h5 class="dashboard-title">Income vs Expenses (Last 6 Months)</h5>
+                <canvas id="trendChart"></canvas>
+            </div>
+
+            <!-- Top Categories Table -->
+            <div class="card mb-4">
+                <h5 class="dashboard-title">Top Spending Categories</h5>
+                <table class="table table-striped table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Category</th>
+                            <th>Amount ($)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <%
+                            if (topCategories != null && !topCategories.isEmpty()) {
+                                for (Map<String, Object> cat : topCategories) {
+                        %>
+                                    <tr>
+                                        <td><%= cat.get("categoryName") %></td>
+                                        <td><%= cat.get("totalSpent") %></td>
+                                    </tr>
+                        <%
+                                }
+                            } else {
+                        %>
+                                <tr><td colspan="2" class="text-center text-muted">No data available</td></tr>
+                        <%
+                            }
+                        %>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Recent Transactions Section -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>Recent Transactions</h3>
+                </div>
+                <div class="card-body">
+                    <%
+                        List<Map<String, Object>> recentTransactions = null;
+                        if (dashboardData.get("recentTransactions") instanceof List) {
+                            recentTransactions = (List<Map<String, Object>>) dashboardData.get("recentTransactions");
+                        }
+
+                        if (recentTransactions == null || recentTransactions.isEmpty()) {
+                    %>
+                        <p>No recent transactions found.</p>
+                    <%
+                        } else {
+                    %>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Date</th>
+                                <th>Category</th>
+                                <th>Description</th>
+                                <th>Amount ($)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <%
+                                for (Map<String, Object> tx : recentTransactions) {
+                                    String type = (String) tx.get("type");
+                                    String rawDate = (String) tx.get("date");
+                                    String date = (rawDate != null && rawDate.length() >= 10) ? rawDate.substring(0, 10) : rawDate;
+                                    String category = (String) tx.get("categoryName");
+                                    String description = (String) tx.get("description");
+                                    double amount = (Double) tx.get("amount");
+                            %>
+                            <tr>
+                                <td>
+                                    <span class="<%= "Income".equals(type) ? "text-success" : "text-danger" %>">
+                                        <%= type %>
+                                    </span>
+                                </td>
+                                <td><%= date %></td>
+                                <td><%= category %></td>
+                                <td><%= description %></td>
+                                <td><%= String.format("%.2f", amount) %></td>
+                            </tr>
+                            <%
+                                }
+                            %>
+                        </tbody>
+                    </table>
+                    <%
+                        }
+                    %>
+                </div>
+            </div>
+
+        <!-- Chart.js Script -->
+        <script>
+            const labels = <%= labels %>;
+            const income = <%= incomeData %>;
+            const expenses = <%= expensesData %>;
+
+            new Chart(document.getElementById('trendChart'), {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Income', data: income, borderColor: 'rgba(75, 192, 192, 1)', tension: 0.3, fill: false },
+                        { label: 'Expenses', data: expenses, borderColor: 'rgba(255, 99, 132, 1)', tension: 0.3, fill: false }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'bottom' } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        </script>
+
         <footer class="footer">
-            <div class="container">
-                <p>&copy; 2025 Famney - Family Financial Management System</p>
-            </div>
+            &copy; 2025 Famney - Family Financial Management System
         </footer>
+
     </body>
 </html>
