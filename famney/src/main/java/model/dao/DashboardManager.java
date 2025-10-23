@@ -142,11 +142,16 @@ public class DashboardManager {
         String yearStr = String.valueOf(year);
         String expenseDateExpr = getDateExpr("expenseDate");
 
-        String sql = "SELECT category AS categoryName, SUM(amount) AS totalSpent " +
-             "FROM Expenses " +
-             "WHERE familyId=? AND strftime('%m', " + expenseDateExpr + ")=? " +
-             "AND strftime('%Y', " + expenseDateExpr + ")=? AND isActive=1 " +
-             "GROUP BY category ORDER BY totalSpent DESC LIMIT ?";
+        String sql = "SELECT c.categoryName AS categoryName, SUM(e.amount) AS totalSpent " +
+             "FROM Expenses e " +
+             "JOIN Categories c ON e.categoryId = c.categoryId " +
+             "WHERE e.familyId = ? " +
+             "AND strftime('%m', " + expenseDateExpr + ") = ? " +
+             "AND strftime('%Y', " + expenseDateExpr + ") = ? " +
+             "AND e.isActive = 1 " +
+             "GROUP BY c.categoryName " +
+             "ORDER BY totalSpent DESC " +
+             "LIMIT ?";
 
 
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
@@ -178,14 +183,29 @@ public class DashboardManager {
         String incomeDateExpr = getDateExpr("incomeDate");
         String expenseDateExpr = getDateExpr("expenseDate");
 
-        String sql = "SELECT 'Income' AS type, " + incomeDateExpr + " AS date, amount, description, category AS categoryName " +
-             "FROM Incomes WHERE familyId=? AND isActive=1 " +
-             "UNION ALL " +
-             "SELECT 'Expense' AS type, " + expenseDateExpr + " AS date, amount, description, category AS categoryName " +
-             "FROM Expenses WHERE familyId=? AND isActive=1 " +
-             "ORDER BY date DESC LIMIT ?";
-
-
+        String sql =
+            "SELECT * FROM (" +
+            "   SELECT 'Income' AS type, " +
+            "          datetime(" + incomeDateExpr + ", 'unixepoch') AS date, " +
+            "          i.amount, i.description, " +
+            "          COALESCE(c.categoryName, i.category) AS categoryName " +
+            "   FROM Incomes i " +
+            "   LEFT JOIN Categories c ON i.category = c.categoryId " +
+            "   WHERE i.familyId = ? AND i.isActive = 1 " +
+            "   " +
+            "   UNION ALL " +
+            "   " +
+            "   SELECT 'Expense' AS type, " +
+            "          datetime(" + expenseDateExpr + ", 'unixepoch') AS date, " +
+            "          e.amount, e.description, " +
+            "          COALESCE(c.categoryName, e.category) AS categoryName " +
+            "   FROM Expenses e " +
+            "   LEFT JOIN Categories c ON e.category = c.categoryId " +
+            "   WHERE e.familyId = ? AND e.isActive = 1 " +
+            ") " +
+            "ORDER BY date DESC " +
+            "LIMIT ?";
+            
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, familyId);
             pstmt.setString(2, familyId);
