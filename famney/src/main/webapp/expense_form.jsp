@@ -238,7 +238,7 @@
                     </div>
                     <div class="form-group">
                         <label for="amount">Amount</label>
-                        <input type="number" id="amount" name="amount" step="0.01" required placeholder="e.g. 25.00" />
+            <input type="number" id="amount" name="amount" step="0.01" min="0.1" required placeholder="e.g. 25.00" />
                     </div>
                     <div class="form-group">
                         <label for="description">Description</label>
